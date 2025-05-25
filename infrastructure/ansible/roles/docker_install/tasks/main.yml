@@ -36,11 +36,25 @@
           - ansible_os_family == 'Alpine'
           - docker_installed.rc != 0
 
-- name: Запустить Docker
-  service:
-    name: docker
-    state: started
-    enabled: yes
+- name: Launch Docker
+  block:
+      - name: Запустить Docker (Debian)
+        systemd:
+          name: docker
+          state: started
+          enabled: yes
+        when: ansible_os_family == "Debian"
+
+      - name: Запустить Docker (RedHat)
+        service:
+          name: docker
+          state: started
+          enabled: yes
+        when: ansible_os_family == "RedHat"
+
+      - name: Запустить Docker (Alpine)
+        shell: rc-service docker start
+        when: ansible_os_family == "Alpine"
 
 - name: Добавить пользователя в группу Docker
   user:
