@@ -243,7 +243,6 @@ rollback_deploy_prod:
     - git checkout $(git log --merges origin/main --pretty=format:"%H" | sed -n 2p)
     - !reference [.ansible_config, script]
     - make deploy ENV=prod
-  needs: [rollback_infra_prod]
   when: manual
   allow_failure: false
   rules:
