@@ -43,6 +43,7 @@
           name: docker
           state: started
           enabled: yes
+        when: ansible_os_family == "Debian"
 
       - name: Запустить Docker (RedHat)
         systemd:
