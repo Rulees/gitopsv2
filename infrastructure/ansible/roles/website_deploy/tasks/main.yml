@@ -1,0 +1,89 @@
+---
+
+
+  # - debug:
+  #     var: work_dir
+  
+- name: Create dirs/files on remote_vm
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ docker_build_path }}"
+    - "{{ secret_admin_dir }}"
+    - "{{ secret_ops_dir }}"
+    - "{{ secret_dev_dir }}"
+    - "{{ secret_prod_dir }}"
+
+- name: Send Docker build context to remote host # {work_dir}/projects/{app}/{service}
+  synchronize:
+    src: "{{ docker_build_path }}/"
+    dest: "{{ docker_build_path }}"
+    mode: push
+    recursive: yes
+    rsync_opts:
+      - "--delete"
+  delegate_to: localhost  
+
+- name: SEND SECRETS
+  block:
+      - name: DEFAULT
+        block:
+                  - name: Create env secret file
+                    copy:
+                      src: "{{ secret_env_file }}"
+                      dest: "{{ remote_env_file }}"
+                      mode: '0644'
+                      force: true
+      - name: CUSTOM
+        block:
+                  - name: Upload Yandex Certificate SA Key to remote host
+                    copy:
+                      src: "{{ sa_certificate_key_file }}"
+                      dest: "{{ sa_certificate_key_file }}"
+                      mode: '0600'
+
+
+                  - name: Add SA_KEY_FILE to remote .env
+                    lineinfile:
+                      path: "{{ remote_env_file }}"
+                      line: "SA_KEY_FILE={{ sa_certificate_key_file }}"
+                      create: yes
+
+  
+
+- name: Build + Run Docker container
+  block:
+      - name: Build Docker image
+        docker_image:
+          name: "{{ image_name }}"
+          build:
+            path: "{{ docker_build_path }}"
+          source: build
+          force_source: true
+          force_tag: true
+
+      # - debug:
+      #     var: docker_ports
+
+      # - debug:
+      #     var: remote_env_file    
+            
+      # - debug:
+      #     var: sa_certificate_key_file     
+
+
+      - name: Launch/Relaunch Docker container
+        docker_container:
+          name: "{{ container_name }}"
+          image: "{{ image_name }}"
+          state: started
+          restart_policy: always
+          env_file: "{{ remote_env_file }}"
+          ports:
+            - 80:80
+            - 443:443
+          volumes:
+            - "{{ sa_certificate_key_file }}:{{ sa_certificate_key_file }}:ro" # remote vm > remote container
+          recreate: yes

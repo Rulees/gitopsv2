@@ -1,0 +1,27 @@
+ansible_user: melnikov
+ansible_ssh_port: 22
+ansible_host_key_checking: false
+ansible_python_interpreter: /usr/bin/python3
+
+work_dir: "{{ lookup('env', 'WORK_DIR') }}" 
+
+# SECRETS
+secret_admin_dir: "{{ work_dir }}/secrets/admin" 
+secret_ops_dir: "{{ work_dir }}/secrets/ops"
+secret_dev_dir: "{{ work_dir }}/secrets/dev"
+secret_prod_dir: "{{ work_dir }}/secrets/prod"
+
+# secret_dirs:
+#   - "{{ secret_admin_dir }}"
+#   - "{{ secret_ops_dir }}"
+#   - "{{ secret_dev_dir }}"
+#   - "{{ secret_prod_dir }}"
+
+secret_env_file: "{{ work_dir }}/secrets/{{ env }}/{{ app }}/{{ service }}/.env"
+remote_env_file: /tmp/.env
+
+
+# DOCKER
+docker_build_path: "{{ work_dir }}/projects/{{ app }}/{{ service }}"
+image_name: "{{ service }}_image"
+container_name: "{{ service }}_container"
