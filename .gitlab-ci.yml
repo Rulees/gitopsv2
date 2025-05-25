@@ -5,8 +5,7 @@ stages:
   - approve
   - create_prod
   - deploy_prod
-  - rollback_prod
-  - destroy
+  - manual
 
 
 variables:
@@ -212,9 +211,9 @@ deploy_prod:
 
 
 
-
+# MANUAL_JOBS>>>
 rollback_infra_prod:
-  stage: rollback_prod
+  stage: manual
   image: alpine/terragrunt:tf1.11.4
   variables:
     SOPS_KEYS: "admin"
@@ -233,7 +232,7 @@ rollback_infra_prod:
 
 
 rollback_deploy_prod:
-  stage: rollback_prod
+  stage: manual
   image: arkselen/ci:v2
   variables:
     SOPS_KEYS: "admin ops prod"
@@ -252,7 +251,7 @@ rollback_deploy_prod:
 
 
 destroy_dev:
-  stage: destroy
+  stage: manual
   image: alpine/terragrunt:tf1.11.4
   variables:
     SOPS_KEYS: "admin"
@@ -268,7 +267,7 @@ destroy_dev:
 
 
 destroy_prod:
-  stage: destroy
+  stage: manual
   image: alpine/terragrunt:tf1.11.4
   variables:
     SOPS_KEYS: "admin"
