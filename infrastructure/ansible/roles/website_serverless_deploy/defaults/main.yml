@@ -1,0 +1,10 @@
+# Env file for reading by docker to know where secrets are stored
+# remote_env_file: /tmp/.env
+# Path for cert-FILE locally and on vm(same path)
+# sa_certificate_key_file: "{{ secret_ops_dir }}/yc_cert_downloader_sa_key.json"
+# Path for cert-DIR inside container
+
+# DOCKER
+docker_build_platform: "linux/amd64"
+registry_id: "{{ lookup('env', 'REGISTRY_ID') }}"
+tag: cr.yandex/{{ registry_id }}/{{ app }}-{{ service }}:latest

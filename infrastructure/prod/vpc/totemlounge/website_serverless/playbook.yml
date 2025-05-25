@@ -1,0 +1,10 @@
+---
+- name: Deploy website serverless
+  hosts: localhost
+  connection: local
+  become: true
+  roles:
+    - docker_install
+    - website_serverless_deploy
+
+   

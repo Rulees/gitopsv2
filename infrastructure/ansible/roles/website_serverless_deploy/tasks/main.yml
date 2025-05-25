@@ -1,0 +1,36 @@
+---
+# Localhost or GitLab_Runner
+- name: Read Local Env secret file
+  slurp:
+    src: "{{ secret_env_file }}"
+  register: env_raw
+
+- name: Convert .env to Docker build args (safe version)
+  set_fact:
+    docker_build_args: "{{ docker_build_args | default({}) | combine({ item.split('=')[0]: item.split('=')[1] }) }}"
+  loop: "{{ env_raw.content | b64decode | split('\n') }}"
+  when: item is match('^[^#].*=.*')
+
+- name: Build Docker image locally
+  docker_image:
+    name: "{{ image_name }}"
+    build:
+      path: "{{ docker_build_path }}"
+      args: "{{ docker_build_args }}"
+      platform: "{{docker_build_platform}}"
+    source: build
+    force_source: true
+    force_tag: true
+
+- debug:
+      var: tag
+
+- name: Tag Docker image for Yandex Container Registry
+  command: docker tag {{ image_name }} {{ tag }}
+
+
+- name: Push Docker image to Yandex Container Registry
+  docker_image:
+    name: "{{ tag }}"
+    source: pull
+    push: true
