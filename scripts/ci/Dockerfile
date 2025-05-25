@@ -22,7 +22,8 @@ RUN apk update && apk add --no-cache \
     sed \
     docker \
     rsync \
-    openssl
+    openssl \
+    openrc
 
 RUN pip install --break-system-packages --upgrade ansible
 
