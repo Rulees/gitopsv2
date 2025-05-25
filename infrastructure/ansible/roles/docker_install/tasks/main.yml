@@ -11,50 +11,42 @@
 
 - name: Install Docker
   block:
-      - name: Установить Docker (Ubuntu)
-        apt:
-          name: docker.io
-          state: present
-          update_cache: yes
-        when:
-          - ansible_facts['os_family'] == "Debian"
-          - docker_installed.rc != 0
+    - name: Установить Docker
+      package:
+        name: docker.io
+        state: present
 
-      - name: Установить Docker (Fedora)
-        dnf:
-          name: docker
-          state: present
-        when: 
-          - ansible_facts['os_family'] == "RedHat"
-          - docker_installed.rc != 0
+      # - name: Установить Docker (Ubuntu)
+      #   apt:
+      #     name: docker.io
+      #     state: present
+      #     update_cache: yes
+      #   when:
+      #     - ansible_facts['os_family'] == "Debian"
+      #     - docker_installed.rc != 0
 
-      - name: Установить Docker (Alpine)
-        apk:
-          name: docker
-          state: present
-        when:
-          - ansible_os_family == 'Alpine'
-          - docker_installed.rc != 0
+      # - name: Установить Docker (Fedora)
+      #   dnf:
+      #     name: docker
+      #     state: present
+      #   when: 
+      #     - ansible_facts['os_family'] == "RedHat"
+      #     - docker_installed.rc != 0
 
-- name: Launch Docker
-  block:
-      - name: Запустить Docker (Debian)
-        systemd:
-          name: docker
-          state: started
-          enabled: yes
-        when: ansible_os_family == "Debian"
+      # - name: Установить Docker (Alpine)
+      #   apk:
+      #     name: docker
+      #     state: present
+      #   when:
+      #     - ansible_os_family == 'Alpine'
+      #     - docker_installed.rc != 0
 
-      - name: Запустить Docker (RedHat)
-        systemd:
-          name: docker
-          state: started
-          enabled: yes
-        when: ansible_os_family == "RedHat"
 
-      - name: Запустить Docker (Alpine)
-        shell: rc-service docker start
-        when: ansible_os_family == "Alpine"
+- name: Запустить Docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
 
 - name: Добавить пользователя в группу Docker
   user:
