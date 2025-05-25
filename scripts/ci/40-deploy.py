@@ -18,7 +18,7 @@ async def run_playbook(m):
 
     if not playbook.exists():
         print(f"⚠️ Skipping {group}: playbook not found at {playbook}")
-        return
+        return 1
 
     print(f"\n🚀 [DEPLOY] {group} → {playbook}")
 
@@ -53,6 +53,9 @@ async def run_playbook(m):
         print(f"✅✅✅✅✅ Ansible succeeded for {group}")
         print(stdout.decode())
 
+    return proc.returncode
+
+
 async def main():
     os.chdir(find_project_root())
 
@@ -70,7 +73,11 @@ async def main():
         print(f" - {build_group_name(m['env'], m['app'], m['service'])}")
 
     # Run all deployments concurrently
-    await asyncio.gather(*(run_playbook(m) for m in matches))
+    results = await asyncio.gather(*(run_playbook(m) for m in matches))
+
+    if any(code != 0 for code in results):
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
