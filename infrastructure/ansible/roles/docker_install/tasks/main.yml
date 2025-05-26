@@ -55,6 +55,7 @@
       - name: Запустить Docker (Alpine)
         shell: rc-service docker start
         when: ansible_os_family == "Alpine"
+        failed_when: start_docker.rc != 0 and "'already starting' not in start_docker.stderr"
 
 - name: Добавить пользователя в группу Docker
   user:
