@@ -24,8 +24,7 @@ RUN apk update && apk add --no-cache \
     rsync \
     openssl \
     openrc \
-    unzip \
-    wget
+    unzip
 
 ARG TF_VERSION=1.11.1
 ARG TG_VERSION=0.80.2

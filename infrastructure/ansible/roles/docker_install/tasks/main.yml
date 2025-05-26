@@ -52,18 +52,6 @@
           enabled: yes
         when: ansible_os_family == "RedHat"
 
-      - name: Запустить Docker (Alpine)
-        shell: |
-            if ! pgrep dockerd > /dev/null; then
-              rc-service docker start
-            else
-              echo "Docker уже работает."
-            fi
-        register: docker_launch
-        changed_when: "'Docker уже работает' not in docker_launch.stdout"
-        failed_when: false
-        when: ansible_os_family == "Alpine"
-
 - name: Добавить пользователя в группу Docker
   user:
     name: "{{ ansible_user }}"
