@@ -1,7 +1,7 @@
 # cd /root/project_gitlab/scripts/ci
 # docker build -t arkselen/ci .
-# docker tag arkselen/ci:v2
-# docker push arkselen/ci:v2
+# docker tag arkselen/ci arkselen/ci:v3
+# docker push arkselen/ci:v3
 
 FROM alpine/terragrunt:tf1.12.1
 
@@ -42,5 +42,5 @@ RUN terragrunt -v && \
     sops -v && \
     yc --version && \
     ansible --version && \
-    docker --version
+    docker --version && \
     rsync --version
