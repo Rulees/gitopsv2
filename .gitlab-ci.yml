@@ -150,7 +150,7 @@ create_dev:
 
 deploy_dev:
   stage: deploy_dev
-  image: arkselen/ci:v3
+  image: arkselen/ci:v4
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"
@@ -198,7 +198,7 @@ create_prod:
 
 deploy_prod:
   stage: deploy_prod
-  image: arkselen/ci:v3
+  image: arkselen/ci:v4
   variables:
     ENV: "prod"
     SOPS_KEYS: "admin ops prod"
@@ -233,7 +233,7 @@ rollback_infra_prod:
 
 rollback_deploy_prod:
   stage: manual
-  image: arkselen/ci:v3
+  image: arkselen/ci:v4
   variables:
     SOPS_KEYS: "admin ops prod"
     ENV: "prod"
