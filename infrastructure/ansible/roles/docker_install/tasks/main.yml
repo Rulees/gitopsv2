@@ -52,18 +52,17 @@
           enabled: yes
         when: ansible_os_family == "RedHat"
 
-      - name: Проверить, запущен ли Docker (Alpine)
-        shell: rc-service docker status
-        changed_when: false
+      - name: Запустить Docker, если он не запущен
+        shell: |
+            if ! pgrep dockerd > /dev/null; then
+              rc-service docker start
+            else
+              echo "Docker уже работает."
+            fi
+        register: docker_launch
+        changed_when: "'Docker уже работает' not in docker_launch.stdout"
         failed_when: false
         when: ansible_os_family == "Alpine"
-        register: docker_status
-
-      - name: Запустить Docker, если он не запущен
-        shell: rc-service docker start
-        when:
-          - ansible_os_family == "Alpine"
-          - "'started' not in docker_status.stdout"
 
 - name: Добавить пользователя в группу Docker
   user:
