@@ -3,7 +3,7 @@
 # docker tag arkselen/ci arkselen/ci:v3
 # docker push arkselen/ci:v3
 
-FROM alpine/terragrunt:tf1.12.1
+FROM alpine/ansible:2.18.1
 
 # Обновляем и ставим базовые пакеты
 RUN apk update && apk add --no-cache \
@@ -23,9 +23,24 @@ RUN apk update && apk add --no-cache \
     docker \
     rsync \
     openssl \
-    openrc
+    openrc \
+    unzip \
+    wget
 
-RUN pip install --break-system-packages --upgrade ansible
+ARG TF_VERSION=1.11.1
+ARG TG_VERSION=0.80.2
+
+# Установка Terraform
+RUN curl -o terraform.zip -SLf https://hashicorp-releases.yandexcloud.net/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
+        unzip terraform.zip && \
+        mv terraform /usr/local/bin/terraform && \
+        chmod +x /usr/local/bin/terraform && \
+        rm terraform.zip
+
+# Установка Terragrunt
+RUN curl -o /usr/local/bin/terragrunt -SLf https://github.com/gruntwork-io/terragrunt/releases/download/v${TG_VERSION}/terragrunt_linux_amd64 && \
+    chmod +x /usr/local/bin/terragrunt
+
 
 # Установка yc CLI (последняя)
 RUN curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash && \

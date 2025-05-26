@@ -52,7 +52,7 @@
           enabled: yes
         when: ansible_os_family == "RedHat"
 
-      - name: Запустить Docker, если он не запущен
+      - name: Запустить Docker (Alpine)
         shell: |
             if ! pgrep dockerd > /dev/null; then
               rc-service docker start
