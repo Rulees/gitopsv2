@@ -120,44 +120,44 @@ cache:
 
     - echo "📦 PWD                          >>>     $(echo ${REGISTRY_ID})"
 
-# check_secrets:
-#   stage: check_secrets
-#   image: frolvlad/alpine-bash
-#   before_script: 
-#     - !reference [.install_default_deps, before_script]
-#   script:
-#     - make check_secrets
-#   rules:
-#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+check_secrets:
+  stage: check_secrets
+  image: frolvlad/alpine-bash
+  before_script: 
+    - !reference [.install_default_deps, before_script]
+  script:
+    - make check_secrets
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
-# create_dev:
-#   stage: create_dev
-#   image: alpine/terragrunt:tf1.11.4
-#   variables:
-#     SOPS_KEYS: "admin"  
-#   before_script: 
-#     - !reference [.install_default_deps, before_script]
-#   script:
-#     - !reference [.terragrunt_config, script]
-#     - make create ENV=dev
-#   needs: [check_secrets]
-#   rules:
-#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+create_dev:
+  stage: create_dev
+  image: alpine/terragrunt:tf1.11.4
+  variables:
+    SOPS_KEYS: "admin"  
+  before_script: 
+    - !reference [.install_default_deps, before_script]
+  script:
+    - !reference [.terragrunt_config, script]
+    - make create ENV=dev
+  needs: [check_secrets]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
 
 
 deploy_dev:
   stage: deploy_dev
-  image: arkselen/ci:v4
+  image: arkselen/ci:v6
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"
   script:
     - !reference [.ansible_config, script]
     - make deploy ENV=dev
-  # needs: [create_dev]
+  needs: [create_dev]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
@@ -198,7 +198,7 @@ create_prod:
 
 deploy_prod:
   stage: deploy_prod
-  image: arkselen/ci:v4
+  image: arkselen/ci:v6
   variables:
     ENV: "prod"
     SOPS_KEYS: "admin ops prod"
@@ -233,7 +233,7 @@ rollback_infra_prod:
 
 rollback_deploy_prod:
   stage: manual
-  image: arkselen/ci:v4
+  image: arkselen/ci:v6
   variables:
     SOPS_KEYS: "admin ops prod"
     ENV: "prod"

@@ -5,6 +5,9 @@
 
 FROM alpine/ansible:2.18.1
 
+ARG TF_VERSION=1.11.1
+ARG TG_VERSION=0.80.2
+
 # Обновляем и ставим базовые пакеты
 RUN apk update && apk add --no-cache \
     bash \
@@ -20,14 +23,10 @@ RUN apk update && apk add --no-cache \
     openssh \
     grep \
     sed \
-    docker \
     rsync \
     openssl \
     openrc \
     unzip
-
-ARG TF_VERSION=1.11.1
-ARG TG_VERSION=0.80.2
 
 # Установка Terraform
 RUN curl -o terraform.zip -SLf https://hashicorp-releases.yandexcloud.net/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
@@ -56,5 +55,4 @@ RUN terragrunt -v && \
     sops -v && \
     yc --version && \
     ansible --version && \
-    docker --version && \
     rsync --version
