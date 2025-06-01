@@ -25,6 +25,9 @@ infrastructure/ansible/roles/docker_install
 infrastructure/ansible/roles/telegrambot_deploy
 infrastructure/ansible/roles/website_deploy
 infrastructure/ansible/roles/website_serverless_deploy
+infrastructure/ansible/roles/consul_agent
+infrastructure/ansible/roles/consul_server
+infrastructure/ansible/roles/consul_nginx_configure
 
 infrastructure/ansible/playbooks
 
@@ -36,6 +39,7 @@ infrastructure/dev/network
 infrastructure/dev/sg
 infrastructure/dev/gw
 infrastructure/dev/registry
+infrastructure/dev/consul_server
 infrastructure/dev/vpc
 
 infrastructure/prod
@@ -43,10 +47,15 @@ infrastructure/prod/network
 infrastructure/prod/sg
 infrastructure/prod/gw
 infrastructure/prod/registry
+infrastructure/prod/consul_server
 infrastructure/prod/vpc
 
 infrastructure/dev/vpc/totemlounge/telegrambot
+infrastructure/dev/vpc/totemlounge/website
+infrastructure/dev/vpc/totemlounge/website_serverless
 infrastructure/prod/vpc/totemlounge/telegrambot
+infrastructure/prod/vpc/totemlounge/website
+infrastructure/prod/vpc/totemlounge/website_serverless
 
 projects/totemlounge/telegrambot/
 projects/totemlounge/telegrambot/main.py

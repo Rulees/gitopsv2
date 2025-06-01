@@ -1,0 +1,54 @@
+- name: Check if consul-template is already installed
+  stat:
+    path: /usr/local/bin/consul-template
+  register: consul_template_installed
+
+- name: Download consul-template
+  get_url:
+    url: "https://releases.hashicorp.com/consul-template/{{ consul_template_version }}/consul-template_{{ consul_template_version }}_linux_amd64.zip"
+    dest: "/tmp/consul-template.zip"
+  when: not consul_template_installed.stat.exists
+
+- name: Install consul-template
+  unarchive:
+    src: "/tmp/consul-template.zip"
+    dest: "/usr/local/bin/"
+    remote_src: yes
+    mode: 0755
+  when: not consul_template_installed.stat.exists
+
+- name: Create template dir
+  file:
+    path: /etc/consul-template
+    state: directory
+
+- name: Add upstream template file
+  copy:
+    dest: "{{ consul_template_template_path }}"
+    content: |
+      upstream {{ consul_template_watch_service }}_upstream {
+      {{ range service "{{ consul_template_watch_service }}" }}
+        server {{ .Address }}:{{ .Port }};
+      {{ end }}
+      }
+
+- name: Add consul-template config
+  copy:
+    dest: /etc/consul-template/config.hcl
+    content: |
+      template {
+        source = "{{ consul_template_template_path }}"
+        destination = "{{ consul_template_output_path }}"
+        command = "{{ consul_template_reload_command }}"
+        perms = 0644
+        wait {
+          min = "2s"
+          max = "10s"
+        }
+      }
+
+- name: Start consul-template
+  shell: |
+    nohup consul-template -config /etc/consul-template/config.hcl > /tmp/consul-template.log 2>&1 &
+  args:
+    creates: /tmp/consul-template.log

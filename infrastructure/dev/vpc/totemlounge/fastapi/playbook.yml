@@ -1,0 +1,10 @@
+---
+- name: Deploy fastapi backend
+  hosts: all
+  become: true
+  roles:
+    - docker_install
+    - fastapi_deploy
+    - consul_agent
+
+   

@@ -1,0 +1,5 @@
+consul_template_version: "0.40.0"
+consul_template_template_path: "/etc/consul-template/upstream.conf.ctmpl"
+consul_template_output_path: "/etc/nginx/conf.d/upstream.conf"
+consul_template_reload_command: "nginx -s reload"
+consul_template_watch_service: "fastapi"

@@ -1,0 +1,51 @@
+- name: Install unzip (if needed)
+  apt:
+    name: unzip
+    state: present
+    update_cache: yes
+
+- name: Check if consul is already installed
+  stat:
+    path: /usr/local/bin/consul
+  register: consul_installed
+
+- name: Download Consul
+  get_url:
+    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
+    dest: "/tmp/consul.zip"
+  when: not consul_installed.stat.exists
+
+- name: Install Consul binary
+  unarchive:
+    src: "/tmp/consul.zip"
+    dest: "/usr/local/bin/"
+    remote_src: yes
+    mode: 0755
+  when: not consul_installed.stat.exists
+
+- name: Create Consul config directory
+  file:
+    path: /etc/consul.d
+    state: directory
+
+- name: Register service in Consul
+  copy:
+    dest: /etc/consul.d/{{ consul_service_name }}.json
+    content: |
+      {
+        "service": {
+          "name": "{{ consul_service_name }}",
+          "tags": {{ consul_service_tags | to_json }},
+          "port": {{ consul_service_port }},
+          "check": {
+            "http": "{{ consul_check_http }}",
+            "interval": "{{ consul_check_interval }}"
+          }
+        }
+      }
+
+- name: Start Consul agent
+  shell: |
+    nohup consul agent -bind={{ ansible_host }} -data-dir=/opt/consul -config-dir=/etc/consul.d > /tmp/consul.log 2>&1 &
+  args:
+    creates: /opt/consul
