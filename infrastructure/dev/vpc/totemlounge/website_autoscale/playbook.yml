@@ -1,0 +1,10 @@
+---
+- name: Deploy website
+  hosts: all
+  become: true
+  roles:
+    - docker_install
+    - website_deploy
+    - consul_nginx_configure
+
+   

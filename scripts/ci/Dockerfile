@@ -3,30 +3,49 @@
 # docker tag arkselen/ci arkselen/ci:v3
 # docker push arkselen/ci:v3
 
-FROM alpine/ansible:2.18.1
+# 25.04
+FROM ubuntu@sha256:79efa276fdefa2ee3911db29b0608f8c0561c347ec3f4d4139980d43b168d991
 
 ARG TF_VERSION=1.11.1
 ARG TG_VERSION=0.80.2
 
 # Обновляем и ставим базовые пакеты
-RUN apk update && apk add --no-cache \
+RUN apt update && apt install -y --no-install-recommends \
+    apt-transport-https \
+    ca-certificates \
     bash \
     git \
     curl \
+    gnupg \
     jq \
     python3 \
-    py3-pip \
-    py3-setuptools \
-    py3-wheel \
+    python3-pip \
+    python3-setuptools \
+    python3-wheel \
     make \
     coreutils \
-    openssh \
+    openssh-client \
     grep \
     sed \
     rsync \
+    unzip \
+    lsb-release \
+    software-properties-common \
     openssl \
-    openrc \
-    unzip
+    && apt clean && rm -rf /var/lib/apt/lists/*
+
+# Установка Docker через официальный репозиторий
+RUN curl -fSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
+    apt update && \
+    apt install -y --no-install-recommends docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Добавление root в группу docker
+RUN groupadd docker || true && usermod -aG docker root    
+
+# Установка Ansible
+RUN pip install --break-system-packages --upgrade ansible
+
 
 # Установка Terraform
 RUN curl -o terraform.zip -SLf https://hashicorp-releases.yandexcloud.net/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
@@ -55,4 +74,5 @@ RUN terragrunt -v && \
     sops -v && \
     yc --version && \
     ansible --version && \
+    docker --version && \
     rsync --version
