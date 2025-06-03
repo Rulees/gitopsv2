@@ -42,6 +42,21 @@ inputs = {
       ports          = [22]
       v4_cidr_blocks = ["0.0.0.0/0"]
     },
+    # CONSUL
+    {
+      direction      = "ingress"
+      description    = "Allow Consul RPC and HTTP API (8500, 8300)"
+      protocol       = "TCP"
+      ports          = [8000, 8300, 8301, 8302, 8500]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      direction      = "ingress"
+      description    = "Allow Consul Gossip UDP/TCP"
+      protocol       = "UDP"
+      ports          = [8301, 8302, 8600]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
     # Исходящие правила
     {
       direction      = "egress"
@@ -55,6 +70,21 @@ inputs = {
       description    = "Allow all outbound SSH"
       protocol       = "TCP"
       ports          = [22]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    # CONSUL
+    {
+      direction      = "egress"
+      description    = "Allow outbound to Consul Server API"
+      protocol       = "TCP"
+      ports          = [8000, 8300, 8301, 8302, 8500]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      direction      = "egress"
+      description    = "Allow outbound Consul DNS/Gossip UDP"
+      protocol       = "UDP"
+      ports          = [8301, 8302, 8600]
       v4_cidr_blocks = ["0.0.0.0/0"]
     }
   ]

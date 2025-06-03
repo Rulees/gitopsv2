@@ -1,36 +1,18 @@
-- name: Install unzip (if needed)
-  apt:
-    name: unzip
-    state: present
-    update_cache: yes
-
-- name: Check if consul is already installed
-  stat:
-    path: /usr/local/bin/consul
-  register: consul_installed
-
-- name: Download Consul
-  get_url:
-    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
-    dest: "/tmp/consul.zip"
-  when: not consul_installed.stat.exists
-
-- name: Install Consul binary
-  unarchive:
-    src: "/tmp/consul.zip"
-    dest: "/usr/local/bin/"
-    remote_src: yes
-    mode: 0755
-  when: not consul_installed.stat.exists
-
-- name: Create Consul config directory
+---
+- name: Create Consul data and config directories
   file:
-    path: /etc/consul.d
+    path: "{{ item }}"
     state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /opt/consul/config
+    - /opt/consul/data
 
-- name: Register service in Consul
+- name: Write service registration config
   copy:
-    dest: /etc/consul.d/{{ consul_service_name }}.json
+    dest: /opt/consul/config/{{ consul_service_name }}.json
     content: |
       {
         "service": {
@@ -44,8 +26,52 @@
         }
       }
 
-- name: Start Consul agent
-  shell: |
-    nohup consul agent -bind={{ ansible_host }} -data-dir=/opt/consul -config-dir=/etc/consul.d > /tmp/consul.log 2>&1 &
-  args:
-    creates: /opt/consul
+- name: Debug available groups
+  debug:
+    var: groups.keys()
+
+
+- name: Find Consul server group
+  set_fact:
+    consul_server_group: "{{ groups.keys() | select('search', 'service_consul_server') | select('search', env) | list | first }}"
+
+- name: Set Consul server IP
+  set_fact:
+    consul_server_ip: "{{ hostvars[groups[consul_server_group][0]].ansible_host }}"
+  when:
+    - consul_server_group is defined
+    - groups[consul_server_group] is defined
+    - groups[consul_server_group] | length > 0
+
+- name: Wait for Consul server leader election
+  uri:
+    url: "http://{{ consul_server_ip }}:8500/v1/status/leader"
+    method: GET
+  register: consul_leader
+  until: consul_leader.status == 200 and consul_leader.json != ""
+  retries: 15
+  delay: 2
+
+- name: Run Consul agent (client) in Docker
+  docker_container:
+    name: consul-client
+    image: hashicorp/consul:{{ consul_version }}
+    state: started
+    restart_policy: always
+    command: >
+      agent -client=0.0.0.0
+      -bind=0.0.0.0
+      -advertise={{ hostvars[inventory_hostname].ansible_default_ipv4.address }}
+      -retry-join={{ consul_server_ip }}
+      -data-dir=/consul/data
+      -config-dir=/consul/config
+    volumes:
+      - /opt/consul/config:/consul/config
+      - /opt/consul/data:/consul/data
+    ports:
+      - "8500:8500"
+      - "8600:8600"
+      - "8600:8600/udp"
+      - "8301:8301"
+      - "8301:8301/udp"
+    network_mode: host

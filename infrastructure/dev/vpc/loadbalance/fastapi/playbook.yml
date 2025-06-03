@@ -1,0 +1,14 @@
+# dependencies:
+#   - app: infra
+#     service: consul_server
+#     wait: true
+#     # path: "../../../consul_server/" # use path if no service for this
+
+
+- name: Deploy fastapi backend
+  hosts: all
+  become: true
+  roles:
+    - docker_install
+    - consul_agent
+    - fastapi

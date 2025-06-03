@@ -1,10 +1,10 @@
 ---
-- name: Deploy website
+- name: Deploy website with loadbalancing
   hosts: all
   become: true
   roles:
     - docker_install
-    - website_deploy
     - consul_nginx_configure
+    - website_deploy
 
    

@@ -86,4 +86,5 @@
             - 443:443
           volumes:
             - "{{ sa_certificate_key_file }}:{{ sa_certificate_key_file }}:ro" # remote vm > remote container
+            - "{{ consul_template_upstream }}:{{ nginx_upstream_dir }}:ro"
           recreate: yes

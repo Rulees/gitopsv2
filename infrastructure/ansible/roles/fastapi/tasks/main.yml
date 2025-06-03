@@ -1,0 +1,43 @@
+---
+- name: Create dirs/files on remote_vm
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ docker_build_path }}"
+
+- name: Send Docker build context to remote host # {work_dir}/projects/{app}/{service}
+  synchronize:
+    src: "{{ docker_build_path }}/"
+    dest: "{{ docker_build_path }}"
+    mode: push
+    recursive: yes
+    rsync_opts:
+      - "--delete"
+  delegate_to: localhost  
+
+  
+- name: Build + Run Docker container
+  block:
+      - name: Build Docker image
+        docker_image:
+          name: "{{ image_name }}"
+          build:
+            path: "{{ docker_build_path }}"
+          source: build
+          force_source: true
+          force_tag: true  
+
+
+      - name: Launch/Relaunch Docker container
+        docker_container:
+          name: "{{ container_name }}"
+          image: "{{ image_name }}"
+          state: started
+          restart_policy: always
+          # env_file: "{{ remote_env_file }}"
+          ports:
+            - 8000:8000
+          recreate: yes
+          network_mode: host

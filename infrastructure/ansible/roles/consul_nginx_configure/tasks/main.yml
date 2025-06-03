@@ -1,54 +1,98 @@
-- name: Check if consul-template is already installed
-  stat:
-    path: /usr/local/bin/consul-template
-  register: consul_template_installed
-
-- name: Download consul-template
-  get_url:
-    url: "https://releases.hashicorp.com/consul-template/{{ consul_template_version }}/consul-template_{{ consul_template_version }}_linux_amd64.zip"
-    dest: "/tmp/consul-template.zip"
-  when: not consul_template_installed.stat.exists
-
-- name: Install consul-template
-  unarchive:
-    src: "/tmp/consul-template.zip"
-    dest: "/usr/local/bin/"
-    remote_src: yes
-    mode: 0755
-  when: not consul_template_installed.stat.exists
-
-- name: Create template dir
+---
+- name: Create consul-template directories
   file:
-    path: /etc/consul-template
+    path: "{{ item }}"
     state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /opt/consul-template/config
+    - /opt/consul-template/templates
+    - /opt/consul-template/output
 
-- name: Add upstream template file
+- name: Set fact for service
+  set_fact:
+    service: "{{ service }}"
+
+
+# - name: Add consul-template template file
+#   copy:
+#     dest: /opt/consul-template/templates/nginx-upstream.ctmpl
+#     content: |
+#       upstream {{ service }}_upstream {
+#         {{ '{{' }} range service "{{ service }}" {{ '}}' }}
+#           server {{ '{{' }} .Address {{ '}}' }}:{{ '{{' }} .Port {{ '}}' }};
+#         {{ '{{' }} end {{ '}}' }}
+#       }
+
+- name: Add consul-template template file
   copy:
-    dest: "{{ consul_template_template_path }}"
+    dest: /opt/consul-template/templates/nginx-upstream.ctmpl
     content: |
-      upstream {{ consul_template_watch_service }}_upstream {
-      {{ range service "{{ consul_template_watch_service }}" }}
-        server {{ .Address }}:{{ .Port }};
-      {{ end }}
+      {{ '{{' }} $svc := service "{{ service }}" {{ '}}' }}
+      upstream {{ service }}_upstream {
+        {{ '{{' }} if gt (len $svc) 0 {{ '}}' }}
+          {{ '{{' }} range $svc {{ '}}' }}
+            server {{ '{{' }} .Address {{ '}}' }}:{{ '{{' }} .Port {{ '}}' }};
+          {{ '{{' }} end {{ '}}' }}
+        {{ '{{' }} else {{ '}}' }}
+            server 127.0.0.1:65535; # dummy fallback
+        {{ '{{' }} end {{ '}}' }}
       }
 
-- name: Add consul-template config
+
+- name: Find Consul server group
+  set_fact:
+    consul_server_group: "{{ groups.keys() | select('search', 'service_consul_server') | select('search', env) | list | first }}"
+
+- name: Set Consul server IP
+  set_fact:
+    consul_server_ip: "{{ hostvars[groups[consul_server_group][0]].ansible_host }}"
+  when:
+    - consul_server_group is defined
+    - groups[consul_server_group] is defined
+    - groups[consul_server_group] | length > 0
+
+- name: Add consul-template config file
   copy:
-    dest: /etc/consul-template/config.hcl
+    dest: /opt/consul-template/config/config.hcl
     content: |
+      consul {
+        address = "http://{{ consul_server_ip }}:8500"
+      }
+
       template {
-        source = "{{ consul_template_template_path }}"
+        source      = "/consul-template/templates/nginx-upstream.ctmpl"
         destination = "{{ consul_template_output_path }}"
-        command = "{{ consul_template_reload_command }}"
-        perms = 0644
+        command     = "{{ consul_template_reload_command }}"
+        perms       = 0644
+
         wait {
           min = "2s"
           max = "10s"
         }
       }
 
-- name: Start consul-template
-  shell: |
-    nohup consul-template -config /etc/consul-template/config.hcl > /tmp/consul-template.log 2>&1 &
-  args:
-    creates: /tmp/consul-template.log
+- name: Wait for Consul server to become available
+  wait_for:
+    host: "{{ consul_server_ip }}"
+    port: 8500
+    timeout: 20
+
+
+- name: Start consul-template in Docker
+  docker_container:
+    name: consul_template
+    image: arkselen/consul-template:{{ consul_template_version }}
+    state: started
+    restart_policy: always
+    user: "0:0"
+    command: >
+      -config=/consul-template/config/config.hcl
+    volumes:
+      - /opt/consul-template/templates:/consul-template/templates
+      - /opt/consul-template/output:/consul-template/output
+      - /opt/consul-template/config:/consul-template/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: host
