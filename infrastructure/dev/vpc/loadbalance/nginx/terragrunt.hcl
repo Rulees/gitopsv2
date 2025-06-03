@@ -32,6 +32,10 @@ dependency "sa_compute_viewer" {
   config_path                             = "../../../../sa_/compute_viewer"
 }
 
+dependency "fastapi" {
+  config_path = "../fastapi/"
+}
+
 
 locals {
   env            = include.root.locals.env_vars.locals.env
@@ -81,7 +85,7 @@ inputs = {
   # DNS(AUTO REDIRECT)
   dns = {
     zone_id                     = "dnsdejjcevumag5r1q11"
-    name                        = "dev.arkselen.ru."
+    name                        = "loadbalance.arkselen.ru."
     ttl                         = 60
   }
 

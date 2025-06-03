@@ -1,33 +1,46 @@
-- name: Check if Consul is already installed
-  stat:
-    path: /usr/local/bin/consul
-  register: consul_installed
-
-- name: Download Consul server
-  get_url:
-    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
-    dest: "/tmp/consul.zip"
-  when: not consul_installed.stat.exists
-
-- name: Install binary
-  unarchive:
-    src: "/tmp/consul.zip"
-    dest: "/usr/local/bin/"
-    remote_src: yes
-    mode: 0755
-  when: not consul_installed.stat.exists
-
-- name: Create Consul config directory
+---
+- name: Create Consul data and config directories
   file:
-    path: /etc/consul.d
+    path: "{{ item }}"
     state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /opt/consul/data
+    - /opt/consul/config
 
-- name: Start Consul in server mode
-  shell: |
-    nohup consul agent -server -bootstrap-expect=1 \
-      -bind={{ consul_bind_ip }} \
-      -data-dir=/opt/consul \
-      -ui \
-      -config-dir=/etc/consul.d > /tmp/consul-server.log 2>&1 &
-  args:
-    creates: /opt/consul
+# - name: Create docker network for consul
+#   docker_network:
+#     name: consul
+#     state: present
+
+- name: Run Consul server in Docker
+  docker_container:
+    name: consul-server
+    image: "hashicorp/consul:{{ consul_version }}"
+    state: started
+    restart_policy: always
+    command: >
+      agent -server -bootstrap-expect=1
+      -ui
+      -client=0.0.0.0
+      -bind=0.0.0.0
+      -advertise={{ ansible_host }}
+      -data-dir=/consul/data
+      -config-dir=/consul/config
+    ports:
+      - "8500:8500"
+      - "8300:8300"
+      - "8301:8301"
+      - "8301:8301/udp"
+      - "8302:8302"
+      - "8302:8302/udp"
+      - "8600:8600"
+      - "8600:8600/udp"
+    volumes:
+      - /opt/consul/data:/consul/data
+      - /opt/consul/config:/consul/config
+    # networks:
+    #   - name: consul
+    network_mode: host

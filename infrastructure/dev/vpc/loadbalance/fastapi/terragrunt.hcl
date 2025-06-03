@@ -24,12 +24,8 @@ dependency "sg" {
   }
 }
 
-dependency "sa_cert_downloader" {
-  config_path                             = "../../../../sa_/cert_downloader"
-}
-
-dependency "sa_compute_viewer" {
-  config_path                             = "../../../../sa_/compute_viewer"
+dependency "consul_server" {
+  config_path = "../../../consul_server/"
 }
 
 
@@ -77,13 +73,6 @@ inputs = {
     # nat_ip_address              = "158.160.39.80"
   }]
   # static_ip_ddos_protection     = true
-
-  # DNS(AUTO REDIRECT)
-  dns = {
-    zone_id                     = "dnsdejjcevumag5r1q11"
-    name                        = "dev.arkselen.ru."
-    ttl                         = 60
-  }
 
   # SSH
   enable_oslogin_or_ssh_keys = {
