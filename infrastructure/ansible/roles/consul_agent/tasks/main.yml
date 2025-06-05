@@ -49,8 +49,8 @@
     method: GET
   register: consul_leader
   until: consul_leader.status == 200 and consul_leader.json != ""
-  retries: 15
-  delay: 2
+  retries: 10 
+  delay: 5w
 
 - name: Run Consul agent (client) in Docker
   docker_container:
