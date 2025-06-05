@@ -54,10 +54,11 @@
 
 - name: Run Consul agent (client) in Docker
   docker_container:
-    name: consul-client
+    name: consul_client
     image: hashicorp/consul:{{ consul_version }}
     state: started
     restart_policy: always
+    recreate: yes
     command: >
       agent -client=0.0.0.0
       -bind=0.0.0.0

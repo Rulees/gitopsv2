@@ -94,6 +94,8 @@ for file in /etc/nginx/conf.d/*.template /etc/nginx/conf.d/.*.template; do
 done
 
 
-nginx &
-echo "---------Nginx launched"
-tail -f /var/log/nginx/access.log /var/log/nginx/error.log
+# nginx &
+echo "---------Nginx launching"
+nginx -g "daemon off;"
+# echo "---------Nginx launched"
+# tail -f /var/log/nginx/access.log /var/log/nginx/error.log

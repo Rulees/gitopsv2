@@ -11,10 +11,6 @@
     - /opt/consul-template/templates
     - /opt/consul-template/output
 
-- name: Set fact for service
-  set_fact:
-    service: "{{ service }}"
-
 
 # - name: Add consul-template template file
 #   copy:
@@ -30,8 +26,8 @@
   copy:
     dest: /opt/consul-template/templates/nginx-upstream.ctmpl
     content: |
-      {{ '{{' }} $svc := service "{{ service }}" {{ '}}' }}
-      upstream {{ service }}_upstream {
+      {{ '{{' }} $svc := service "{{ service_name }}" {{ '}}' }}
+      upstream {{ service_name }}_upstream {
         {{ '{{' }} if gt (len $svc) 0 {{ '}}' }}
           {{ '{{' }} range $svc {{ '}}' }}
             server {{ '{{' }} .Address {{ '}}' }}:{{ '{{' }} .Port {{ '}}' }};
@@ -87,6 +83,7 @@
     image: arkselen/consul-template:{{ consul_template_version }}
     state: started
     restart_policy: always
+    recreate: yes
     user: "0:0"
     command: >
       -config=/consul-template/config/config.hcl
