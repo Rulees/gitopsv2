@@ -17,10 +17,11 @@
 
 - name: Run Consul server in Docker
   docker_container:
-    name: consul-server
+    name: consul_server
     image: "hashicorp/consul:{{ consul_version }}"
     state: started
     restart_policy: always
+    recreate: yes
     command: >
       agent -server -bootstrap-expect=1
       -ui
