@@ -3,7 +3,7 @@
   hosts: all
   become: true
   vars:
-    service_name: fastapi # for upstream 
+    service_name: fastapi_instance_group # for upstream 
   roles:
     - docker_install
     - website_deploy

@@ -33,7 +33,7 @@ dependency "sa_compute_viewer" {
 }
 
 dependency "fastapi" {
-  config_path = "../fastapi/"
+  config_path = "../fastapi_instance_group/"
 }
 
 
