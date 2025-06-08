@@ -22,12 +22,12 @@
 #         {{ '{{' }} end {{ '}}' }}
 #       }
 
-- name: Add consul-template template file
+- name: Add consul-template upstream file
   copy:
     dest: /opt/consul-template/templates/nginx-upstream.ctmpl
     content: |
-      {{ '{{' }} $svc := service "{{ service_name }}" {{ '}}' }}
-      upstream {{ service_name }}_upstream {
+      {{ '{{' }} $svc := service "{{ upstream_name }}" {{ '}}' }}
+      upstream {{ upstream_name }}_upstream {
         {{ '{{' }} if gt (len $svc) 0 {{ '}}' }}
           {{ '{{' }} range $svc {{ '}}' }}
             server {{ '{{' }} .Address {{ '}}' }}:{{ '{{' }} .Port {{ '}}' }};
@@ -35,6 +35,15 @@
         {{ '{{' }} else {{ '}}' }}
             server 127.0.0.1:65535; # dummy fallback
         {{ '{{' }} end {{ '}}' }}
+      }
+
+- name: Add consul-template location file
+  copy:
+    dest: /opt/consul-template/templates/nginx-upstream-location.ctmpl
+    content: |
+      location /{{ upstream_location_name }} {
+          proxy_pass http://{{ upstream_name }}_upstream/;
+          access_log /var/log/nginx/upstream.log upstream_log;
       }
 
 
@@ -60,7 +69,19 @@
 
       template {
         source      = "/consul-template/templates/nginx-upstream.ctmpl"
-        destination = "{{ consul_template_output_path }}"
+        destination = "/consul-template/output/upstream.conf"
+        command     = "{{ consul_template_reload_command }}"
+        perms       = 0644
+
+        wait {
+          min = "2s"
+          max = "10s"
+        }
+      }
+
+      template {
+        source      = "/consul-template/templates/nginx-upstream-location.ctmpl"
+        destination = "/consul-template/output/upstream-location.conf"
         command     = "{{ consul_template_reload_command }}"
         perms       = 0644
 

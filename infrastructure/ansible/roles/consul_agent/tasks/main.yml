@@ -50,7 +50,7 @@
   register: consul_leader
   until: consul_leader.status == 200 and consul_leader.json != ""
   retries: 10 
-  delay: 5w
+  delay: 5
 
 - name: Run Consul agent (client) in Docker
   docker_container:
