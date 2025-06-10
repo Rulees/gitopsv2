@@ -1,5 +1,5 @@
 # terraform {
-#   source = "${get_repo_root()}/modules//autoscale_group_push_custom_metric/"
+#   source = "${get_repo_root()}/modules//autoscale_group_metric_sender/"
 # }
 
 # include "root" {

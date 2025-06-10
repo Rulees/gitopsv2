@@ -32,14 +32,15 @@ dependency "consul_server" {
 # }
 
 locals {
-  env                 = include.root.locals.env_vars.locals.env
-  zone                = include.root.locals.env_vars.locals.zone
-  work_dir            = include.root.locals.work_dir
+  env                                       = include.root.locals.env_vars.locals.env
+  zone                                      = include.root.locals.env_vars.locals.zone
+  work_dir                                  = include.root.locals.work_dir
   # Labels
-  env_labels          = include.root.locals.env_vars.locals.env_labels
-  app_labels          = {app = "${basename(dirname(get_terragrunt_dir()))}"}
-  service_labels      = {service = "${basename(get_terragrunt_dir())}"}
-  labels              = merge(local.env_labels, local.app_labels, local.service_labels)
+  env_labels                                = include.root.locals.env_vars.locals.env_labels
+  app_labels                                = {app = "${basename(dirname(get_terragrunt_dir()))}"}
+  service_labels                            = {service = "${basename(get_terragrunt_dir())}"}
+  deployment_trigger                        = {deployed = false}
+  labels                                    = merge(local.env_labels, local.app_labels, local.service_labels, local.deployment_trigger)
 }
 
 inputs = {
@@ -47,26 +48,26 @@ inputs = {
   # GENERAL
   ##
   
-  env                           = local.env
-  zone                          = local.zone
-  labels                        = local.labels
-  service_account_id            = "ajef2vu3kdm3ch6pksea" # only for now
+  env                          = local.env
+  zone                         = local.zone
+  labels                       = local.labels
+  service_account_id           = "ajef2vu3kdm3ch6pksea" # only for now
 
   ##
   # HEALTH_CHECK
   ##
 
-  max_checking_health_duration    = 120  # = startup_duration, if ansible else
+  max_checking_health_duration = 120  # = startup_duration, if ansible else
   health_check = {
-    interval                      = 10
-    timeout                       = 5
-    healthy_threshold             = 2
-    unhealthy_threshold           = 3
+    interval                   = 10
+    timeout                    = 5
+    healthy_threshold          = 2
+    unhealthy_threshold        = 3
 
     # HTTP/TCP(only one)
     # http_options = {
-    #     path = "/health"
-    #     port = 8000                     # check for ansible-provision
+        # path = "/health"
+        # port = 8000 # check for ansible-provision
     # }
 
     tcp_options = {
