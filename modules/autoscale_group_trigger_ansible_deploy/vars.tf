@@ -84,6 +84,12 @@ variable "service" {
   type        = string
 }
 
+variable "subservice" {
+  description = "Service name (e.g., api, web)"
+  type        = string
+  default     = null
+}
+
 variable "instance_group_id" {
   description = "ID of Instance Group for cloud-function"
   type        = string

@@ -3,7 +3,7 @@ from yandexcloud import SDK
 from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2_grpc import InstanceGroupServiceStub
 from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2 import ListInstanceGroupInstancesRequest
 from yandex.cloud.compute.v1.instance_service_pb2_grpc import InstanceServiceStub
-from yandex.cloud.compute.v1.instance_service_pb2 import UpdateInstanceMetadataRequest
+from yandex.cloud.compute.v1.instance_service_pb2 import UpdateInstanceMetadataRequest, GetInstanceRequest
 
 
 
@@ -34,38 +34,50 @@ def handler(event, context):
         print("🔑 JWT created")
 
         sdk = SDK(token=None, iam_token=None, jwt=jwt_token)
-        client = sdk.client(InstanceGroupServiceStub)
+        group_client = sdk.client(InstanceGroupServiceStub)
+        instance_client = sdk.client(InstanceServiceStub)
 
         instance_group_id = os.environ.get('INSTANCE_GROUP_ID')
         print(f"instance_group_id: {instance_group_id}")
 
         while True:  # Loop to call every 10 seconds
-            instances = client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
+            instances = group_client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
+            awaiting_instances = []
 
-            awaiting_instances = [
-                inst for inst in instances if inst.status == "AWAITING_STARTUP_DURATION" and not is_tagged(inst)
-            ]
+            for inst in instances:
+                # print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {inst.metadata}")
+                info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
+                # print(f"Instance: {inst.instance_id}, status: {inst.status}, metadata: {getattr(inst, 'metadata', {})}, labels: {getattr(inst, 'labels', {})}")
+                deployed = info.metadata.get("deployed")
+                print(f"Instance: {inst.instance_id}, status: {inst.status}, metadata: {info.metadata}")
+
+                if inst.status == 21 and deployed != "true":
+                    awaiting_instances.append(info)
 
             if awaiting_instances:
-                print(f"🔄 Found {len(awaiting_instances)} 'awaiting-startup' instances.")
-                
-                # Wait for 10 seconds to allow more instances to come online
+                print(f"🔄 Found {len(awaiting_instances)} 'awaiting-startup' instances (status==21, not deployed).")
                 print("⏳ Waiting for 10 seconds to check for more instances...")
                 time.sleep(10)
 
-                # Re-poll the instances after 10 seconds to get any remaining ones
-                instances = client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
-                awaiting_instances = [
-                    inst for inst in instances if inst.status == "AWAITING_STARTUP_DURATION" and not is_tagged(inst)
-                ]
-                
-                # Mark instances with the "deployed=true" tag
-                for inst in awaiting_instances:
-                    add_tag_to_instance(inst, "deployed=true")
+                # ВТОРОЙ ПРОХОД: повторная проверка через 10 секунд
+                instances = group_client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
+                awaiting_instances = []
+                for inst in instances:
+                    info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
+                    deployed = info.metadata.get("deployed")
+                    if inst.status == 21 and deployed != "true":
+                        awaiting_instances.append(info)
 
-                print("✅ Instances processed and tagged.")
-
-                trigger_gitlab_pipeline()
+                # Теперь обновляем metadata и деплоим
+                if awaiting_instances:
+                    for info in awaiting_instances:
+                        print(f"Marking instance {info.id} as deployed")
+                        instance_client.UpdateMetadata(UpdateInstanceMetadataRequest(
+                            instance_id=info.id,
+                            upsert={"deployed": "true"}
+                        ))
+                    print("✅ Instances processed and tagged.")
+                    trigger_gitlab_pipeline()
 
             else:
                 print("❌ No new 'awaiting-startup' instances found.")
@@ -80,41 +92,31 @@ def handler(event, context):
             "body": f"❌ Exception: {str(e)}"
         }
 
-def is_tagged(instance):
-    return instance.labels.get("deployed") == "true"
-
-
-def add_tag_to_instance(instance, tag):
-    client = SDK().client(InstanceServiceStub)
-    instance_id = instance.instance_id  # FIX: use instance.instance_id, not instance.id
-    print(f"Adding tag '{tag}' to instance {instance_id}")
-    # FIX: Use upsert dict, not labels list
-    key, value = tag.split("=", 1)
-    client.UpdateMetadata(UpdateInstanceMetadataRequest(instance_id=instance_id, upsert={key: value}))
-
-
 def trigger_gitlab_pipeline():
     env = os.getenv('ENV')
     app = os.getenv('APP')
     service = os.getenv('SERVICE')
+    subservice = os.getenv('SUBSERVICE')
+
 
     gitlab_branch = os.getenv('GITLAB_BRANCH')
     gitlab_project_id = os.getenv('GITLAB_PROJECT_ID')
     gitlab_token = os.getenv('GITLAB_TRIGGER_TOKEN')
 
-    gitlab_trigger_url = f"https://gitlab.com/api/v4/projects/{gitlab_project_id}/ref/{gitlab_branch}/trigger/pipeline?token={gitlab_token}"
+    gitlab_trigger_url = f"https://gitlab.com/api/v4/projects/{gitlab_project_id}/trigger/pipeline"
 
     data = {
-        "variables": {
-            "ENV": env,
-            "APP": app,
-            "SERVICE": service
-        }
+        'token': gitlab_token,
+        'ref': gitlab_branch,
+        'variables[ENV]': env,
+        'variables[APP]': app,
+        'variables[SERVICE]': service,
     }
+    if subservice:
+        data['variables[SUBSERVICE]'] = subservice
 
-    # Send the request to GitLab webhook
     response = requests.post(gitlab_trigger_url, data=data)
     if response.status_code in (200, 201):
         print("✅ GitLab pipeline triggered successfully.")
     else:
-        print(f"❌ Failed to trigger GitLab pipeline: {response.text}")
+        print(f"❌ Failed to trigger GitLab pipeline: {response.status_code} {response.text}")

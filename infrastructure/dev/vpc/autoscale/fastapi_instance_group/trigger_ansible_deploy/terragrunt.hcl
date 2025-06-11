@@ -26,10 +26,11 @@ dependency "instance_group" {
 
 
 locals {
-  env       = include.root.locals.env_vars.locals.env
-  app       = "${basename(dirname(dirname(get_terragrunt_dir())))}"
-  service   = "${basename(dirname(get_terragrunt_dir()))}"
-  work_dir  = include.root.locals.work_dir
+  env        = include.root.locals.env_vars.locals.env
+  app        = "${basename(dirname(dirname(get_terragrunt_dir())))}"
+  service    = "${basename(dirname(get_terragrunt_dir()))}"
+  subservice = "${basename(get_terragrunt_dir())}"
+  work_dir   = include.root.locals.work_dir
   # folder_id = include.root.locals.env_vars.locals.folder_id
 }
 
@@ -38,6 +39,7 @@ inputs = {
   env                           = local.env
   app                           = local.app
   service                       = local.service
+  subservice                    = local.subservice
   # folder_id                     = local.folder_id
   instance_group_id             = dependency.instance_group.outputs.instance_group_id
   network_id                    = dependency.network.outputs.vpc_id
