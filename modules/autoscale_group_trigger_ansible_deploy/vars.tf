@@ -4,11 +4,6 @@ variable "project_prefix" {
   type        = string
 }
 
-variable "folder_id" {
-  description = "Folder ID for the Cloud Function"
-  type        = string
-}
-
 # GENERAL
 variable "network_id" {
   description = "Network (VPC) ID"

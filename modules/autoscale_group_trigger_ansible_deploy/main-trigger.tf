@@ -9,7 +9,7 @@ resource "yandex_function_trigger" "timer" {
 
 
   function {
-    id                 = yandex_function.push_metric.id
+    id                 = yandex_function.trigger_gitlab_deploy.id
     service_account_id = var.service_account_id
   }
 
