@@ -39,7 +39,7 @@ locals {
   env_labels                                = include.root.locals.env_vars.locals.env_labels
   app_labels                                = {app = "${basename(dirname(get_terragrunt_dir()))}"}
   service_labels                            = {service = "${basename(get_terragrunt_dir())}"}
-  deployment_trigger                        = {deployed = false}
+  deployment_trigger                        = {deployed = false} # trigger to avoid reapplying
   labels                                    = merge(local.env_labels, local.app_labels, local.service_labels, local.deployment_trigger)
 }
 
