@@ -14,6 +14,8 @@ from discover_services import find_project_root, find_matching_services, build_g
 # === Парсинг зависимостей из комментариев в playbook.yml ===
 def extract_dependencies(playbook_path):
     dependencies = []
+    inherit_subservice = True  # По умолчанию наследуем subservices
+
     try:
         with open(playbook_path, 'r') as file:
             lines = file.readlines()
@@ -35,6 +37,9 @@ def extract_dependencies(playbook_path):
                     current["wait"] = line.split(":", 1)[1].strip()
                 elif line.startswith("#     path:"):
                     current["path"] = line.split(":", 1)[1].strip()
+                elif line.startswith("#     inherit_subservice:"):
+                    # Если указано, отключаем наследование подсервиса основным playbookом сервиса
+                    inherit_subservice = line.split(":", 1)[1].strip().lower() == 'false'
                 elif not line.startswith("#"):
                     if current:
                         dependencies.append(current)
@@ -43,7 +48,7 @@ def extract_dependencies(playbook_path):
             dependencies.append(current)
     except Exception as e:
         print(f"❌ Error reading dependencies from {playbook_path}: {e}")
-    return dependencies
+    return dependencies, inherit_subservice
 
 # === Асинхронный запуск ansible-playbook ===
 async def run_ansible_playbook(m, group, playbook):
@@ -77,9 +82,10 @@ async def run_playbook(m, processed_groups, level=0):
 
     print(f"{indent}🚀 [DEPLOY]      {group}   {playbook}")
 
-    dependencies = extract_dependencies(playbook)
+    dependencies, inherit_subservice = extract_dependencies(playbook)  # Получаем зависимости
     background_tasks = []
 
+    # Проходим по зависимостям
     for dep in dependencies:
         dep["env"] = m["env"]
         if "path" in dep:
@@ -90,16 +96,18 @@ async def run_playbook(m, processed_groups, level=0):
 
         dep_group = build_group_name(dep["env"], dep["app"], dep["service"])
 
-        if dep_group not in processed_groups:
-            processed_groups.add(dep_group)
-            print(f"{indent}   [dependency]  {dep_group} ({'Async' if dep.get('wait', 'true') == 'false' else 'Sync'})")
-            if dep.get("wait", "true") == "false":
-                task = asyncio.create_task(run_playbook(dep, processed_groups, level + 1))
-                background_tasks.append(task)
-            else:
-                await run_playbook(dep, processed_groups, level + 1)
+        # Пропускаем subservice, если наследование не разрешено
+        if inherit_subservice and dep.get("service") == m["service"]:
+            if dep_group not in processed_groups:
+                processed_groups.add(dep_group)
+                print(f"{indent}   [dependency]  {dep_group} ({'Async' if dep.get('wait', 'true') == 'false' else 'Sync'})")
+                if dep.get("wait", "true") == "false":
+                    task = asyncio.create_task(run_playbook(dep, processed_groups, level + 1))
+                    background_tasks.append(task)
+                else:
+                    await run_playbook(dep, processed_groups, level + 1)
 
-
+    # Выполняем основной playbook для service
     returncode, output = await run_ansible_playbook(m, group, playbook)
 
     status = "SUCCESS" if returncode == 0 else "FAILED"

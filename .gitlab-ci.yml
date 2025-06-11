@@ -280,3 +280,21 @@ destroy_prod:
   allow_failure: false
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+
+
+
+
+
+# SUBSERVICE
+deploy_fastapi_with_cloud_function_trigger:
+  stage: deploy_dev
+  image: arkselen/ci:v6
+  variables:
+    ENV: "dev"
+    SOPS_KEYS: "admin ops dev"
+  script:
+    - !reference [.ansible_config, script]
+    - make deploy ENV=$CI_ENV APP=$CI_APP SERVICE=$CI_SERVICE SUBSERVICE=$CI_SUBSERVICE
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger"'    
