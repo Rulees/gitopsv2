@@ -84,6 +84,7 @@ resource "yandex_function" "trigger_gitlab_deploy" {
     ENV                    = var.env
     APP                    = var.app
     SERVICE                = var.service
+    SUBSERVICE             = var.subservice
     GITLAB_TRIGGER_TOKEN   = var.gitlab_trigger_token
     GITLAB_PROJECT_ID      = var.gitlab_project_id
     GITLAB_BRANCH          = var.gitlab_branch
