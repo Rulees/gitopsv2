@@ -8,7 +8,7 @@ include "root" {
 }
 
 dependency "network" {
-  config_path = "../../../network/"
+  config_path                             = "../../../network/"
 }
 
 dependency "sg" {
@@ -114,18 +114,19 @@ inputs = {
 
   # AUTO_SCALE_CONFIG
   # ------------- LOW_COST (#1) -----------------
-  # scheduling_policy_preemptible = true
+  scheduling_policy_preemptible = true
   # zones                         = ["a"]
-  # initial_size                  = 1
-  # cpu_utilization_target        = 70.0
+  zones                         = ["a", "b", "d"]
+  initial_size                  = 1
+  cpu_utilization_target        = 70.0
 
 
 
   # # --------- HIGH_AVAILABILITY (#2) ------------
-  scheduling_policy_preemptible = false
-  zones                         = ["a", "b", "d"]
-  initial_size                  = 3
-  cpu_utilization_target        = 40.0
+  # scheduling_policy_preemptible = false
+  # zones                         = ["a", "b", "d"]
+  # initial_size                  = 3
+  # cpu_utilization_target        = 40.0
 
 
 

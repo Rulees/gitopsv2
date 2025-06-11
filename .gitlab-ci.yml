@@ -295,6 +295,6 @@ deploy_fastapi_with_cloud_function_trigger:
     SOPS_KEYS: "admin ops dev"
   script:
     - !reference [.ansible_config, script]
-    - make deploy ENV=$CI_ENV APP=$CI_APP SERVICE=$CI_SERVICE SUBSERVICE=$CI_SUBSERVICE
+    - make deploy ENV=dev APP=autoscale SERVICE=fastapi_instance_group SUBSERVICE=trigger_ansible_deploy
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger"'    

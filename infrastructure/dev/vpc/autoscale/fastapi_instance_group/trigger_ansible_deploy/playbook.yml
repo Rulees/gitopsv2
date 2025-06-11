@@ -1,7 +1,6 @@
-# This code will be deployed on service-level. Inherit is used to avoid deploying this playbook with default flow terragrunt > ansible
+# use_subservice_infra: false
 
-# inherit_subservice: false
-
+---
 - name: Deploy fastapi backend
   hosts: all
   become: true
@@ -9,3 +8,4 @@
     - docker_install
     - consul_agent
     - fastapi
+
