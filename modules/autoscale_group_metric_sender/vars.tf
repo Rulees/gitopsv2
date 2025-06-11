@@ -58,7 +58,7 @@ variable "object_name" {
 variable "cron_expression" {
   description = "Cron expression to trigger the function periodically(every minute)"
   type        = string
-  default     = "* * * * *"
+  default     = "* * * * ? *"
 }
 
 variable "metric_name" {

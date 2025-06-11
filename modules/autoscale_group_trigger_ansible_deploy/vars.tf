@@ -48,7 +48,7 @@ variable "object_name" {
 variable "cron_expression" {
   description = "Cron expression to trigger the function periodically(every minute)"
   type        = string
-  default     = "* * * * *"
+  default     = "* * * * ? *"
 }
 
 # GITLAB-SPECIFIC
@@ -81,5 +81,10 @@ variable "app" {
 
 variable "service" {
   description = "Service name (e.g., api, web)"
+  type        = string
+}
+
+variable "instance_group_id" {
+  description = "ID of Instance Group for cloud-function"
   type        = string
 }

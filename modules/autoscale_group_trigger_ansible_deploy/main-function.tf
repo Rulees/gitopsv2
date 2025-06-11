@@ -87,6 +87,7 @@ resource "yandex_function" "trigger_gitlab_deploy" {
     GITLAB_TRIGGER_TOKEN   = var.gitlab_trigger_token
     GITLAB_PROJECT_ID      = var.gitlab_project_id
     GITLAB_BRANCH          = var.gitlab_branch
+    INSTANCE_GROUP_ID      = var.instance_group_id
   }
   depends_on               = [null_resource.cleanup_function_zip]
 }
