@@ -50,4 +50,5 @@ inputs = {
   gitlab_trigger_token          = "glptt-b67dd43e15b10fc5c60af464b35cdc87916d9d1c"
   gitlab_project_id             = "70190498"
   gitlab_branch                 = "test"
+  cron_expression               = "* * * * ? *"
 }

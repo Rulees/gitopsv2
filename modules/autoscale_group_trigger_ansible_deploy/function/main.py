@@ -1,5 +1,11 @@
 import os, time, json, jwt, requests
 from yandexcloud import SDK
+from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2_grpc import InstanceGroupServiceStub
+from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2 import ListInstanceGroupInstancesRequest
+from yandex.cloud.compute.v1.instance_service_pb2_grpc import InstanceServiceStub
+from yandex.cloud.compute.v1.instance_service_pb2 import UpdateInstanceMetadataRequest
+
+
 
 
 def handler(event, context):
@@ -28,18 +34,16 @@ def handler(event, context):
         print("🔑 JWT created")
 
         sdk = SDK(token=None, iam_token=None, jwt=jwt_token)
-        compute_client = sdk.client('yandex.cloud.compute.v1.InstanceService')
+        client = sdk.client(InstanceGroupServiceStub)
 
-        # Получаем instance_group_id из переменной окружения
-        group_id = os.getenv("INSTANCE_GROUP_ID")
-        if not group_id:
-            raise ValueError("INSTANCE_GROUP_ID is not set in environment variables!")
+        instance_group_id = os.environ.get('INSTANCE_GROUP_ID')
+        print(f"instance_group_id: {instance_group_id}")
 
         while True:  # Loop to call every 10 seconds
-            instances = compute_client.List(group_id=group_id)
+            instances = client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
 
             awaiting_instances = [
-                inst for inst in instances.instances if inst.status == "AWAITING_STARTUP" and not is_tagged(inst)
+                inst for inst in instances if inst.status == "AWAITING_STARTUP_DURATION" and not is_tagged(inst)
             ]
 
             if awaiting_instances:
@@ -50,9 +54,9 @@ def handler(event, context):
                 time.sleep(10)
 
                 # Re-poll the instances after 10 seconds to get any remaining ones
-                instances = compute_client.List(group_id=group_id)
+                instances = client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
                 awaiting_instances = [
-                    inst for inst in instances.instances if inst.status == "AWAITING_STARTUP" and not is_tagged(inst)
+                    inst for inst in instances if inst.status == "AWAITING_STARTUP_DURATION" and not is_tagged(inst)
                 ]
                 
                 # Mark instances with the "deployed=true" tag
@@ -77,15 +81,16 @@ def handler(event, context):
         }
 
 def is_tagged(instance):
-    tags = instance.labels or []
-    return "deployed=true" in tags
+    return instance.labels.get("deployed") == "true"
 
 
 def add_tag_to_instance(instance, tag):
-    compute_client = SDK().client('yandex.cloud.compute.v1.InstanceService')
-    instance_id = instance.id
+    client = SDK().client(InstanceServiceStub)
+    instance_id = instance.instance_id  # FIX: use instance.instance_id, not instance.id
     print(f"Adding tag '{tag}' to instance {instance_id}")
-    compute_client.AddTags(instance_id=instance_id, tags=[tag])
+    # FIX: Use upsert dict, not labels list
+    key, value = tag.split("=", 1)
+    client.UpdateMetadata(UpdateInstanceMetadataRequest(instance_id=instance_id, upsert={key: value}))
 
 
 def trigger_gitlab_pipeline():
@@ -109,7 +114,7 @@ def trigger_gitlab_pipeline():
 
     # Send the request to GitLab webhook
     response = requests.post(gitlab_trigger_url, data=data)
-    if response.status_code == 201:
+    if response.status_code in (200, 201):
         print("✅ GitLab pipeline triggered successfully.")
     else:
         print(f"❌ Failed to trigger GitLab pipeline: {response.text}")
