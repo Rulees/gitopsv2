@@ -31,7 +31,6 @@ locals {
   service    = "${basename(dirname(get_terragrunt_dir()))}"
   subservice = "${basename(get_terragrunt_dir())}"
   work_dir   = include.root.locals.work_dir
-  # folder_id = include.root.locals.env_vars.locals.folder_id
 }
 
 inputs = {  
@@ -40,7 +39,6 @@ inputs = {
   app                           = local.app
   service                       = local.service
   subservice                    = local.subservice
-  # folder_id                     = local.folder_id
   instance_group_id             = dependency.instance_group.outputs.instance_group_id
   network_id                    = dependency.network.outputs.vpc_id
   service_account_id            = "ajef2vu3kdm3ch6pksea"                                   # for now
@@ -52,5 +50,4 @@ inputs = {
   gitlab_trigger_token          = "glptt-b67dd43e15b10fc5c60af464b35cdc87916d9d1c"
   gitlab_project_id             = "70190498"
   gitlab_branch                 = "test"
-  cron_expression               = "* * * * ? *"
 }

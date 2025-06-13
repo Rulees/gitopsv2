@@ -3,8 +3,7 @@ from yandexcloud import SDK
 from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2_grpc import InstanceGroupServiceStub
 from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2 import ListInstanceGroupInstancesRequest
 from yandex.cloud.compute.v1.instance_service_pb2_grpc import InstanceServiceStub
-from yandex.cloud.compute.v1.instance_service_pb2 import UpdateInstanceMetadataRequest, GetInstanceRequest
-
+from yandex.cloud.compute.v1.instance_service_pb2 import GetInstanceRequest, UpdateInstanceRequest
 
 
 
@@ -33,54 +32,71 @@ def handler(event, context):
         jwt_token = jwt.encode(payload, private_key, algorithm="PS256", headers={"kid": key_id})
         print("🔑 JWT created")
 
-        sdk = SDK(token=None, iam_token=None, jwt=jwt_token)
+        iam_url = "https://iam.api.cloud.yandex.net/iam/v1/tokens"
+        resp = requests.post(iam_url, json={"jwt": jwt_token})
+        if resp.status_code != 200:
+            print(f"❌ Failed to get IAM token: {resp.status_code} {resp.text}")
+            return
+        iam_token = resp.json()["iamToken"]
+        print("🟢 IAM token received")
+
+        sdk = SDK(token=None, iam_token=iam_token, jwt=jwt_token)
         group_client = sdk.client(InstanceGroupServiceStub)
         instance_client = sdk.client(InstanceServiceStub)
 
         instance_group_id = os.environ.get('INSTANCE_GROUP_ID')
-        print(f"instance_group_id: {instance_group_id}")
 
         while True:  # Loop to call every 10 seconds
             instances = group_client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
-            awaiting_instances = []
+            non_deployed_instances = []
 
             for inst in instances:
-                # print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {inst.metadata}")
                 info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
-                # print(f"Instance: {inst.instance_id}, status: {inst.status}, metadata: {getattr(inst, 'metadata', {})}, labels: {getattr(inst, 'labels', {})}")
-                deployed = info.metadata.get("deployed")
-                print(f"Instance: {inst.instance_id}, status: {inst.status}, metadata: {info.metadata}")
+                deployed = info.labels.get("deployed")
+
+                print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {info.labels}, label_deployed_value: {info.labels.get('deployed')}")
 
                 if inst.status == 21 and deployed != "true":
-                    awaiting_instances.append(info)
+                    non_deployed_instances.append(info)
 
-            if awaiting_instances:
-                print(f"🔄 Found {len(awaiting_instances)} 'awaiting-startup' instances (status==21, not deployed).")
+            if non_deployed_instances:
+                print(f"🔄 Found {len(non_deployed_instances)} not_deployed_instances instances")
                 print("⏳ Waiting for 10 seconds to check for more instances...")
                 time.sleep(10)
 
                 # ВТОРОЙ ПРОХОД: повторная проверка через 10 секунд
                 instances = group_client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
-                awaiting_instances = []
+                non_deployed_instances = []                
                 for inst in instances:
                     info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
-                    deployed = info.metadata.get("deployed")
+                    deployed = info.labels.get("deployed")
                     if inst.status == 21 and deployed != "true":
-                        awaiting_instances.append(info)
+                        non_deployed_instances.append(info)
 
-                # Теперь обновляем metadata и деплоим
-                if awaiting_instances:
-                    for info in awaiting_instances:
-                        print(f"Marking instance {info.id} as deployed")
-                        instance_client.UpdateMetadata(UpdateInstanceMetadataRequest(
-                            instance_id=info.id,
-                            upsert={"deployed": "true"}
-                        ))
-                    print("✅ Instances processed and tagged.")
+                # Теперь обновляем labels и деплоим
+                if non_deployed_instances:
                     trigger_gitlab_pipeline()
 
+                    for inst in non_deployed_instances:
+                        labels = dict(inst.labels, deployed="true")
+                        url = f"https://compute.api.cloud.yandex.net/compute/v1/instances/{inst.id}"
+                        body = {"updateMask": "labels", "labels": labels}
+                        headers = {"Authorization": f"Bearer {iam_token}", "Content-Type": "application/json"}
+
+                        response = requests.patch(url, headers=headers, json=body)
+                        if response.status_code in (200, 201):
+                            print("✅ TAG added successfully.")
+                            print(f"Marking instance {inst.id} as deployed")
+                        else:
+                            print(f"❌ Failed to add tag: {response.status_code} {response.text}")
+                        
+
+                    print("✅ Instances processed and tagged.")
+                
+                print(f"Instance: {inst.id}, status: {inst.status}, labels: {inst.labels}, label_deployed_value: {inst.labels.get('deployed')}")
             else:
-                print("❌ No new 'awaiting-startup' instances found.")
+                print("❌ No new 'not_deployed_instances' found.")
+
 
             print("⏳ Waiting for 10 seconds before the next check...")
             time.sleep(10)
@@ -98,10 +114,10 @@ def trigger_gitlab_pipeline():
     service = os.getenv('SERVICE')
     subservice = os.getenv('SUBSERVICE')
 
-
     gitlab_branch = os.getenv('GITLAB_BRANCH')
     gitlab_project_id = os.getenv('GITLAB_PROJECT_ID')
     gitlab_token = os.getenv('GITLAB_TRIGGER_TOKEN')
+
 
     gitlab_trigger_url = f"https://gitlab.com/api/v4/projects/{gitlab_project_id}/trigger/pipeline"
 

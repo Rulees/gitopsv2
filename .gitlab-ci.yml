@@ -286,7 +286,6 @@ destroy_prod:
 
 
 
-# SUBSERVICE
 deploy_cloud_function_trigger:
   stage: deploy_dev
   image: arkselen/ci:v6
@@ -332,6 +331,7 @@ deploy_cloud_function_trigger:
       if [ -n "$SUBSERVICE" ]; then
         args="$args SUBSERVICE=$SUBSERVICE"
       fi
+      echo "ARGS                            >>>  $(echo ${args} | head -c 50)"
       make deploy $args
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "trigger"'    
+    - if: '$CI_PIPELINE_SOURCE == "trigger"'
