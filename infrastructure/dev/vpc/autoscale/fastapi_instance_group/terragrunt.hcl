@@ -94,9 +94,9 @@ inputs = {
 
                   # ---------DEFAULT_VALUES_AUTO-----------
                   # autoscale_policy = {  
-                                        min_zone_size          = 1     # Minimum vm's per zone (if zone is used!!). Doesn't force all zones to be used.
+                                        min_zone_size          = 1     # Minimum vm's per zone (if zone is used!!)
                                       # max_size               = 10
-                                      # initial_size           = 3     # started value and minimum
+                                      # initial_size           = 3     # started value and minimum. (1) must be >= zone_count * min_zone_size (3)
                                       # cpu_utilization_target = 60.0  # 40%=availability, 70%=cost. The percentage is low, cause of necessity to scale beforehand
                                         measurement_duration   = 60    # Time to measure cpu_average
                                         stabilization_duration = 60    # Time to wait after "measurement_duration" for making decision to scale-down amount of VM's (only down-auto-scale)
@@ -117,7 +117,7 @@ inputs = {
   scheduling_policy_preemptible = true
   # zones                         = ["a"]
   zones                         = ["a", "b", "d"]
-  initial_size                  = 1
+  initial_size                  = 3
   cpu_utilization_target        = 70.0
 
 
@@ -136,7 +136,7 @@ inputs = {
   # scheduling_policy_preemptible = false
   # zones                         = ["a", "b", "d"]
   # #autoscale_policy = {
-  #     initial_size              = 1    # If initial_size(x):  x=1, x=2, x=3..
+  #     initial_size              = 1    # If initial_size(x):  x=1, x=2, x=3..          (1) must be >= zone_count * min_zone_size (3)
   #     max_size                  = 2    # Then   max_size(y):  y=2, y=4, y=6...
   #     cpu_utilization_target    = 40.0
      

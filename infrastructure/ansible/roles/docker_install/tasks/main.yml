@@ -1,7 +1,17 @@
-- name: Удалить блокировки dpkg
+# - name: Удалить блокировки dpkg
+#   shell: |
+#     rm -f /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock
+#   ignore_errors: yes
+
+- name: Wait for apt lock to be released
   shell: |
-    rm -f /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock
-  ignore_errors: yes
+    while fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+          fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
+          fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
+      echo "Waiting for apt/dpkg lock to be released..."
+      sleep 2
+    done
+  changed_when: false
 
 - name: Check if Docker is already installed
   command: docker --version
