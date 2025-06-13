@@ -56,17 +56,16 @@ def handler(event, context):
 
                 print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {info.labels}, label_deployed_value: {info.labels.get('deployed')}")
 
-                if inst.status == 21 and deployed != "true":
+                if inst.status in (19, 21) and deployed != "true":
                     non_deployed_instances.append(info)
 
             if non_deployed_instances:
-                print(f"🔄 Found {len(non_deployed_instances)} not_deployed_instances instances")
                 print("⏳ Waiting for 10 seconds to check for more instances...")
                 time.sleep(10)
 
                 # ВТОРОЙ ПРОХОД: повторная проверка через 10 секунд
                 instances = group_client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
-                non_deployed_instances = []                
+                non_deployed_instances = []             
                 for inst in instances:
                     info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
                     deployed = info.labels.get("deployed")
@@ -75,6 +74,7 @@ def handler(event, context):
 
                 # Теперь обновляем labels и деплоим
                 if non_deployed_instances:
+                    print(f"🔄 Found {len(non_deployed_instances)} not_deployed_instances")
                     trigger_gitlab_pipeline()
 
                     for inst in non_deployed_instances:
@@ -85,20 +85,16 @@ def handler(event, context):
 
                         response = requests.patch(url, headers=headers, json=body)
                         if response.status_code in (200, 201):
-                            print("✅ TAG added successfully.")
-                            print(f"Marking instance {inst.id} as deployed")
+                            print(f"✅ Mark instance {inst.id} as deployed")
                         else:
                             print(f"❌ Failed to add tag: {response.status_code} {response.text}")
                         
 
                     print("✅ Instances processed and tagged.")
                 
-                print(f"Instance: {inst.id}, status: {inst.status}, labels: {inst.labels}, label_deployed_value: {inst.labels.get('deployed')}")
-            else:
-                print("❌ No new 'not_deployed_instances' found.")
 
 
-            print("⏳ Waiting for 10 seconds before the next check...")
+            print("⏳ Wait 10s, before the next check...")
             time.sleep(10)
 
     except Exception as e:

@@ -331,7 +331,7 @@ deploy_cloud_function_trigger:
       if [ -n "$SUBSERVICE" ]; then
         args="$args SUBSERVICE=$SUBSERVICE"
       fi
-      echo "ARGS                            >>>  $(echo ${args} | head -c 50)"
+      echo "ARGS                            >>>  $(echo ${args} | head -c 100)"
       make deploy $args
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger"'

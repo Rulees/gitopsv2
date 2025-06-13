@@ -1,6 +1,7 @@
 ENV ?=
 APP ?=
 SERVICE ?=
+SUBSERVICE ?=
 
 .PHONY: check_secrets decrypt_secrets create deploy approve destroy
 

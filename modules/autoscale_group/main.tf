@@ -13,6 +13,7 @@ resource "yandex_compute_instance_group" "this" {
   # GENERAL
   ##
 
+  name                         = local.name
   description                  = "${var.project_prefix} instance-group for ${var.env} environment"
   service_account_id           = var.service_account_id
 
