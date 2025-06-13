@@ -1,5 +1,12 @@
 # use_subservice_infra: false
 
+# Avoid marking deployed=true without consul_server to be deployed
+# dependencies:
+#   - app: infra
+#     service: consul_server
+#     wait: false
+#     # path: "../../../consul_server/" # use path if no service for this
+
 ---
 - name: Deploy fastapi backend
   hosts: all
