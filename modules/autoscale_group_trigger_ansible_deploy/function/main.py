@@ -56,7 +56,7 @@ def handler(event, context):
 
                 print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {info.labels}, label_deployed_value: {info.labels.get('deployed')}")
 
-                if inst.status in (19, 21) and deployed != "true":
+                if inst.status in (16, 17, 19, 21) and deployed != "true": # 16=awaiting, 17=checking_health
                     non_deployed_instances.append(info)
 
             if non_deployed_instances:
@@ -69,7 +69,7 @@ def handler(event, context):
                 for inst in instances:
                     info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
                     deployed = info.labels.get("deployed")
-                    if inst.status == 21 and deployed != "true":
+                    if inst.status in (16, 17, 19, 21) and deployed != "true": # 16=awaiting, 17=checking_health
                         non_deployed_instances.append(info)
 
                 # Теперь обновляем labels и деплоим
