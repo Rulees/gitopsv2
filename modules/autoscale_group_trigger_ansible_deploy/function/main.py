@@ -54,7 +54,7 @@ def handler(event, context):
                 info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
                 deployed = info.labels.get("deployed")
 
-                print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {info.labels}, label_deployed_value: {info.labels.get('deployed')}")
+                print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {info.labels}")
 
                 if inst.status in (16, 17, 19, 21) and deployed != "true":
                     non_deployed_instances.append(info)
