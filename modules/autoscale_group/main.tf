@@ -122,6 +122,11 @@ resource "yandex_compute_instance_group" "this" {
     }
 
     # SSH
-    metadata = {ssh-keys       = "${var.ssh.ssh_user}:${var.ssh.ssh_key}"}
+    metadata = {
+      user-data = templatefile("cloud-init.yml", {
+        ssh_user = var.ssh.ssh_user
+        ssh_key = var.ssh.ssh_key
+      })
+    }
   }
 }

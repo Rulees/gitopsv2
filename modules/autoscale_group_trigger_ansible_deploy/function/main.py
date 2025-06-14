@@ -75,8 +75,6 @@ def handler(event, context):
                 # Теперь обновляем labels и деплоим
                 if non_deployed_instances:
                     print(f"🔄 Found {len(non_deployed_instances)} not_deployed_instances")
-                    print("⏳ Wait 10s, before trigger...")
-                    time.sleep(10) # for setup
                     trigger_gitlab_pipeline()
 
                     for inst in non_deployed_instances:
