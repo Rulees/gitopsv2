@@ -56,11 +56,11 @@ def handler(event, context):
 
                 print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {info.labels}, label_deployed_value: {info.labels.get('deployed')}")
 
-                if inst.status in (16, 17, 19, 21) and deployed != "true": # 16=awaiting, 17=checking_health
+                if inst.status in (16, 17, 19, 21) and deployed != "true":
                     non_deployed_instances.append(info)
 
             if non_deployed_instances:
-                print("⏳ Waiting for 10 seconds to check for more instances...")
+                print("⏳ Wait 10s to check for more instances...")
                 time.sleep(10)
 
                 # ВТОРОЙ ПРОХОД: повторная проверка через 10 секунд
@@ -75,6 +75,7 @@ def handler(event, context):
                 # Теперь обновляем labels и деплоим
                 if non_deployed_instances:
                     print(f"🔄 Found {len(non_deployed_instances)} not_deployed_instances")
+                    print("⏳ Wait 10s, before trigger...")
                     time.sleep(10) # for setup
                     trigger_gitlab_pipeline()
 
