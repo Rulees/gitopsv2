@@ -94,12 +94,12 @@ inputs = {
 
                   # ---------DEFAULT_VALUES_AUTO-----------
                   # autoscale_policy = {  
-                                        min_zone_size          = 2     # Minimum vm's per zone (if zone is used!!)
+                                        min_zone_size          = 1     # Minimum vm's per zone (if zone is used!!)
                                       # max_size               = 10
                                       # initial_size           = 3     # started value and minimum. (1) must be >= zone_count * min_zone_size (3)
                                       # cpu_utilization_target = 60.0  # 40%=availability, 70%=cost. The percentage is low, cause of necessity to scale beforehand
                                         measurement_duration   = 60    # Time to measure cpu_average
-                                        stabilization_duration = 60    # Time to wait after "measurement_duration" for making decision to scale-down amount of VM's (only down-auto-scale)
+                                        stabilization_duration = 90    # Time to wait after "measurement_duration" for making decision to scale-down amount of VM's (only down-auto-scale)
                                         warmup_duration        = 30    # Time to wait after "startup_duraion" before start cpu-monitoring                           (only scale, not update)
 
 
