@@ -335,8 +335,6 @@ deploy_cloud_function_trigger:
       make deploy $args
 
   after_script:
-    - pwd
-    - ls -la
     - make add_tag_deploy_status
 
   rules:

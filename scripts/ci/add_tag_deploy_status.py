@@ -17,9 +17,9 @@ def main():
     if not instance_group_id:
         raise Exception("INSTANCE_GROUP_ID env variable not set!")
 
-    # Получаем список успешных имен хостов
-    hosts_file = sys.argv[1] if len(sys.argv) > 1 else "successful_hosts.txt"
-    successful_hosts = load_host_names(hosts_file)
+    # Получаем список успешных и всех участвовавших хостов
+    successful_hosts = load_host_names("successful_hosts.txt")
+    all_hosts = load_host_names("all_hosts.txt")
 
     sdk = SDK(token=None, iam_token=iam_token)
     group_client = sdk.client(InstanceGroupServiceStub)
@@ -30,11 +30,13 @@ def main():
     for inst in instances:
         info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
         
-        # Сравниваем по имени!
+        # Только для участвовавших в этом деплое!
         if info.name in successful_hosts:
             new_status = "true"
-        else:
+        elif info.name in all_hosts:
             new_status = "error"
+        else:
+            continue  # этот инстанс не участвовал — пропускаем
 
         labels = dict(info.labels, deploy_status=new_status)
         url = f"https://compute.api.cloud.yandex.net/compute/v1/instances/{inst.instance_id}"
