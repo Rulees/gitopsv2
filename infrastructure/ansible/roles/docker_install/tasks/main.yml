@@ -1,16 +1,21 @@
-# - name: Wait for apt lock to be released (max 10 seconds)
-#   shell: |
-#     for i in {1..5}; do
-#       fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1 || break
-#       echo "Waiting for apt/dpkg lock to be released..."
-#       sleep 2
-#     done
-#   changed_when: false
+- name: Wait for apt lock to be released (max 10 seconds)
+  shell: |
+    for i in {1..5}; do
+      fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1 || break
+      echo "Waiting for apt/dpkg lock to be released..."
+      sleep 2
+    done
+  changed_when: false
 
 - name: Remove apt/dpkg lock files
   shell: rm -f /var/lib/dpkg/lock* /var/lib/apt/lists/lock /var/cache/apt/archives/lock
   ignore_errors: yes
   changed_when: false
+
+- name: Fix broken dpkg state
+  command: dpkg --configure -a
+  become: yes
+  ignore_errors: true
 
 - name: Check if Docker is already installed
   command: docker --version
