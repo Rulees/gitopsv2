@@ -14,4 +14,4 @@
     
 
 - name: Output successful host names
-  shell: cat {{ work_dir }}/successful_hosts.txt && cat {{ work_dir }}/inventory.txt
+  shell: cat {{ work_dir }}/successful_hosts.txt && cat {{ work_dir }}/all_hosts.txt
