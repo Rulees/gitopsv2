@@ -103,7 +103,7 @@ def handler(event, context):
             "body": f"❌ Exception: {str(e)}"
         }
 
-def trigger_gitlab_pipeline(iam_token):
+def trigger_gitlab_pipeline(iam_token, instance_group_id):
     env = os.getenv('ENV')
     app = os.getenv('APP')
     service = os.getenv('SERVICE')
