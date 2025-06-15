@@ -4,6 +4,7 @@
 ---
 - name: Deploy fastapi backend
   hosts: all
+  gather_facts: false
   become: true
   roles:
     - docker_install
