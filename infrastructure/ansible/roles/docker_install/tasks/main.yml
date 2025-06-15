@@ -1,6 +1,6 @@
 - name: Wait for apt lock to be released (max 10 seconds)
   shell: |
-    for i in {1..5}; do
+    for i in {1..7}; do
       fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1 || break
       echo "Waiting for apt/dpkg lock to be released..."
       sleep 2
