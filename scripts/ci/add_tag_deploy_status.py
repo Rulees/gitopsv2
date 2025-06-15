@@ -45,9 +45,9 @@ def main():
         
         response = requests.patch(url, headers=headers, json=body)
         if response.status_code in (200, 201):
-            print(f"✅ Instance {info.name} ({inst.instance_id}): {new_status}")
+            print(f"✅ Instance {inst.instance_id}: {new_status}")
         else:
-            print(f"❌ Failed for {info.name} ({inst.instance_id}): {response.status_code} {response.text}")
+            print(f"❌ Failed for {inst.instance_id}: {response.status_code} {response.text}")
 
 if __name__ == "__main__":
     main()
