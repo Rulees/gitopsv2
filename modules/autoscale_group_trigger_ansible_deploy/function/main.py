@@ -56,7 +56,7 @@ def handler(event, context):
 
                 print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {info.labels}")
 
-                if inst.status in (16, 17, 19, 21) and deploy_status != "true" and deploy_status != "in_process":
+                if inst.status in (16, 17, 19, 21) and deploy_status not in ("true", "in_process", "error"):
                     non_deployed_instances.append(info)
 
             if non_deployed_instances:
@@ -69,7 +69,7 @@ def handler(event, context):
                 for inst in instances:
                     info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
                     deploy_status = info.labels.get("deploy_status")
-                    if inst.status in (16, 17, 19, 21) and deploy_status != "true" and deploy_status != "in_process": # 16=awaiting, 17=checking_health
+                    if inst.status in (16, 17, 19, 21) and deploy_status not in ("true", "in_process", "error"): # 16=awaiting, 17=checking_health
                         non_deployed_instances.append(info)
 
                 # Теперь обновляем labels и деплоим
@@ -93,7 +93,7 @@ def handler(event, context):
                     print("✅ Instances processed and tagged.")
                 
 
-            print("⏳ Wait 10s, before the next check...")
+            print("⏳ Wait 10s, before next check...")
             time.sleep(10)
 
     except Exception as e:

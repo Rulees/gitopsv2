@@ -331,7 +331,7 @@ deploy_cloud_function_trigger:
       if [ -n "$SUBSERVICE" ]; then
         args="$args SUBSERVICE=$SUBSERVICE"
       fi
-      echo "ARGS                            >>>  $(echo ${args} | head -c 125)"
+      echo "📦 ARGS                            >>>  $(echo ${args} | head -c 125)"
       make deploy $args
 
   after_script:
