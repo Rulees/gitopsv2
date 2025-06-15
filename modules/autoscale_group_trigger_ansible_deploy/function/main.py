@@ -75,7 +75,7 @@ def handler(event, context):
                 # Теперь обновляем labels и деплоим
                 if non_deployed_instances:
                     print(f"🔄 Found {len(non_deployed_instances)} not_deployed_instances")
-                    trigger_gitlab_pipeline(iam_token)
+                    trigger_gitlab_pipeline(iam_token, instance_group_id)
 
                     for inst in non_deployed_instances:
                         labels = dict(inst.labels, deploy_status="in_process")
@@ -92,7 +92,6 @@ def handler(event, context):
 
                     print("✅ Instances processed and tagged.")
                 
-
 
             print("⏳ Wait 10s, before the next check...")
             time.sleep(10)
@@ -124,6 +123,7 @@ def trigger_gitlab_pipeline(iam_token):
         'variables[APP]': app,
         'variables[SERVICE]': service,
         'variables[IAM_TOKEN]': iam_token,
+        'variables[INSTANCE_GROUP_ID]': instance_group_id
     }
     if subservice:
         data['variables[SUBSERVICE]'] = subservice
