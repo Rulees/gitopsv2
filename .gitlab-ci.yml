@@ -288,7 +288,7 @@ destroy_prod:
 
 deploy_cloud_function_trigger:
   stage: deploy_dev
-  image: arkselen/autoscale:v1
+  image: arkselen/autoscale:v2
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"

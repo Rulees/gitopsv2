@@ -1,7 +1,7 @@
 # cd /root/project_gitlab/scripts/docker/autoscale
 # docker build -t arkselen/autoscale .
 # docker tag arkselen/autoscale arkselen/autoscale:v1
-# docker push arkselen/autoscale:v1
+# docker push arkselen/autoscale:v2
 
 # 25.04
 FROM ubuntu@sha256:79efa276fdefa2ee3911db29b0608f8c0561c347ec3f4d4139980d43b168d991
@@ -48,8 +48,13 @@ RUN SOPS_LATEST_VERSION=$(curl -s https://api.github.com/repos/getsops/sops/rele
     mv sops-v${SOPS_LATEST_VERSION}.linux.amd64 /usr/local/bin/sops && \
     chmod +x /usr/local/bin/sops
 
+# Установка yc CLI (последняя)
+RUN curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash && \
+    mv /root/yandex-cloud/bin/yc /usr/local/bin/yc
+
 # Проверка установок
 RUN sops -v && \
     ansible --version && \
+    yc --version && \
     docker --version && \
     rsync --version

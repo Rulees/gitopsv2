@@ -26,9 +26,9 @@
         }
       }
 
-- name: Debug available groups
-  debug:
-    var: groups.keys()
+# - name: Debug available groups
+#   debug:
+#     var: groups.keys()
 
 
 - name: Find Consul server group
