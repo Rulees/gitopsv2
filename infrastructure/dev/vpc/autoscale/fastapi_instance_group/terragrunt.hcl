@@ -88,13 +88,13 @@ inputs = {
                                         max_expansion          = 2     # How many vm's can be *created* at once during *update* to replace old ones, before removing old ones.
                                         max_creating           = 5     # How many vm's can be *created* at once during *scale* , if highload
                                         max_unavailable        = 0     # How many vm's can be *offline* at once during *update* (stopped or deleted), before new ones are ready
-                                        max_deleting           = 2     # How many vm's can be *removed* at once
+                                        max_deleting           = 6     # How many vm's can be *removed* at once. (2)
                                         startup_duration       = 120   # Time to wait after *update(max_expansion) / scale(max_creating)*, before considering a new VM "ready"(cause of ansible-provision)
 
 
                   # ---------DEFAULT_VALUES_AUTO-----------
                   # autoscale_policy = {  
-                                        min_zone_size          = 3     # Minimum vm's per zone (if zone is used!!)
+                                        min_zone_size          = 1     # Minimum vm's per zone (if zone is used!!)
                                       # max_size               = 10
                                       # initial_size           = 3     # started value and minimum. (1) must be >= zone_count * min_zone_size (3)
                                       # cpu_utilization_target = 60.0  # 40%=availability, 70%=cost. The percentage is low, cause of necessity to scale beforehand
