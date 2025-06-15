@@ -1,6 +1,6 @@
 # plugin: yc_compute
 oauth_token: ""
-group_combination_depth: 3
+group_combination_depth: 4
 
 # With Oauth
 yc_clouds:
