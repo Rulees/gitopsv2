@@ -94,7 +94,7 @@ inputs = {
 
                   # ---------DEFAULT_VALUES_AUTO-----------
                   # autoscale_policy = {  
-                                        min_zone_size          = 2     # Minimum vm's per zone (if zone is used!!)
+                                        min_zone_size          = 1     # Minimum vm's per zone (if zone is used!!)
                                       # max_size               = 10
                                       # initial_size           = 3     # started value and minimum. (1) must be >= zone_count * min_zone_size (3)
                                       # cpu_utilization_target = 60.0  # 40%=availability, 70%=cost. The percentage is low, cause of necessity to scale beforehand
