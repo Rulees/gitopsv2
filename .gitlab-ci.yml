@@ -335,7 +335,9 @@ deploy_cloud_function_trigger:
       make deploy $args
 
   after_script:
-      make add_tag_deploy_status
+    - pwd
+    - ls -la
+    - make add_tag_deploy_status
 
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger"'

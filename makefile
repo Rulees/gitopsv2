@@ -26,4 +26,4 @@ destroy:
 
 
 add_tag_deploy_status:
-	python3 scripts/ci/add_tag_deploy_status.py successful_hosts.txt
+	python3 scripts/ci/add_tag_deploy_status.py "$(WORK_DIR)/successful_hosts.txt"
