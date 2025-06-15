@@ -59,38 +59,27 @@ def handler(event, context):
                 if inst.status in (16, 17, 19, 21) and deploy_status not in ("true", "in_process", "error"):
                     non_deployed_instances.append(info)
 
+            
+
+            # Теперь обновляем labels и деплоим
             if non_deployed_instances:
-                print("⏳ Wait 10s to check for more instances...")
-                time.sleep(10)
+                print(f"🔄 Found {len(non_deployed_instances)} not_deployed_instances")
+                trigger_gitlab_pipeline(iam_token, instance_group_id)
 
-                # ВТОРОЙ ПРОХОД: повторная проверка через 10 секунд
-                instances = group_client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
-                non_deployed_instances = []             
-                for inst in instances:
-                    info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
-                    deploy_status = info.labels.get("deploy_status")
-                    if inst.status in (16, 17, 19, 21) and deploy_status not in ("true", "in_process", "error"): # 16=awaiting, 17=checking_health
-                        non_deployed_instances.append(info)
+                for inst in non_deployed_instances:
+                    labels = dict(inst.labels, deploy_status="in_process")
+                    url = f"https://compute.api.cloud.yandex.net/compute/v1/instances/{inst.id}"
+                    body = {"updateMask": "labels", "labels": labels}
+                    headers = {"Authorization": f"Bearer {iam_token}", "Content-Type": "application/json"}
 
-                # Теперь обновляем labels и деплоим
-                if non_deployed_instances:
-                    print(f"🔄 Found {len(non_deployed_instances)} not_deployed_instances")
-                    trigger_gitlab_pipeline(iam_token, instance_group_id)
-
-                    for inst in non_deployed_instances:
-                        labels = dict(inst.labels, deploy_status="in_process")
-                        url = f"https://compute.api.cloud.yandex.net/compute/v1/instances/{inst.id}"
-                        body = {"updateMask": "labels", "labels": labels}
-                        headers = {"Authorization": f"Bearer {iam_token}", "Content-Type": "application/json"}
-
-                        response = requests.patch(url, headers=headers, json=body)
-                        if response.status_code in (200, 201):
-                            print(f"✅ Instance {inst.id}: in_process")
-                        else:
-                            print(f"❌ Failed to add tag: {response.status_code} {response.text}")
+                    response = requests.patch(url, headers=headers, json=body)
+                    if response.status_code in (200, 201):
+                        print(f"✅ Instance {inst.id}: in_process")
+                    else:
+                        print(f"❌ Failed to add tag: {response.status_code} {response.text}")
                         
 
-                    print("✅ Instances processed and tagged.")
+                print("✅ Instances processed and tagged.")
                 
 
             print("⏳ Wait 10s, before next check...")
