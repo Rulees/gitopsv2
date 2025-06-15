@@ -3,7 +3,7 @@ from yandexcloud import SDK
 from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2_grpc import InstanceGroupServiceStub
 from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2 import ListInstanceGroupInstancesRequest
 from yandex.cloud.compute.v1.instance_service_pb2_grpc import InstanceServiceStub
-from yandex.cloud.compute.v1.instance_service_pb2 import GetInstanceRequest, UpdateInstanceRequest
+from yandex.cloud.compute.v1.instance_service_pb2 import GetInstanceRequest
 
 
 
@@ -52,11 +52,11 @@ def handler(event, context):
 
             for inst in instances:
                 info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
-                deployed = info.labels.get("deployed")
+                deploy_status = info.labels.get("deploy_status")
 
                 print(f"Instance: {inst.instance_id}, status: {inst.status}, labels: {info.labels}")
 
-                if inst.status in (16, 17, 19, 21) and deployed != "true":
+                if inst.status in (16, 17, 19, 21) and deploy_status != "true" and deploy_status != "in_process":
                     non_deployed_instances.append(info)
 
             if non_deployed_instances:
@@ -68,24 +68,24 @@ def handler(event, context):
                 non_deployed_instances = []             
                 for inst in instances:
                     info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
-                    deployed = info.labels.get("deployed")
-                    if inst.status in (16, 17, 19, 21) and deployed != "true": # 16=awaiting, 17=checking_health
+                    deploy_status = info.labels.get("deploy_status")
+                    if inst.status in (16, 17, 19, 21) and deploy_status != "true" and deploy_status != "in_process": # 16=awaiting, 17=checking_health
                         non_deployed_instances.append(info)
 
                 # Теперь обновляем labels и деплоим
                 if non_deployed_instances:
                     print(f"🔄 Found {len(non_deployed_instances)} not_deployed_instances")
-                    trigger_gitlab_pipeline()
+                    trigger_gitlab_pipeline(iam_token)
 
                     for inst in non_deployed_instances:
-                        labels = dict(inst.labels, deployed="true")
+                        labels = dict(inst.labels, deploy_status="in_process")
                         url = f"https://compute.api.cloud.yandex.net/compute/v1/instances/{inst.id}"
                         body = {"updateMask": "labels", "labels": labels}
                         headers = {"Authorization": f"Bearer {iam_token}", "Content-Type": "application/json"}
 
                         response = requests.patch(url, headers=headers, json=body)
                         if response.status_code in (200, 201):
-                            print(f"✅ Mark instance {inst.id} as deployed")
+                            print(f"✅ Instance {inst.id}: in_process")
                         else:
                             print(f"❌ Failed to add tag: {response.status_code} {response.text}")
                         
@@ -104,7 +104,7 @@ def handler(event, context):
             "body": f"❌ Exception: {str(e)}"
         }
 
-def trigger_gitlab_pipeline():
+def trigger_gitlab_pipeline(iam_token):
     env = os.getenv('ENV')
     app = os.getenv('APP')
     service = os.getenv('SERVICE')
@@ -123,6 +123,7 @@ def trigger_gitlab_pipeline():
         'variables[ENV]': env,
         'variables[APP]': app,
         'variables[SERVICE]': service,
+        'variables[IAM_TOKEN]': iam_token,
     }
     if subservice:
         data['variables[SUBSERVICE]'] = subservice

@@ -23,3 +23,7 @@ approve:
 destroy:
 	python3 scripts/ci/60-destroy.py $(ENV) $(APP) $(SERVICE)
 
+
+
+add_tag_deploy_status:
+	python3 scripts/ci/add_tag_deploy_status.py successful_hosts.txt

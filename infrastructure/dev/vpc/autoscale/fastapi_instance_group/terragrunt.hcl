@@ -39,7 +39,7 @@ locals {
   env_labels                                = include.root.locals.env_vars.locals.env_labels
   app_labels                                = {app = "${basename(dirname(get_terragrunt_dir()))}"}
   service_labels                            = {service = "${basename(get_terragrunt_dir())}"}
-  deployment_trigger                        = {deployed = false} # trigger to avoid reapplying
+  deployment_trigger                        = {deploy_status = false} # trigger to avoid reapplying
   labels                                    = merge(local.env_labels, local.app_labels, local.service_labels, local.deployment_trigger)
 }
 
@@ -94,7 +94,7 @@ inputs = {
 
                   # ---------DEFAULT_VALUES_AUTO-----------
                   # autoscale_policy = {  
-                                        min_zone_size          = 3     # Minimum vm's per zone (if zone is used!!)
+                                        min_zone_size          = 1     # Minimum vm's per zone (if zone is used!!)
                                       # max_size               = 10
                                       # initial_size           = 3     # started value and minimum. (1) must be >= zone_count * min_zone_size (3)
                                       # cpu_utilization_target = 60.0  # 40%=availability, 70%=cost. The percentage is low, cause of necessity to scale beforehand

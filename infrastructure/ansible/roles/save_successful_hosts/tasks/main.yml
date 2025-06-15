@@ -1,0 +1,6 @@
+- name: Store successful hosts(without fail) to file
+  local_action:
+    module: copy
+    content: "{{ ansible_play_hosts | join('\n') }}"
+    dest: successful_hosts.txt
+  run_once: true

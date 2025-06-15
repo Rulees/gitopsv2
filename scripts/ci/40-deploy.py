@@ -63,7 +63,7 @@ def extract_dependencies(playbook_path):
     return dependencies
 
 # === Асинхронный запуск ansible-playbook ===
-async def run_ansible_playbook(m, group, playbook):
+async def run_ansible_playbook(m, group, playbook, deploy_status=None):
     is_serverless = "serverless" in m["service"]
     cmd = [
         "ansible-playbook", str(playbook),
@@ -71,7 +71,10 @@ async def run_ansible_playbook(m, group, playbook):
         "--diff"
     ]
     if not is_serverless:
-        cmd += ["-i", str(ANSIBLE_DIR / "inventory" / "yc_compute.py"), "-l", group]
+        limit = group
+        if deploy_status:
+            limit = f"{group}:&deploy_status_{deploy_status}"
+        cmd += ["-i", str(ANSIBLE_DIR / "inventory" / "yc_compute.py"), "-l", limit]
 
     proc = await asyncio.create_subprocess_exec(
         *cmd,
@@ -83,7 +86,7 @@ async def run_ansible_playbook(m, group, playbook):
     return proc.returncode, stdout.decode()
 
 # === Запуск одного playbook с учётом зависимостей ===
-async def run_playbook(m, processed_groups, level=0):
+async def run_playbook(m, processed_groups, level=0, deploy_status=None):
     indent = "  " * level
 
     playbook = m["path"] / "playbook.yml"
@@ -140,19 +143,17 @@ async def run_playbook(m, processed_groups, level=0):
             dep_group = build_group_name(dep["env"], dep["app"], dep["service"])
 
         dep["path"] = dep_path
-        
-        print(f"[DEBUG] DEP: group={dep_group} path={dep_path} playbook_exists={dep_path / 'playbook.yml'} wait={dep.get('wait', 'true')}")
 
         if dep_group not in processed_groups:
             processed_groups.add(dep_group)
             print(f"{indent}   [dependency]  {dep_group} ({'Async' if dep.get('wait', 'true') == 'false' else 'Sync'})")
             if dep.get("wait", "true") == "false":
-                task = asyncio.create_task(run_playbook(dep, processed_groups, level + 1))
+                task = asyncio.create_task(run_playbook(dep, processed_groups, level + 1, deploy_status=deploy_status))
                 background_tasks.append(task)
             else:
-                await run_playbook(dep, processed_groups, level + 1)
+                await run_playbook(dep, processed_groups, level + 1, deploy_status=deploy_status)
 
-    returncode, output = await run_ansible_playbook(m, group, playbook)
+    returncode, output = await run_ansible_playbook(m, group, playbook, deploy_status=deploy_status)
 
     status = "SUCCESS" if returncode == 0 else "FAILED"
     status_display = {
@@ -177,6 +178,7 @@ async def main():
     app = os.getenv("APP")
     service = os.getenv("SERVICE")
     subservice = os.getenv("SUBSERVICE")
+    deploy_status = os.getenv("DEPLOY_STATUS")
 
     matches = find_matching_services(env, app, service, subservice=subservice)
     if not matches:
@@ -188,7 +190,7 @@ async def main():
         print(f" - {build_group_name(m['env'], m['app'], m['service'], m.get('subservice'))}")
 
     processed_groups = set()
-    results = await asyncio.gather(*(run_playbook(m, processed_groups) for m in matches))
+    results = await asyncio.gather(*(run_playbook(m, processed_groups, deploy_status=deploy_status) for m in matches))
 
     if any(code != 0 for code in results):
         sys.exit(1)
