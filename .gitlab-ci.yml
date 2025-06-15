@@ -150,7 +150,7 @@ create_dev:
 
 deploy_dev:
   stage: deploy_dev
-  image: arkselen/ci:v6
+  image: arkselen/ci:v7
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"
@@ -198,7 +198,7 @@ create_prod:
 
 deploy_prod:
   stage: deploy_prod
-  image: arkselen/ci:v6
+  image: arkselen/ci:v7
   variables:
     ENV: "prod"
     SOPS_KEYS: "admin ops prod"
@@ -233,7 +233,7 @@ rollback_infra_prod:
 
 rollback_deploy_prod:
   stage: manual
-  image: arkselen/ci:v6
+  image: arkselen/ci:v7
   variables:
     SOPS_KEYS: "admin ops prod"
     ENV: "prod"
@@ -288,54 +288,29 @@ destroy_prod:
 
 deploy_cloud_function_trigger:
   stage: deploy_dev
-  image: arkselen/ci:v6
+  image: arkselen/autoscale:v1
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"
   script:
-    # - !reference [.ansible_config, script]
     # DECRYPT SECRETS
     - make decrypt_secrets
-    
-    # CHECK
-    - echo "📦 PWD                          >>>     $(pwd)"
-    - echo "📦 Содержимое директории        >>>     $(ls -la)"
-    - echo "📦 YC_SSH_KEY                   >>>     $(cat ${WORK_DIR}/secrets/admin/yc_ssh_key | head -c 30)"
-    - echo "📦 GITLAB_ENV                   >>>     $(cat ${WORK_DIR}/secrets/ops/gitlab.env | head -c 300)"
-    - echo "📦 SA_COMPUTE_VIEWER            >>>     $(cat ${WORK_DIR}/secrets/ops/yc_compute_viewer_sa_key.json | head -c 50)"
-    - echo "📦 SA_SERVERLESS_DEPLOY         >>>     $(cat ${WORK_DIR}/secrets/ops/yc_serverless_deploy_sa_key.json | head -c 50)"
-    - echo "📦 ENV_APP_SECRET               >>>     $(cat ${WORK_DIR}/secrets/dev/totemlounge/website/.env | head -c 30)"
-
+  
     # SETUP SECRETS
     - chmod 600 ${WORK_DIR}/secrets/admin/yc_ssh_key
     - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
 
-    # GET YC CONTAINER REGISTRY ID
-    - export YC_SERVICE_ACCOUNT_KEY_FILE=${WORK_DIR}/secrets/ops/yc_serverless_deploy_sa_key.json
-    - set -a && source ${WORK_DIR}/secrets/admin/remote-backend.env && set +a
-    # - export REGISTRY_ID=$(terragrunt output -json --working-dir ${WORK_DIR}/infrastructure/${ENV}/registry | jq -r '.registry_id.value')
-    
-    # AUTH TO REGISTRY
-    - |
-      yc config profile create temp
-      yc config set service-account-key "$YC_SERVICE_ACCOUNT_KEY_FILE"
-      yc config set cloud-id "$YC_CLOUD_ID"
-      yc config set folder-id "$YC_FOLDER_ID"
-      # docker login --username iam --password-stdin cr.yandex <<< "$(yc iam create-token)"
-
     - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
 
-    # - echo "📦 PWD                          >>>     $(echo ${REGISTRY_ID})"
     - |
       args="ENV=$ENV APP=$APP SERVICE=$SERVICE DEPLOY_STATUS=in_process"
       if [ -n "$SUBSERVICE" ]; then
         args="$args SUBSERVICE=$SUBSERVICE"
       fi
-      echo "📦 ARGS                            >>>  $(echo ${args} | head -c 125)"
-      make deploy $args
 
+    - echo "📦 ARGS                            >>>  $(echo ${args} | head -c 125)"
+    - make deploy $args
   after_script:
     - make add_tag_deploy_status
-
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger"'
