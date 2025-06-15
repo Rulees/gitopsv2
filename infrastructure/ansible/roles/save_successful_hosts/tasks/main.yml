@@ -11,7 +11,3 @@
     content: "{{ ansible_play_hosts_all | join('\n') }}"
     dest: "{{ work_dir }}/all_hosts.txt"
   run_once: true
-    
-
-- name: Output successful host names
-  shell: cat {{ work_dir }}/successful_hosts.txt && cat {{ work_dir }}/all_hosts.txt

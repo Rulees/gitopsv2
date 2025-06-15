@@ -7,17 +7,17 @@
 #     done
 #   changed_when: false
 
+- name: Remove apt/dpkg lock files
+  shell: rm -f /var/lib/dpkg/lock* /var/lib/apt/lists/lock /var/cache/apt/archives/lock
+  ignore_errors: yes
+  changed_when: false
+
 - name: Remove unattended-upgrades package
   apt:
     name: unattended-upgrades
     state: absent
     purge: yes
     autoremove: yes
-
-- name: Remove apt/dpkg lock files
-  shell: rm -f /var/lib/dpkg/lock* /var/lib/apt/lists/lock /var/cache/apt/archives/lock
-  ignore_errors: yes
-  changed_when: false
 
 - name: Check if Docker is already installed
   command: docker --version
