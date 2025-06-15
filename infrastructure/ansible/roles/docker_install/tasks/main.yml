@@ -12,11 +12,6 @@
   ignore_errors: yes
   changed_when: false
 
-- name: Fix broken dpkg state
-  command: dpkg --configure -a
-  become: yes
-  ignore_errors: true
-
 - name: Check if Docker is already installed
   command: docker --version
   register: docker_installed

@@ -40,11 +40,11 @@ write_files:                           # Allow password for serial-console user
                 PubkeyAuthentication yes
     append: true
 
-packages:
-  - lnav
-  - htop
-  - nano
-  - tree
+# packages:
+#   - lnav
+#   - htop
+#   - nano
+#   - tree
 
 runcmd:
 # APPLY ALIASES
