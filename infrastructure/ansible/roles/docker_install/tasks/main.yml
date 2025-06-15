@@ -12,13 +12,6 @@
   ignore_errors: yes
   changed_when: false
 
-- name: Remove unattended-upgrades package
-  apt:
-    name: unattended-upgrades
-    state: absent
-    purge: yes
-    autoremove: yes
-
 - name: Check if Docker is already installed
   command: docker --version
   register: docker_installed
