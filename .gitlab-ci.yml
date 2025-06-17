@@ -331,6 +331,10 @@ mark_all_instances_false:
     - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
     - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
 
+
+    - curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash && \
+    - mv /root/yandex-cloud/bin/yc /usr/local/bin/yc
+    
     - apk add py3-requests
     # SCRIPT
     - make mark_all_instances_false
