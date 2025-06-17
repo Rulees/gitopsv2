@@ -331,7 +331,7 @@ mark_all_instances_false:
     - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
     - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
 
-    - pip install requests
+    - apk add py3-requests
     # SCRIPT
     - make mark_all_instances_false
   allow_failure: false
