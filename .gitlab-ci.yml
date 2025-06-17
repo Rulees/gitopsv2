@@ -334,11 +334,9 @@ mark_all_instances_false:
 
     - curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash && \
     - mv /root/yandex-cloud/bin/yc /usr/local/bin/yc
-
     - apk add py3-requests
+
     # SCRIPT
     - make mark_all_instances_false
   allow_failure: false
   when: manual
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "trigger"'
