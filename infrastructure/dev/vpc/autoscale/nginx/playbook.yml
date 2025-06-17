@@ -1,3 +1,9 @@
+# dependencies:
+#   - app: autoscale
+#     service: nginx
+#     subservice: consul_server
+#     wait: false
+
 ---
 - name: Deploy website with loadbalancing
   hosts: all
