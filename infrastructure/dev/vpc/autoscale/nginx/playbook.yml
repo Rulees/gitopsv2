@@ -11,6 +11,7 @@
   vars:
     upstream_name: fastapi_instance_group
     upstream_location_name: fastapi
+    consul_server_group: env_dev__app_autoscale__service_nginx # where consul_server is located
   roles:
     - docker_install
     - website_deploy
