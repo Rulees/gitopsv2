@@ -27,3 +27,6 @@ destroy:
 
 add_tag_deploy_status:
 	python3 scripts/ci/add_tag_deploy_status.py "$(WORK_DIR)/successful_hosts.txt"
+
+mark_all_instances_false:
+	python3 scripts/ci/mark_all_instances_false.py
