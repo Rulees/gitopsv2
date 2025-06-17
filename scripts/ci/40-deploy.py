@@ -110,7 +110,15 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None):
 
     playbook = m["path"] / "playbook.yml"
     is_subservice = m.get("subservice") is not None
-    use_subservice_infra = m.get("use_subservice_infra", True)
+
+    # Читаем use_subservice_infra из playbook.yaml если есть subservice
+    if is_subservice and "use_subservice_infra" not in m:
+        if playbook.exists():
+            use_subservice_infra = extract_use_subservice_infra(playbook)
+        else:
+            use_subservice_infra = True
+    else:
+        use_subservice_infra = m.get("use_subservice_infra", True)
 
     # Группа: если use_subservice_infra: false — group как у service, иначе с subservice
     if is_subservice and not use_subservice_infra:
