@@ -318,7 +318,7 @@ deploy_cloud_function_trigger:
 
 mark_all_instances_false:
   stage: deploy_dev
-  image: arkselen/ci:v6
+  image: arkselen/ci:v8
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"
