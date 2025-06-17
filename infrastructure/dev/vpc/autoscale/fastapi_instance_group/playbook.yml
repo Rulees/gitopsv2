@@ -1,9 +1,3 @@
-# dependencies:
-#   - app: infra
-#     service: consul_server
-#     wait: false
-#     # path: "../../../consul_server/" # use path if no service for this
-
 - name: Empty playbook because deploy happen inside cloud function
   hosts: all
   become: true
