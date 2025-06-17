@@ -12,6 +12,7 @@ from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2 import Lis
 from yandex.cloud.compute.v1.instance_service_pb2_grpc import InstanceServiceStub
 from yandex.cloud.compute.v1.instance_service_pb2 import GetInstanceRequest
 
+
 def main():
     iam_token = os.environ.get("IAM_TOKEN")
     if not iam_token:
