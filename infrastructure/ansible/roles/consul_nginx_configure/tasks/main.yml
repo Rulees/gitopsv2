@@ -47,20 +47,10 @@
       }
 
 
-- name: Find Consul server group
-  set_fact:
-    consul_server_group: >-
-      {{
-        (
-          groups.keys()
-          | select('search', 'env_' ~ env ~ '__app_' ~ app ~ '__service_nginx__subservice_consul_server')
-          + groups.keys()
-          | select('search', 'env_' ~ env ~ '__app_infra__service_consul_server')
-        ) | list | first
-      }}
+# - name: Debug available groups
+#   debug:
+#     var: groups.keys()
 
-- debug:
-    msg: "✅ Using Consul server group: {{ consul_server_group }}"
 
 - name: Set Consul server IP
   set_fact:
@@ -106,7 +96,7 @@
   wait_for:
     host: "{{ consul_server_ip }}"
     port: 8500
-    timeout: 20
+    timeout: 100
 
 
 - name: Start consul-template in Docker
