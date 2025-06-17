@@ -1,4 +1,11 @@
-import os, sys, requests
+import os, sys, requests, subprocess
+
+# Install yandexcloud QUIETLY!!!!!!!!!!!!!!!!!!!!!!!!, cause any stdout will intrcept with json output inventory. DONT USE PRINT("") !!!!!!!!
+url = "https://github.com/yandex-cloud/python-sdk/releases/download/v0.343.0/yandexcloud-0.343.0-py3-none-any.whl"
+def safe_run(*args, **kwargs):
+    subprocess.run(*args, stdout=sys.stderr, stderr=sys.stderr, **kwargs)
+safe_run([sys.executable, "-m", "pip", "install", "--root-user-action=ignore",  "--break-system-packages", "yandexcloud"])
+
 from yandexcloud import SDK
 from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2_grpc import InstanceGroupServiceStub
 from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2 import ListInstanceGroupInstancesRequest
