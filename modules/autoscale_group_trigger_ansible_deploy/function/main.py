@@ -53,6 +53,8 @@ def handler(event, context):
             for inst in instances:
                 info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
                 deploy_status = info.labels.get("deploy_status")
+                print(f"Instance: {inst.instance_id}, status: {inst.status}, deploy_status: {deploy_status}")
+
 
                 if inst.status in (16, 17, 19, 21) and deploy_status not in ("true", "in_process", "error"):
                     non_deployed_instances.append(info)

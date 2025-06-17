@@ -50,7 +50,7 @@ inputs = {
   zone                          = local.zone
   labels                        = local.labels
   allow_stopping_for_update     = true
-  scheduling_policy_preemptible = true
+  scheduling_policy_preemptible = false
   serial_port_enable            = false
 
   
@@ -59,7 +59,7 @@ inputs = {
   name                          = "vm"
   platform_id                   = "standard-v3"
   cores                         = 2
-  core_fraction                 = 20
+  core_fraction                 = 100
   memory                        = 4
   boot_disk = {
     type                        = "network-ssd"
