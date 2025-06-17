@@ -340,3 +340,5 @@ mark_all_instances_false:
     - make mark_all_instances_false
   allow_failure: false
   when: manual
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger"'
