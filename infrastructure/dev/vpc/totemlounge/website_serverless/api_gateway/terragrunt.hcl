@@ -61,9 +61,9 @@
 #   execution_timeout  = "300"
 #   custom_domains = [{
 #       fqdn           = "serverlessdev.arkselen.ru"
-#       certificate_id = "fpq0nme335e6m2qatta6"},
+#       certificate_id = "fpq82j0a9t28aealltc8"},
 #     # {
 #     #   fqdn           = "gtgt.arkselen.ru"
-#     #   certificate_id = "fpq0nme335e6m2qatta6"
+#     #   certificate_id = "fpq82j0a9t28aealltc8"
 #     # }
 # ]}

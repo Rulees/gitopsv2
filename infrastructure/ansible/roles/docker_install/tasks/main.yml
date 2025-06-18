@@ -9,7 +9,7 @@
           done
         changed_when: false
 
-      - name: Remove apt/dpkg lock files if not Docker-related
+      - name: Remove apt/dpkg lock files
         shell: rm -f /var/lib/dpkg/lock* /var/lib/apt/lists/lock /var/cache/apt/archives/lock
         ignore_errors: yes
         changed_when: false
