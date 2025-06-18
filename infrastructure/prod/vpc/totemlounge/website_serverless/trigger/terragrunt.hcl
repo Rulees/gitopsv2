@@ -59,7 +59,7 @@ inputs = {
   registry_id                   = dependency.registry.outputs.registry_id
   create_image_tag              = true
   sa_key_path                   = "${local.work_dir}/secrets/ops/yc_serverless_deploy_sa_key.json"
-  bucket_name                   =  "project-dildakot--yc-backend--k2bz6lv7"
+  bucket_name                   =  "project-dildakot--yc-backend--dmvlelmn"
   object_name                   = "${path_relative_to_include()}/restart-function.zip"
 
 

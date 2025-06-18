@@ -16,6 +16,6 @@ inputs = {
   project_prefix = include.root.locals.project_prefix
   folder_id      = include.root.locals.folder_id
   sa_name        = local.sa_name
-  roles          = ["compute.editor", "alb.editor", "load-balancer.editor"]
+  roles          = ["compute.editor", "alb.editor", "load-balancer.editor", "resource-manager.editor", "admin"]
   key_path       = "${get_repo_root()}/secrets/ops/yc_${replace(local.sa_name, "-", "_")}_sa_key.json"
 }

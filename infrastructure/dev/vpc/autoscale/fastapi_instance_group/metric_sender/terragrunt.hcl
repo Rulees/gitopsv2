@@ -36,7 +36,7 @@
 #   # folder_id                     = local.folder_id
 #   instance_group_id             = dependency.instance_group_guaranteed.outputs.instance_group_id
 #   service_account_id            = dependency.sa_metric_sender.outputs.sa_id
-#   bucket_name                   = "project-dildakot--yc-backend--k2bz6lv7"
+#   bucket_name                   = "project-dildakot--yc-backend--dmvlelmn"
 #   object_name                   = "${path_relative_to_include()}/send-metric-function.zip"
 #   sa_key_path                   = "${local.work_dir}/secrets/ops/yc_metric_send_sa_key.json"
 # }

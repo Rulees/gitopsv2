@@ -80,7 +80,7 @@ inputs = {
 
   # DNS(AUTO REDIRECT)
   dns = {
-    zone_id                     = "dnsdejjcevumag5r1q11"
+    zone_id                     = "dnsdghfje6n679tplso0"
     name                        = "arkselen.ru."
     ttl                         = 60
   }
