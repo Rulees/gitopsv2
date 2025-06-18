@@ -19,8 +19,16 @@ dependency "sg" {
   }
 }
 
+dependency "sa_autoscale" {
+  config_path                             = "../../../../sa_/autoscale"
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "providers", "terragrunt-info", "show"]
+  mock_outputs  = {
+    sa_id = "sa-id-fake"
+  }
+}
+
 # dependency "consul_server" {
-#   config_path = "../../../consul_server/"
+#   config_path = "../../../consul_server/" # if consul has own infra
 # }
 
 # dependency "metric_cpu_average" {
@@ -51,7 +59,7 @@ inputs = {
   env                          = local.env
   zone                         = local.zone
   labels                       = local.labels
-  service_account_id           = "ajef2vu3kdm3ch6pksea" # only for now
+  service_account_id           = dependency.sa_autoscale.outputs.sa_id
 
   ##
   # HEALTH_CHECK
