@@ -2,7 +2,7 @@
   hosts: all
   become: true
   vars:
-    consul_server_group: env_dev__app_infra__service_consul_server # where consul_server is located
+    consul_server_group: env_dev__app_loadbalance__service_nginx # where consul_server is located
   roles:
     - docker_install
     - consul_agent
