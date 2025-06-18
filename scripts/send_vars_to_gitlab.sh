@@ -1,15 +1,50 @@
-{
-	"data": "ENC[AES256_GCM,data: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,iv:PI+Q4vdRl4IeEhf9R2fa7C55pJf/EHkl5EmwFVCKsis=,tag:bBRrcUsGcnv/2xjjTWOi7A==,type:str]",
-	"sops": {
-		"age": [
-			{
-				"recipient": "age1sgrucltyqyjnvvqlz5rmkn72gyt90xadggeedrxeh2yrg92epewsh3gypt",
-				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB3YVRsb1MyVzBtNTc5S2l0\nRE5SL2lEQ3laWXRWS3lCRTFjTi9qbzdwT0hZCnhPOGllVFRXQnQ0aTVEbndBUml1\nU2ZZVjRiV3IvQTFRL3Q5dWtWNFJvUFEKLS0tIDNaRXJjVHc2M1ZLV3dmUHh3dXln\nblhyOE4zNWE1Szc5MlF4aDBLc1Bkak0KME5+mHJ/1cY78VKxKMejZbl6FiRJm0LT\nWf/FOtgVH4lWD+qMekQ49myg5DVXbgk6+DhXbVLHwWGpOheqVojjPA==\n-----END AGE ENCRYPTED FILE-----\n"
-			}
-		],
-		"lastmodified": "2025-06-18T10:37:32Z",
-		"mac": "ENC[AES256_GCM,data:xsqilQ98Z1RVzo1b2xI+sFMjrQ3gFb1z5X4gKUf1NyjYDlFJtQnUQYFHTEF6tUgB3Ee6K1Vf53y4SKxHIrIE/TZzIp1WGabT7w3uHzC18YRoLBUagMbTqgrGZ6O8xWuhIF3EeSN/9TWuIrvuR1pjFbIcwXtvk7a+rT9YAXzBG3M=,iv:aZjjUXpgc3dJsTz7cVcl1Y5qG3J3lsEhiD+N8zle/YQ=,tag:N0yizqaQPa7JeFkS6pD1og==,type:str]",
-		"encrypted_regex": ".*",
-		"version": "3.10.2"
-	}
+#!/bin/zsh
+
+# GitLab API конфигурация
+PROJECT_ID="70190498" 
+GITLAB_API_PROJECT_TOKEN="glpat-coLwfw_jyKSG4zSsb8fz"
+
+APPROVERS_ARRAY=(arkselen, melnikov, check-approve)
+APPROVERS_INFRA_ARRAY=(arkselen, melnikov, check-approve)
+YC_CLOUD_ID="b1g6lfsqbtpq384k0vrj"
+YC_FOLDER_ID="b1g1s1l8qr1m59f3orlt"
+SOPS_ADMIN_KEY=$(cat ~/.sops/age_admin_key.txt)
+SOPS_OPS_KEY=$(cat ~/.sops/age_ops_key.txt)
+SOPS_DEV_KEY=$(cat ~/.sops/age_dev_key.txt)
+SOPS_PROD_KEY=$(cat ~/.sops/age_prod_key.txt)
+
+
+
+GITLAB_API_URL="https://gitlab.com/api/v4"
+HEADERS="PRIVATE-TOKEN: $GITLAB_API_PROJECT_TOKEN"
+
+# Функция для добавления переменной в GitLab CI/CD
+add_gitlab_variable() {
+
+  curl --silent --request POST "$GITLAB_API_URL/projects/$PROJECT_ID/variables" \
+       --header "$HEADERS"      \
+       --form "key=$1"           \
+       --form "variable_type=$2"  \
+       --form "masked=$3"          \
+       --form "protected=$4"        \
+       --form "value=$5"             \
+       --form "description=$6"        \
 }
+
+#                                                            [TYPE]     [MASKED]  [PROTECTED]             [VALUE]                          [DESCRIPTION]
+add_gitlab_variable "SOPS_ADMIN_KEY"                        "file"        false      false            "$SOPS_ADMIN_KEY"               "SOPS AGE PRIVATE KEY FOR DECRYPTING ADMIN SECRETS"
+add_gitlab_variable "SOPS_OPS_KEY"                          "file"        false      false            "$SOPS_OPS_KEY"                 "SOPS AGE PRIVATE KEY FOR DECRYPTING OPS SECRETS"
+add_gitlab_variable "SOPS_DEV_KEY"                          "file"        false      false            "$SOPS_DEV_KEY"                 "SOPS AGE PRIVATE KEY FOR DECRYPTING DEV SECRETS"
+add_gitlab_variable "SOPS_PROD_KEY"                         "file"        false      false            "$SOPS_PROD_KEY"                "SOPS AGE PRIVATE KEY FOR DECRYPTING PROD SECRETS"
+add_gitlab_variable "GITLAB_API_PROJECT_TOKEN"              "env_var"     true       false            "$GITLAB_API_PROJECT_TOKEN"     "BOT + TOKEN for approving merge requests and adding new comments to MR. Value of this var = personal token of non-admin-project-user"
+add_gitlab_variable "APPROVERS_ARRAY"                       "env_var"     false      false            "$APPROVERS_ARRAY"              "List of authors for approving merge requests"
+add_gitlab_variable "YC_CLOUD_ID"                           "env_var"     false      false            "$YC_CLOUD_ID"                  "*"
+add_gitlab_variable "YC_FOLDER_ID"                          "env_var"     false      false            "$YC_FOLDER_ID"                 "*"
+add_gitlab_variable "APPROVERS_INFRA_ARRAY"                 "env_var"     false      false            "$APPROVERS_INFRA_ARRAY"        "List of authors for approving only specific folder /infrastructure"
+
+
+
+echo "\n\nСКРИПТ ЗАВЕРШЁН!"
+# Send Variables
+# cd /root/terraform/yc-tf-backend/scripts
+# chmod +x add_variables_to_gitlab.sh && ./add_variables_to_gitlab.sh 

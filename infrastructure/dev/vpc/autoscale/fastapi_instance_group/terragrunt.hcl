@@ -97,7 +97,7 @@ inputs = {
                                         max_creating           = 5     # How many vm's can be *created* at once during *scale* , if highload
                                         max_unavailable        = 0     # How many vm's can be *offline* at once during *update* (stopped or deleted), before new ones are ready
                                         max_deleting           = 6     # How many vm's can be *removed* at once. (2)
-                                        startup_duration       = 120   # Time to wait after *update(max_expansion) / scale(max_creating)*, before considering a new VM "ready"(cause of ansible-provision)
+                                        startup_duration       = 10   # Time to wait after *update(max_expansion) / scale(max_creating)*, before considering a new VM "ready"(cause of ansible-provision)
 
 
                   # ---------DEFAULT_VALUES_AUTO-----------
@@ -108,7 +108,7 @@ inputs = {
                                       # cpu_utilization_target = 60.0  # 40%=availability, 70%=cost. The percentage is low, cause of necessity to scale beforehand
                                         measurement_duration   = 60    # Time to measure cpu_average
                                         stabilization_duration = 90    # Time to wait after "measurement_duration" for making decision to scale-down amount of VM's (only down-auto-scale)
-                                        warmup_duration        = 30    # Time to wait after "startup_duraion" before start cpu-monitoring                           (only scale, not update)
+                                        warmup_duration        = 10    # Time to wait after "startup_duraion" before start cpu-monitoring                           (only scale, not update)
 
 
                   
