@@ -1,8 +1,8 @@
 - name: Prevent locks
   block:
-      - name: Wait for apt lock to be released (max 10 seconds)
+      - name: Wait for apt lock to be released
         shell: |
-          for i in {1..10}; do
+          for i in {1..5}; do
             fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1 || break
             echo "Waiting for apt/dpkg lock to be released..."
             sleep 2
@@ -21,6 +21,13 @@
         when: apt_docker_lock_check.stdout == ""
         ignore_errors: yes
         changed_when: false
+
+      - name: Disable unattended upgrades (minimal safe version)
+        shell: |
+          systemctl disable --now unattended-upgrades.service || true
+          systemctl mask unattended-upgrades.service || true
+          rm -f /etc/apt/apt.conf.d/20auto-upgrades /etc/apt/apt.conf.d/50unattended-upgrades
+        become: true
 
 
 - name: Check if Docker is already installed

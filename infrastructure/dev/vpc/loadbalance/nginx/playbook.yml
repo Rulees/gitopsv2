@@ -4,6 +4,7 @@
   become: true
   vars:
     service_name: fastapi # for upstream 
+    consul_server_group: env_dev__app_infra__service_consul_server # where consul_server is located
   roles:
     - docker_install
     - website_deploy
