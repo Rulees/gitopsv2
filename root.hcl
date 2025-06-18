@@ -7,14 +7,14 @@ generate "backend" {
   terraform {
     backend "s3" {
       region         = "ru-central1"
-      bucket         = "project-dildakot--yc-backend--k2bz6lv7"                                                          # change
+      bucket         = "project-dildakot--yc-backend--dmvlelmn"                                                          # change
       key            = "${path_relative_to_include()}/terraform.tfstate"
 
       dynamodb_table = "project-dildakot--yc-backend--state-lock-table"                                                  # change
 
       endpoints = {
         s3       = "https://storage.yandexcloud.net",
-        dynamodb = "https://docapi.serverless.yandexcloud.net/ru-central1/b1gle99ifk9rj88rn6h0/etno47ncj5i827trgopu"      # change
+        dynamodb = "https://docapi.serverless.yandexcloud.net/ru-central1/b1g6lfsqbtpq384k0vrj/etn4eoef8obmfvkvrhqs"      # change
       }
 
       skip_credentials_validation = true
@@ -304,7 +304,7 @@ generate "lock" {
 locals {
   work_dir           = get_env("WORK_DIR")
   region             = "ru-central1"
-  folder_id          = "b1ghomnle3pg309t5gu0"
+  folder_id          = "b1g1s1l8qr1m59f3orlt"
   project_prefix     = "project"
   env_vars           = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 }

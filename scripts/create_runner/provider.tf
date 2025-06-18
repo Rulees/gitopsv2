@@ -10,6 +10,6 @@ terraform {
 
 provider "yandex" {
   zone      = "ru-central1-a"
-  folder_id = "b1ghomnle3pg309t5gu0"
-  cloud_id  = "b1gle99ifk9rj88rn6h0"
+  folder_id = "b1g1s1l8qr1m59f3orlt"
+  cloud_id  = "b1g6lfsqbtpq384k0vrj"
 }

@@ -26,7 +26,7 @@ resource "yandex_compute_instance" "this" {
   }
 
   network_interface {
-    subnet_id = "e9bfgc27v0b7pgnac64f"
+    subnet_id = "e9bjj94ga8hfaoovej4d"
     ip_address = "10.10.1.10"
     nat = true
   }
