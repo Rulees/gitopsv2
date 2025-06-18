@@ -4,10 +4,10 @@ group_combination_depth: 4
 
 # With Oauth
 yc_clouds:
-  - "cloud-saimon19072001"
+  - "cloud"
 yc_folders:
   - "dev"
 
 # With SA
 yc_folder_id:
-  - "b1ghomnle3pg309t5gu0"
+  - "b1g1s1l8qr1m59f3orlt"
