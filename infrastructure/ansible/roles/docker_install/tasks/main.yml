@@ -2,23 +2,15 @@
   block:
       - name: Wait for apt lock to be released
         shell: |
-          for i in {1..5}; do
+          for i in {1..12}; do
             fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1 || break
             echo "Waiting for apt/dpkg lock to be released..."
             sleep 2
           done
         changed_when: false
 
-      - name: Check if APT lock held by Docker install or dependencies
-        shell: |
-          ps aux | grep -E "apt|dpkg" | grep -E "docker|containerd|runc|bridge-utils|dnsmasq|ubuntu-fan" | grep -v grep || true
-        register: apt_docker_lock_check
-        changed_when: false
-        ignore_errors: true
-
       - name: Remove apt/dpkg lock files if not Docker-related
         shell: rm -f /var/lib/dpkg/lock* /var/lib/apt/lists/lock /var/cache/apt/archives/lock
-        when: apt_docker_lock_check.stdout == ""
         ignore_errors: yes
         changed_when: false
 
