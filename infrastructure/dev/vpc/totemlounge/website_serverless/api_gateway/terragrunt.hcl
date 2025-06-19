@@ -34,15 +34,9 @@ dependency "serverless_container" {
 
 
 locals {
-  env             = include.root.locals.env_vars.locals.env
-  zone            = include.root.locals.env_vars.locals.zone
-  # Labels
-  app             = "${basename(dirname(get_terragrunt_dir()))}"
-  service         = "${basename(get_terragrunt_dir())}"
-  env_labels      = include.root.locals.env_vars.locals.env_labels
-  app_labels      = {app = local.app}
-  service_labels  = {service = local.service}
-  labels          = merge(local.env_labels, local.app_labels, local.service_labels)
+  env                = include.root.locals.env_vars.locals.env
+  zone               = include.root.locals.env_vars.locals.zone
+  labels             = merge({env = local.env}, {app = include.root.locals.app}, {service = include.root.locals.service}, length(include.root.locals.subservice) > 0 ? { subservice = include.root.locals.subservice } : {})
 }
 
 

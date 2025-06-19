@@ -10,7 +10,7 @@
         changed_when: false
 
       - name: Remove apt/dpkg lock files
-        shell: rm -f /var/lib/dpkg/lock* /var/lib/apt/lists/lock /var/cache/apt/archives/lock
+        shell: rm -f /var/lib/dpkg/lock* /var/lib/apt/lists/lock* /var/cache/apt/archives/lock*
         ignore_errors: yes
         changed_when: false
 
@@ -31,24 +31,28 @@
 
 - name: Install Docker
   block:
-      - name: Remove apt/dpkg lock files
-        shell: rm -f /var/lib/dpkg/lock* /var/lib/apt/lists/lock /var/cache/apt/archives/lock
-        ignore_errors: yes
-        changed_when: false
-
       - name: Установить Docker (Ubuntu)
         apt:
           name: docker.io
           state: present
           update_cache: yes
+        retries: 5
+        delay: 5
+        register: result
+        until: result is succeeded
         when:
           - ansible_facts['os_family'] == "Debian"
           - docker_installed.rc != 0
+        
 
       - name: Установить Docker (Fedora)
         dnf:
           name: docker
           state: present
+        retries: 5
+        delay: 5
+        register: result
+        until: result is succeeded
         when: 
           - ansible_facts['os_family'] == "RedHat"
           - docker_installed.rc != 0

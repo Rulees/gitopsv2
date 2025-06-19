@@ -28,12 +28,10 @@
 # locals {
 #   env       = include.root.locals.env_vars.locals.env
 #   work_dir  = include.root.locals.work_dir
-#   # folder_id = include.root.locals.env_vars.locals.folder_id
 # }
 
 # inputs = {  
 #   env                           = local.env
-#   # folder_id                     = local.folder_id
 #   instance_group_id             = dependency.instance_group_guaranteed.outputs.instance_group_id
 #   service_account_id            = dependency.sa_metric_sender.outputs.sa_id
 #   bucket_name                   = "project-dildakot--yc-backend--dmvlelmn"

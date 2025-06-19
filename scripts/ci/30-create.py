@@ -25,11 +25,18 @@ def main():
     # Build working directory based on given vars
     working_dir = Path(ROOT / "infrastructure" / env)
     if app:
-        working_dir /= f"vpc/{app}"
-        if service:
-            working_dir /= service
-            if subservice:
-                working_dir /= subservice
+        if app == "infra":
+            # No 'vpc' for infra, just infrastructure/env/service/subservice
+            if service:
+                working_dir /= service
+                if subservice:
+                    working_dir /= subservice
+        else:
+            working_dir /= f"vpc/{app}"
+            if service:
+                working_dir /= service
+                if subservice:
+                    working_dir /= subservice
 
     # Find target services
     matches = find_matching_services(env, app, service, subservice)

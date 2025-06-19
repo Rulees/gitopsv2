@@ -45,8 +45,8 @@ dependency "serverless_container" {
 locals {
   env      = include.root.locals.env_vars.locals.env
   work_dir = include.root.locals.work_dir
-  app      = "${basename(dirname(dirname(get_terragrunt_dir())))}"
-  service  = "${basename(dirname(get_terragrunt_dir()))}"
+  app      = include.root.locals.app
+  service  = include.root.locals.service
 }
 
 inputs = {  
