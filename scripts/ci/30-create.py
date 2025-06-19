@@ -15,16 +15,24 @@ def main():
     env = os.getenv("ENV")
     app = os.getenv("APP")
     service = os.getenv("SERVICE")
+    subservice = os.getenv("SUBSERVICE")
 
-    if not env:
-        print("❌ ENV is required (e.g. ENV=dev or ENV=prod)")
+
+    if (subservice and not (service and app and env)) or (service and not(app and env)) or (app and not (env)):
+        print("❌ Allow only:  ENV, ENV+APP, ENV+APP+SERVICE, or ENV+APP+SERVICE+SUBSERVICE (no gaps or skips in order).")
         sys.exit(1)
 
-    # Determine working directory and include dir
-    working_dir = ROOT / "infrastructure" / env
+    # Build working directory based on given vars
+    working_dir = Path(ROOT / "infrastructure" / env)
+    if app:
+        working_dir /= f"vpc/{app}"
+        if service:
+            working_dir /= service
+            if subservice:
+                working_dir /= subservice
 
     # Find target services
-    matches = find_matching_services(env, app, service)
+    matches = find_matching_services(env, app, service, subservice)
 
     if not matches:
         print("⚠️ No matching services found for apply.")
@@ -32,21 +40,12 @@ def main():
 
     print("📦 Matched groups:")
     for m in matches:
-        print(f" - {build_group_name(m['env'], m['app'], m['service'])}")
+        print(f" - {build_group_name(m['env'], m['app'], m['service'], m.get('subservice'))}")
 
     # Build command
-    cmd = ["terragrunt", "apply", "--all", "--non-interactive", "-lock=false", "-auto-approve", "--queue-include-external"]
-
-    if app and service:
-        include_dir = f"vpc/{app}/{service}"
-    elif app:
-        include_dir = f"vpc/{app}"
-    else:
-        include_dir = None
-    if include_dir:
-        cmd += ["--queue-include-dir", include_dir]
-
-    cmd += ["--working-dir", str(working_dir)]
+    cmd = [
+        "terragrunt", "apply", "--all", "--non-interactive", "-lock=false", "-auto-approve", "--queue-include-external", "--working-dir", str(working_dir)
+    ]
 
     print(f"\n🚀 Running: {' '.join(cmd)}")
     try:
