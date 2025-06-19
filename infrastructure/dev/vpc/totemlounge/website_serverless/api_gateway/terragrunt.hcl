@@ -36,7 +36,6 @@ dependency "serverless_container" {
 locals {
   env                = include.root.locals.env_vars.locals.env
   zone               = include.root.locals.env_vars.locals.zone
-  labels             = merge({env = local.env}, {app = include.root.locals.app}, {service = include.root.locals.service}, length(include.root.locals.subservice) > 0 ? { subservice = include.root.locals.subservice } : {})
 }
 
 
@@ -44,7 +43,6 @@ inputs = {
   # GENERAL
   env                = local.env
   zone               = local.zone
-  labels             = local.labels
   network_id         = dependency.network.outputs.vpc_id
   service_account_id = dependency.sa_api_gateway_editor.outputs.sa_id
   container_id       = dependency.serverless_container.outputs.container_id
