@@ -302,17 +302,24 @@ generate "lock" {
 
 
 locals {
-  work_dir           = get_env("WORK_DIR")
-  region             = "ru-central1"
-  folder_id          = "b1g1s1l8qr1m59f3orlt"
-  project_prefix     = "project"
-  env_vars           = read_terragrunt_config(find_in_parent_folders("env.hcl"))
-}
+  work_dir       = get_env("WORK_DIR")
+  region         = "ru-central1"
+  folder_id      = "b1g1s1l8qr1m59f3orlt"
+  project_prefix = "project"
+  env_vars       = read_terragrunt_config(find_in_parent_folders("env.hcl"))
 
+  # Extract app/service/subservice automatically for assigning labels
+  parts          = split("/", path_relative_to_include())
+  i              = 2
+  app            = try(local.parts[local.i+1], "")
+  service        = try(local.parts[local.i+2], "")
+  subservice     = try(local.parts[local.i+3], "")
+}
 
 inputs = {
-  work_dir          = local.work_dir
-  region            = local.region
-  folder_id         = local.folder_id
-  project_prefix    = local.project_prefix
+  work_dir       = local.work_dir
+  region         = local.region
+  folder_id      = local.folder_id
+  project_prefix = local.project_prefix
 }
+
