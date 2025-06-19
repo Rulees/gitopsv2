@@ -36,7 +36,7 @@
           name: docker.io
           state: present
           update_cache: yes
-        retries: 5
+        retries: 7
         delay: 5
         register: result
         until: result is succeeded
