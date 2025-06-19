@@ -10,12 +10,6 @@ variable "env" {
 }
 
 # GENERAL
-variable "labels" {
-  description = "Key-value map of labels assigned to the api_gateway."
-  type        = map(string)
-  default     = {}
-}
-
 variable "service_account_id" {
   description = "Service account ID used by the api_gateway."
   type        = string
