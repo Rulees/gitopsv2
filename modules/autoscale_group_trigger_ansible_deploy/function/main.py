@@ -4,8 +4,7 @@ from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2_grpc impor
 from yandex.cloud.compute.v1.instancegroup.instance_group_service_pb2 import ListInstanceGroupInstancesRequest
 from yandex.cloud.compute.v1.instance_service_pb2_grpc import InstanceServiceStub
 from yandex.cloud.compute.v1.instance_service_pb2 import GetInstanceRequest
-
-
+import grpc
 
 def handler(event, context):
     try:
@@ -51,13 +50,19 @@ def handler(event, context):
             non_deployed_instances = []
 
             for inst in instances:
-                info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
-                deploy_status = info.labels.get("deploy_status")
-                print(f"Instance: {inst.instance_id}, status: {inst.status}, deploy_status: {deploy_status}")
+                try:
+                    info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
+                    deploy_status = info.labels.get("deploy_status")
+                    print(f"Instance: {inst.instance_id}, status: {inst.status}, deploy_status: {deploy_status}")
 
 
-                if inst.status in (16, 17, 19, 21) and deploy_status not in ("true", "in_process", "error"):
-                    non_deployed_instances.append(info)
+                    if inst.status in (16, 17, 19, 21) and deploy_status not in ("true", "in_process", "error"):
+                        non_deployed_instances.append(info)
+                except grpc.RpcError as e:
+                    if e.code().name == "NOT_FOUND":
+                        print(f"Error >>> NOT_FOUND: {e}")
+                        continue
+                    raise
 
             if non_deployed_instances:
                 print("⏳ Wait 12s to check for more instances...")
@@ -67,11 +72,17 @@ def handler(event, context):
                 instances = group_client.ListInstances(ListInstanceGroupInstancesRequest(instance_group_id=instance_group_id)).instances
                 non_deployed_instances = []             
                 for inst in instances:
-                    info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
-                    deploy_status = info.labels.get("deploy_status")
-                    print(f"Instance: {inst.instance_id}, status: {inst.status}, deploy_status: {deploy_status}")
-                    if inst.status in (16, 17, 19, 21) and deploy_status not in ("true", "in_process", "error"):
-                        non_deployed_instances.append(info)
+                    try:
+                        info = instance_client.Get(GetInstanceRequest(instance_id=inst.instance_id))
+                        deploy_status = info.labels.get("deploy_status")
+                        print(f"Instance: {inst.instance_id}, status: {inst.status}, deploy_status: {deploy_status}")
+                        if inst.status in (16, 17, 19, 21) and deploy_status not in ("true", "in_process", "error"):
+                            non_deployed_instances.append(info)
+                    except grpc.RpcError as e:
+                        if e.code().name == "NOT_FOUND":
+                            print(f"Error >>> NOT_FOUND: {e}")
+                            continue
+                        raise
 
                 # Теперь обновляем labels и деплоим
                 if non_deployed_instances:
