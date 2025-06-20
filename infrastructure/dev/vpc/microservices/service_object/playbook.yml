@@ -1,0 +1,7 @@
+- name: Empty playbook because deploy happen inside cloud function
+  hosts: all
+  become: true
+  tasks:
+
+  - debug:
+      msg: "Hello!!!!!!!"

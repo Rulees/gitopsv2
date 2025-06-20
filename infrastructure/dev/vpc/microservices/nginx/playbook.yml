@@ -1,0 +1,18 @@
+# dependencies:
+#   - app: autoscale
+#     service: nginx
+#     subservice: consul_server
+#     wait: false
+
+---
+- name: Deploy website with loadbalancing
+  hosts: all
+  become: true
+  vars:
+    upstream_name: fastapi_instance_group
+    upstream_location_name: fastapi
+    consul_server_group: env_dev__app_autoscale__service_nginx # where consul_server is located
+  roles:
+    - docker_install
+    - website_deploy
+    - consul_nginx_configure

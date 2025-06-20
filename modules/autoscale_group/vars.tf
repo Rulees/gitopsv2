@@ -64,7 +64,7 @@ variable "initial_size" {
 variable "max_size" {
   description = "Maximum size of the instance group"
   type        = number
-  default     = 10
+  default     = 7
 }
 variable "measurement_duration" {
   description = "Duration in seconds for measuring CPU"

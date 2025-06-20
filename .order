@@ -50,6 +50,9 @@ infrastructure/prod/registry
 infrastructure/prod/consul_server
 infrastructure/prod/vpc
 
+infrastructure/dev/vpc/microservices
+infrastructure/dev/vpc/autoscale
+infrastructure/dev/vpc/loadbalance
 infrastructure/dev/vpc/totemlounge/telegrambot
 infrastructure/dev/vpc/totemlounge/website
 infrastructure/dev/vpc/totemlounge/website_serverless
