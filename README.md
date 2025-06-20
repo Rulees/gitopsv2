@@ -59,11 +59,3 @@
 
 # Errors
 For now if several commits happens at once, then approve stage will fail
-
-
-# f
-# dependencies:
-#   - app: infra
-#     service: consul_server
-#     wait: false
-#     # path: "../../../consul_server/" # use path if no service for this
