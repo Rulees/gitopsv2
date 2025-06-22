@@ -4,7 +4,7 @@ data "yandex_vpc_subnet" "by_name" {
 }
 
 locals {
-  name = "${var.project_prefix}--${var.instance_group_name}--${var.env}"
+  name = "${var.project_prefix}--${var.instance_group_name}-${random_id.this.hex}--${var.env}"
 }
 
 resource "yandex_compute_instance_group" "this" {
@@ -129,4 +129,8 @@ resource "yandex_compute_instance_group" "this" {
       })
     }
   }
+}
+
+resource "random_id" "this" {
+  byte_length = 3
 }

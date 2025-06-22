@@ -1,11 +1,12 @@
 locals {
-  name = "${var.project_prefix}--${var.trigger_name}--${var.env}"
+  name = "${var.project_prefix}--${var.function_name}-${random_id.this.hex}--${var.env}"
 }
 
 resource "yandex_function_trigger" "timer" {
 
   description          = "Trigger Cloud Function every (*) second"
   name                 = local.name
+  labels               = var.labels
 
 
   function {
@@ -16,4 +17,8 @@ resource "yandex_function_trigger" "timer" {
   timer {
     cron_expression    = var.cron_expression
   }
+}
+
+resource "random_id" "this" {
+  byte_length = 3
 }

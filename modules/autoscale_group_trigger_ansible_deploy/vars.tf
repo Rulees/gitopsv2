@@ -5,6 +5,12 @@ variable "project_prefix" {
 }
 
 # GENERAL
+variable "labels" {
+  description = "Resource labels"
+  type        = map(string)
+  default     = {}
+}
+
 variable "network_id" {
   description = "Network (VPC) ID"
   type        = string
