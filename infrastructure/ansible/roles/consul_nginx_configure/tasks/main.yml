@@ -33,7 +33,7 @@
     dest: /opt/consul-template/templates/nginx-dns-upstream.ctmpl
     content: |
       upstream {{ upstream_name }}_upstream {
-             server {{ service }}.service.consul;
+             server {{ service_name }}.service.consul;
       }
 
 
