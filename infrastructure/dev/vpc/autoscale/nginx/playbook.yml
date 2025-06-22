@@ -12,6 +12,7 @@
     upstream_name: fastapi_instance_group
     upstream_location_name: fastapi
     consul_server_group: env_dev__app_autoscale__service_nginx # where consul_server is located
+    consul_dns_for_upstream: true                              # one dns or many internal_ip_addresses of service' vms
   roles:
     - docker_install
     - website_deploy

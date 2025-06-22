@@ -1,5 +1,5 @@
 locals {
-  function_name            = "${var.project_prefix}--${var.function_name}--${var.env}"
+  function_name            = "${var.project_prefix}--${var.function_name}-${random_id.this.hex}--${var.env}"
   function_path            = "${path.module}/function"
   sa_key_json              = file(var.sa_key_path)
   archive_local            = "${local.function_path}.zip"
@@ -66,6 +66,7 @@ resource "yandex_function" "trigger_gitlab_deploy" {
   name                     = local.function_name
   service_account_id       = var.service_account_id
   connectivity {network_id = var.network_id}
+  labels                   = var.labels
 
   runtime                  = "python311"
   entrypoint               = "main.handler"

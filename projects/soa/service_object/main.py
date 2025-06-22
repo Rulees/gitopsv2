@@ -9,3 +9,8 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/api/object")
+def get_object():
+    return {"object": "Box"}
