@@ -15,9 +15,8 @@
 - .gitlab-ci.yml:            Pipiline to avoid manual actions: .. > dev_env > approve > prod_env > ..
 
 # Features:
-- Structure of folders has strict order: /infrastructure/{env}/{app}/{service}. It lets to assign labels for resources(vm's..) based on their location.
-- These labels can! be used to create only special resource.
-- These labels are! used to deploy any service only by assigning env_var 'SERVICE=<service>' . In ci/cd also ENV is required for security reason. 
+- Structure of folders has strict order: /infrastructure/{env}/{app}/{service}/{subservice}. It lets to assign labels for resources(vm's..) based on their location.
+- These labels can be used to create/destroy/deploy only specific resource.
 
 # Stages:
 1)  check_secrets

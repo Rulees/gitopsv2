@@ -12,19 +12,9 @@
     - /opt/consul-template/output
 
 
-# - name: Add consul-template template file
-#   copy:
-#     dest: /opt/consul-template/templates/nginx-upstream.ctmpl
-#     content: |
-#       upstream {{ service }}_upstream {
-#         {{ '{{' }} range service "{{ service }}" {{ '}}' }}
-#           server {{ '{{' }} .Address {{ '}}' }}:{{ '{{' }} .Port {{ '}}' }};
-#         {{ '{{' }} end {{ '}}' }}
-#       }
-
-- name: Add consul-template upstream file
+- name: Add consul-template upstream file (IP-based via .Address)
   copy:
-    dest: /opt/consul-template/templates/nginx-upstream.ctmpl
+    dest: /opt/consul-template/templates/nginx-ip-upstream.ctmpl
     content: |
       {{ '{{' }} $svc := service "{{ upstream_name }}" {{ '}}' }}
       upstream {{ upstream_name }}_upstream {
@@ -36,6 +26,16 @@
             server 127.0.0.1:65535; # dummy fallback
         {{ '{{' }} end {{ '}}' }}
       }
+
+
+- name: Add consul-template upstream file (DNS-based via service.consul)
+  copy:
+    dest: /opt/consul-template/templates/nginx-dns-upstream.ctmpl
+    content: |
+      upstream {{ upstream_name }}_upstream {
+             server {{ service }}.service.consul;
+      }
+
 
 - name: Add consul-template location file
   copy:
@@ -60,6 +60,12 @@
     - groups[consul_server_group] is defined
     - groups[consul_server_group] | length > 0
 
+
+- name: Select upstream template based on consul_dns_for_upstream
+  set_fact:
+    nginx_upstream_template_file: "{{ consul_dns_for_upstream | ternary('nginx-dns-upstream.ctmpl', 'nginx-ip-upstream.ctmpl') }}"
+
+
 - name: Add consul-template config file
   copy:
     dest: /opt/consul-template/config/config.hcl
@@ -69,7 +75,7 @@
       }
 
       template {
-        source      = "/consul-template/templates/nginx-upstream.ctmpl"
+        source      = "/consul-template/templates/{{ nginx_upstream_template_file }}"
         destination = "/consul-template/output/upstream.conf"
         command     = "{{ consul_template_reload_command }}"
         perms       = 0644
@@ -91,6 +97,7 @@
           max = "10s"
         }
       }
+
 
 - name: Wait for Consul server to become available
   wait_for:

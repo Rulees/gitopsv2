@@ -1,24 +1,3 @@
-# paths:
-#   /:
-#     get:
-#       x-yc-apigateway-integration:
-#         type: serverless_containers
-#         service_account_id: ${service_account_id}
-#         container_id: ${container_id}
-
-#   /{proxy+}:
-#     get:
-#       parameters:
-#         - name: proxy
-#           in: path
-#           required: true
-#           schema:
-#             type: string
-#       x-yc-apigateway-integration:
-#         type: serverless_containers
-#         service_account_id: ${service_account_id}
-#         container_id: ${container_id}
-
 openapi: 3.0.0
 info:
   title: Serverless API Gateway
