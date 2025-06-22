@@ -50,7 +50,7 @@ infrastructure/prod/registry
 infrastructure/prod/consul_server
 infrastructure/prod/vpc
 
-infrastructure/dev/vpc/microservices
+infrastructure/dev/vpc/soa
 infrastructure/dev/vpc/autoscale
 infrastructure/dev/vpc/loadbalance
 infrastructure/dev/vpc/totemlounge/telegrambot
@@ -60,6 +60,9 @@ infrastructure/prod/vpc/totemlounge/telegrambot
 infrastructure/prod/vpc/totemlounge/website
 infrastructure/prod/vpc/totemlounge/website_serverless
 
+projects/soa
+projects/autoscale
+projects/loadbalance
 projects/totemlounge/telegrambot/
 projects/totemlounge/telegrambot/main.py
 projects/totemlounge/telegrambot/Dockerfile
