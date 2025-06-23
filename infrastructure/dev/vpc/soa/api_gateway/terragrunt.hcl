@@ -8,7 +8,7 @@ include "root" {
 }
 
 dependency "network" {
-  config_path                             = "../../../../network/"
+  config_path                             = "../../../network/"
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "providers", "terragrunt-info", "show"]
   mock_outputs = {
     vpc_id     = "network-id-fake"
@@ -17,7 +17,7 @@ dependency "network" {
 }
 
 dependency "sa_api_gateway_editor" {
-  config_path                             = "../../../../../sa_/api_gateway_editor"
+  config_path                             = "../../../../sa_/api_gateway_editor"
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "providers", "terragrunt-info", "show"]
   mock_outputs  = {
     sa_id = "sa-id-fake"
@@ -40,10 +40,11 @@ inputs = {
   dns_zone_id        = "dnsdghfje6n679tplso0"
 
   # RESOURCES
+  use_container_mode = false
   api_gateway_name   = "api-gateway"
   execution_timeout  = "300"
   custom_domains = [{
-      fqdn           = "soa.arkselen.ru"
+      fqdn           = "apigw.arkselen.ru"
       certificate_id = "fpq82j0a9t28aealltc8"},
     # {
     #   fqdn           = "gtgt.arkselen.ru"

@@ -23,11 +23,13 @@ server {
     # Other
     ###
 
-    location /fastapi {
-        proxy_pass http://fastapi_upstream/;  # with "/" at the end to remove path /fastapi
+    #location /fastapi {
+    #    proxy_pass http://fastapi_upstream/;  # with "/" at the end to remove path /fastapi
 
-        access_log /var/log/nginx/upstream.log upstream_log;
-    }
+    #    access_log /var/log/nginx/upstream.log upstream_log;
+    #}
+    # FASTAPI_LOCATOR
+    include /opt/consul-template/output/*-upstream-location.conf;
 }
    
 

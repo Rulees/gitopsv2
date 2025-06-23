@@ -12,6 +12,6 @@ def health_check():
 
 
 # Through GatewayAPI
-@app.get("/api/color")
+@app.get("/color")
 def get_color():
     return {"color": "Red"}

@@ -14,10 +14,10 @@
 
 - name: Add consul-template upstream file (IP-based via .Address)
   copy:
-    dest: /opt/consul-template/templates/nginx-ip-upstream.ctmpl
+    dest: "/opt/consul-template/templates/{{ item.upstream_name }}-nginx-ip-upstream.ctmpl"
     content: |
-      {{ '{{' }} $svc := service "{{ upstream_name }}" {{ '}}' }}
-      upstream {{ upstream_name }}_upstream {
+      {{ '{{' }} $svc := service "{{ item.service_name }}" {{ '}}' }}
+      upstream {{ item.upstream_name }}_upstream {
         {{ '{{' }} if gt (len $svc) 0 {{ '}}' }}
           {{ '{{' }} range $svc {{ '}}' }}
             server {{ '{{' }} .Address {{ '}}' }}:{{ '{{' }} .Port {{ '}}' }};
@@ -26,25 +26,26 @@
             server 127.0.0.1:65535; # dummy fallback
         {{ '{{' }} end {{ '}}' }}
       }
-
+  loop: "{{ services }}"
 
 - name: Add consul-template upstream file (DNS-based via service.consul)
   copy:
-    dest: /opt/consul-template/templates/nginx-dns-upstream.ctmpl
+    dest: "/opt/consul-template/templates/{{ item.upstream_name }}-nginx-dns-upstream.ctmpl"
     content: |
-      upstream {{ upstream_name }}_upstream {
-             server {{ service_name }}.service.consul;
+      upstream {{ item.upstream_name }}_upstream {
+             server {{ item.service_name }}.service.consul;
       }
-
+  loop: "{{ services }}"
 
 - name: Add consul-template location file
   copy:
-    dest: /opt/consul-template/templates/nginx-upstream-location.ctmpl
+    dest: "/opt/consul-template/templates/{{ item.upstream_name }}-nginx-upstream-location.ctmpl"
     content: |
-      location /{{ upstream_location_name }} {
-          proxy_pass http://{{ upstream_name }}_upstream/;
+      location /{{ item.upstream_location_name }}/ {
+          proxy_pass http://{{ item.upstream_name }}_upstream/;
           access_log /var/log/nginx/upstream.log upstream_log;
       }
+  loop: "{{ services }}"
 
 
 # - name: Debug available groups
@@ -61,22 +62,19 @@
     - groups[consul_server_group] | length > 0
 
 
-- name: Select upstream template based on consul_dns_for_upstream
-  set_fact:
-    nginx_upstream_template_file: "{{ consul_dns_for_upstream | ternary('nginx-dns-upstream.ctmpl', 'nginx-ip-upstream.ctmpl') }}"
-
-
-- name: Add consul-template config file
+- name: Generate consul-template config for every service
   copy:
     dest: /opt/consul-template/config/config.hcl
     content: |
       consul {
         address = "http://{{ consul_server_ip }}:8500"
       }
-
+      
+      {%- for svc in services %}
       template {
-        source      = "/consul-template/templates/{{ nginx_upstream_template_file }}"
-        destination = "/consul-template/output/upstream.conf"
+        source      = "/consul-template/templates/{{ consul_dns_for_upstream | ternary(svc.upstream_name + '-nginx-dns-upstream.ctmpl', svc.upstream_name + '-nginx-ip-upstream.ctmpl') }}"
+      
+        destination = "/consul-template/output/{{ svc.upstream_name }}-upstream.conf"
         command     = "{{ consul_template_reload_command }}"
         perms       = 0644
 
@@ -85,10 +83,9 @@
           max = "10s"
         }
       }
-
       template {
-        source      = "/consul-template/templates/nginx-upstream-location.ctmpl"
-        destination = "/consul-template/output/upstream-location.conf"
+        source      = "/consul-template/templates/{{ svc.upstream_name }}-nginx-upstream-location.ctmpl"
+        destination = "/consul-template/output/{{ svc.upstream_location_name }}-upstream-location.conf"
         command     = "{{ consul_template_reload_command }}"
         perms       = 0644
 
@@ -97,6 +94,7 @@
           max = "10s"
         }
       }
+      {%- endfor %}
 
 
 - name: Wait for Consul server to become available

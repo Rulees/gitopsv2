@@ -77,7 +77,7 @@ inputs = {
   # DNS(AUTO REDIRECT)
   dns = {
     zone_id                     = "dnsdghfje6n679tplso0"
-    name                        = "static.soa.arkselen.ru."
+    name                        = "soa.arkselen.ru."
     ttl                         = 60
   }
 

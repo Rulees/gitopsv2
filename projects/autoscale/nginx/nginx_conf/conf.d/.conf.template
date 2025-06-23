@@ -24,7 +24,7 @@ server {
     ###
 
     # FASTAPI_LOCATOR
-    include /opt/consul-template/output/upstream-location.conf;
+    include /opt/consul-template/output/*-upstream-location.conf;
 }
    
 

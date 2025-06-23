@@ -5,52 +5,52 @@ info:
 
 paths:
   # FASTAPI
-  /all:
-    get:
-      summary: Combined user and orders
-      x-yc-apigateway-integration:
-        type: combine
-        combine:
-          - id: name
-            request:
-              http:
-                url: http://service_name.internal/api/name     # internal dns name not public
-          - id: object
-            request:
-              http:
-                url: http://service_object.internal/api/object
+  # /all:
+  #   get:
+  #     summary: Combined user and orders
+  #     x-yc-apigateway-integration:
+  #       type: combine
+  #       combine:
+  #         - id: name
+  #           request:
+  #             http:
+  #               url: http://service_name.internal/api/name     # internal dns name not public
+  #         - id: object
+  #           request:
+  #             http:
+  #               url: http://service_object.internal/api/object
 
-          - id: color
-            request:
-              http:
-                url: http://service_color.internal/api/color
-        response:
-          mapping:
-            name: $responses.name.body
-            object: $responses.object.body
-            color: $responses.color.body
+  #         - id: color
+  #           request:
+  #             http:
+  #               url: http://service_color.internal/api/color
+  #       response:
+  #         mapping:
+  #           name: $responses.name.body
+  #           object: $responses.object.body
+  #           color: $responses.color.body
 
   /name:
     get:
       x-yc-apigateway-integration:
         type: http
-        url: http://service_name.internal/api/name
+        url: https://soa.arkselen.ru/service_name/name
 
   /object:
     get:
       x-yc-apigateway-integration:
         type: http
-        url: http://service_object.internal/api/object
+        url: https://soa.arkselen.ru/service_object/object
 
   /color:
     get:
       x-yc-apigateway-integration:
         type: http
-        url: http://service_color.internal/api/color
+        url: https://soa.arkselen.ru/service_color/color
 
 
   # NGINX
-  /static/{proxy+}:
+  /{proxy+}:
     get:
       parameters:
         - name: proxy
@@ -60,4 +60,4 @@ paths:
             type: string
       x-yc-apigateway-integration:
         type: http
-        url: http://nginx-service.service.consul/static/{proxy}
+        url: https://soa.arkselen.ru/{proxy}

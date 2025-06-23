@@ -1,5 +1,5 @@
 1) nginx_serv/
-<img src="https://static.soa.arkselen.ru/images/totem_bot.jpg" alt="Моя Жизнь, Свет и Тьма">
+<img src="https://soa.arkselen.ru/images/totem_bot.jpg" alt="Моя Жизнь, Свет и Тьма">
 
 
 
@@ -14,3 +14,14 @@ location / {
 
 3) /secrets/soa
 
+4) dependency "instance_group" {
+  config_path                             = "../../service_color"
+}
+
+
+5) /root/project_gitlab/infrastructure/dev/vpc/soa/nginx
+# dependencies:
+#   - app: autoscale
+#     service: nginx
+#     subservice: consul_server
+#     wait: false

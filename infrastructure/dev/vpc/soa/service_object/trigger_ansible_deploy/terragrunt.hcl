@@ -17,7 +17,7 @@ dependency "network" {
 }
 
 dependency "instance_group" {
-  config_path                             = "../../fastapi_instance_group"
+  config_path                             = "../../service_object"
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "providers", "terragrunt-info", "show"]
   mock_outputs = {
     instance_group_id = "instance-group-id-fake"
