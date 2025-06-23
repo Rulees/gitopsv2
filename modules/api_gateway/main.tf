@@ -1,9 +1,6 @@
 locals {
   name                     = "${var.project_prefix}--${var.api_gateway_name}--${var.env}"
-  spec                     = templatefile("${path.module}/openapi.tmp.yml", {
-    container_id           = var.container_id
-    service_account_id     = var.service_account_id
-  })
+  spec                     = templatefile("${path.module}/openapi.tmp.yml", merge({}, var.use_container_mode ? {container_id = var.container_id, service_account_id = var.service_account_id} : {}))
 }
 
 resource "yandex_api_gateway" "this" {

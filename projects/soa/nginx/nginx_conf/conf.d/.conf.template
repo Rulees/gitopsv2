@@ -1,30 +1,27 @@
 # /etc/nginx/conf.d/*.conf
 server {
     listen 80 default_server;
-    if ($scheme = 'http') {
-        return 301 https://$host$request_uri;
-    }
+    #if ($scheme = 'http') {
+    #    return 301 https://$host$request_uri;
+    #}
 
-    listen 443 default_server ssl;
 
-    server_name ${DOMAIN};
+    #listen 443 default_server ssl;
 
-    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    server_name _;
+
+    #ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    #ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
 
     root /sites/starter;
     index index.html;
 
-    location / {
+    location /static {
         try_files $uri $uri/ =404;
+        add_header Cache-Control "public, max-age=86400"; # New way to say - allow cache
+        add_header Pragma public;                         # Old way to say - allow cache
+        add_header Vary Accept-Encoding;                  # It helps to understand(send cached version or simple version of site to client, cause of gzip or absense of gzip encrypting)
     }
-
-    ###
-    # Other
-    ###
-
-    # FASTAPI_LOCATOR
-    include /opt/consul-template/output/upstream-location.conf;
 }
    
 

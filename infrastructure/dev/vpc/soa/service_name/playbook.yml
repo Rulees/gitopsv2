@@ -4,4 +4,5 @@
   tasks:
 
   - debug:
-      msg: "Hello!!!!!!!"
+      msg: "Name of service with empty playbook"
+      var: service

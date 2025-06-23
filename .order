@@ -76,7 +76,9 @@ secrets/admin/gitlab_ssh_key
 secrets/admin/yc_ssh_key
 
 secrets/ops
+secrets/dev/soa
 secrets/dev
+
 secrets/prod
 
 README.md
