@@ -31,6 +31,7 @@ locals {
   app        = include.root.locals.app
   service    = include.root.locals.service
   subservice = include.root.locals.subservice
+  labels     = merge({env = local.env}, {app = include.root.locals.app}, {service = include.root.locals.service}, length(include.root.locals.subservice) > 0 ? { subservice = include.root.locals.subservice } : {})
 }
 
 inputs = {  
@@ -39,6 +40,7 @@ inputs = {
   app                           = local.app
   service                       = local.service
   subservice                    = local.subservice
+  labels                        = local.labels
   instance_group_id             = dependency.instance_group.outputs.instance_group_id
   network_id                    = dependency.network.outputs.vpc_id
   service_account_id            = "ajeo95lo98ru1rkd8fm6"                                     # for now

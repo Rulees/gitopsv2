@@ -4,6 +4,7 @@ info:
   version: 1.0.0
 
 paths:
+  # FASTAPI
   /all:
     get:
       summary: Combined user and orders
@@ -28,3 +29,35 @@ paths:
             name: $responses.name.body
             object: $responses.object.body
             color: $responses.color.body
+
+  /name:
+    get:
+      x-yc-apigateway-integration:
+        type: http
+        url: http://service_name.internal/api/name
+
+  /object:
+    get:
+      x-yc-apigateway-integration:
+        type: http
+        url: http://service_object.internal/api/object
+
+  /color:
+    get:
+      x-yc-apigateway-integration:
+        type: http
+        url: http://service_color.internal/api/color
+
+
+  # NGINX
+  /static/{proxy+}:
+    get:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: http
+        url: http://nginx-service.service.consul/static/{proxy}

@@ -8,11 +8,9 @@
 - name: Deploy website with loadbalancing
   hosts: all
   become: true
-  vars:
-    upstream_name: fastapi_instance_group
-    upstream_location_name: fastapi
-    consul_server_group: env_dev__app_autoscale__service_nginx # where consul_server is located
   roles:
     - docker_install
+    - consul_agent                        # for gateway to call static nginx with nginx.service.consul. CDN will be accessed through apigw too
     - website_deploy
-    - consul_nginx_configure
+
+                                          # Consul_nginx_configure is not necessary here and inside /projects, cause of GatewayAPI
