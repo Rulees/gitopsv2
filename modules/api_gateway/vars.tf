@@ -19,6 +19,7 @@ variable "service_account_id" {
 variable "container_id" {
   description = "ID of the serverless container to invoke"
   type        = string
+  default     = null
 }
 
 variable "network_id" {

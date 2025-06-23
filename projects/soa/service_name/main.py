@@ -11,6 +11,6 @@ def health_check():
     return {"status": "ok"}
 
 
-@app.get("/api/name")
+@app.get("/name")
 def get_name():
     return {"name": "John Doe"}

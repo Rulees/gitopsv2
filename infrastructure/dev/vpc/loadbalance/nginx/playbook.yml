@@ -9,9 +9,11 @@
   hosts: all
   become: true
   vars:
-    upstream_name: fastapi # for upstream 
-    upstream_location_name: fastapi
-    consul_server_group: env_dev__app_loadbalance__service_nginx # where consul_server is located
+    services:
+      - service_name: fastapi
+        upstream_name: fastapi                                       # for upstream 
+        upstream_location_name: fastapi
+        consul_server_group: env_dev__app_loadbalance__service_nginx # where consul_server is located
   roles:
     - docker_install
     - website_deploy

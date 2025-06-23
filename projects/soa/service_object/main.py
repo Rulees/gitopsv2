@@ -11,6 +11,6 @@ def health_check():
     return {"status": "ok"}
 
 
-@app.get("/api/object")
+@app.get("/object")
 def get_object():
     return {"object": "Box"}
