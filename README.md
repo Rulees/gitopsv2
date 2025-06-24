@@ -37,10 +37,10 @@
 1) - 10-check-secrets.sh . Check /secrets and /scripts/send_vars.. for revealed secrets
 
 2) - 20-decrypt-secrets.sh  is used in all stages, that require decrypting secrets. It decrypts only special dirs inside /secrets according to values specified inside .gitlab-ci.yml "variables: SOPSKEYS: '<dir_name> <dir_name> <dir_name>'". These values indicate to private-sops-keys that we are gonna use to decrypt secrets(Secrets can be decrypted only with keys, that were used to encrypt them)
-   - 30-create.py uses terragrunt to create resources(vm's...) with ENV=dev  +  assign labels to resources according to their sctrict location inside project: /infrastructure/{env}/{app}/{service}. Example: /infrastructure/dev/totemlounge/website will assign 3 labels: env=dev app=totemlounge service=website.
+   - 30-create.py uses terragrunt to create resources(vm's...) with ENV=dev  +  assign labels to resources according to their sctrict location inside project: /infrastructure/{env}/{app}/{service}/{subservice}. Example: /infrastructure/dev/totemlounge/website will assign 3 labels: env=dev app=totemlounge service=website.
 
 3) - 40-deploy.py is used to apply ansible-playbooks to created infrastructure. Ansible Dynamic Inventory /infrastructure/ansible/yc_compute.py is used to create host_groups from labels of resources assigned with terragrunt and their project location in previous stage. It creates almost all of the combination from small to big with symbols "_" between label_name:label_value and "__" between different labels.  For example: env_dev__app_totemlounge__service_telegrambot or env_prod__service_website
-   - Playbook basicly uses Docker to build image and run container. This location /projects/{app}/{service} is used for Dockerfile and applications code. So developers has to write their code here.
+   - Playbook basicly uses Docker to build image and run container. This location /projects/{app}/{service}/{subservice} is used for Dockerfile and applications code. So developers has to write their code here.
 
 4) - 50-approve.sh is used to allow approving merge request only by someone experienced in organization, for a case if somebody has writed bad application code, after that commit happens and prod_env starts. Experienced persons are assigned by gitlab_vars: APPROVERS_ARRAY(list of people who can approve changes in basic developer's folder "/projects" and secrets for developers "/secrets/{env}/.../.env") and APPROVERS_INFRA_ARRAY(list of people who can approve changes in all other folders). Stage waits only for a specified time and has to be restarted if necessary.
 
@@ -58,3 +58,9 @@
 
 # Errors
 For now if several commits happens at once, then approve stage will fail
+
+
+
+
+# NEXT STAGE
+1) We have autoscale with IG for every service. and service can talk with each other by nginx /location to upstreams with these services or talk by consul dns without nginx.

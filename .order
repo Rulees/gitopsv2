@@ -8,11 +8,17 @@ modules/backend
 modules/network
 modules/sg
 modules/sa
-modules/gw
+modules/yc-ec2
 modules/registry
+modules/api_gateway
 modules/serverless
 modules/serverless_trigger
-modules/yc-ec2
+modules/autoscale_group
+modules/autoscale_group_trigger_ansible_deploy
+modules/autoscale_group_metric_sender
+modules/cdn
+modules/dbs
+
 
 
 

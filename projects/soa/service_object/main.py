@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 app = FastAPI()
 
 @app.get("/")
@@ -14,3 +14,9 @@ def health_check():
 @app.get("/object")
 def get_object():
     return {"object": "Box"}
+
+
+@app.get("/ip")
+async def get_my_ip(request: Request):
+    client_ip = request.client.host
+    return {"Client IP": client_ip}
