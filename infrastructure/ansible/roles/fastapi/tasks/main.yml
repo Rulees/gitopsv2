@@ -17,7 +17,48 @@
       - "--delete"
   delegate_to: localhost  
 
-  
+- name: Allow talking between service directly by consul-dns without nginx upstreams
+  block:
+
+      - name: Install dnsmasq
+        apt:
+          name: dnsmasq
+          state: present
+          update_cache: yes
+      
+      - name: Ensure the systemd resolved config directory exists
+        file:
+          path: /etc/systemd/resolved.conf.d
+          state: directory
+          mode: '0755'
+
+      - name: Configure dnsmasq for Consul
+        copy:
+          dest: /etc/dnsmasq.d/consul
+          content: |
+            server=/service.consul/127.0.0.1#8600
+            listen-address=127.0.0.1
+            bind-interfaces
+
+      - name: Restart dnsmasq
+        systemd:
+          name: dnsmasq
+          state: restarted
+          enabled: true
+
+      - name: Configure systemd-resolved for Consul domain
+        copy:
+          dest: /etc/systemd/resolved.conf.d/consul.conf
+          content: |
+            [Resolve]
+            DNS=127.0.0.1
+            Domains=~service.consul
+
+      - name: Restart systemd-resolved
+        systemd:
+          name: systemd-resolved
+          state: restarted
+
 - name: Build + Run Docker container
   block:
       - name: Build Docker image
@@ -41,3 +82,7 @@
             - 8000:8000
           recreate: yes
           network_mode: host
+          dns_servers:
+            - 127.0.0.1
+          dns_search_domains:
+            - service.consul

@@ -42,6 +42,9 @@
     dest: "/opt/consul-template/templates/{{ item.upstream_name }}-nginx-upstream-location.ctmpl"
     content: |
       location /{{ item.upstream_location_name }}/ {
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header Host $http_host;
+          proxy_redirect off;
           proxy_pass http://{{ item.upstream_name }}_upstream/;
           access_log /var/log/nginx/upstream.log upstream_log;
       }

@@ -18,7 +18,7 @@ RUN apk add --no-cache python3 py3-pip py3-setuptools py3-wheel gcc musl-dev lib
     && pip3 install --break-system-packages --no-cache-dir yandexcloud PyJWT cryptography grpcio
 
 
-COPY nginx_serv/ /sites/starter/          
+COPY build/ /sites/starter/          
 COPY nginx_conf/ /etc/nginx/
 COPY entrypoint-yandex-cert.sh /entrypoint-yandex-cert.sh
 
