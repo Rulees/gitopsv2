@@ -64,6 +64,10 @@ generate "provider" {
         source = "hashicorp/null"
         version = "3.2.4"
       }
+      atlas = {
+        source  = "ariga/atlas"
+        version = "0.9.8"
+      }
     }
     required_version = ">= 1.9.4"
   }
@@ -295,6 +299,24 @@ generate "lock" {
       "zh:ceb5495d9c31bfb299d246ab333f08c7fb0d67a4f82681fbf47f2a21c3e11ab5",
       "zh:e171026b3659305c558d9804062762d168f50ba02b88b231d20ec99578a6233f",
       "zh:ed0fe2acdb61330b01841fa790be00ec6beaac91d41f311fb8254f74eb6a711f",
+    ]
+  }
+
+  provider "registry.terraform.io/ariga/atlas" {
+    version     = "0.9.8"
+    constraints = "0.9.8"
+    hashes = [
+      "h1:Ra44rn/2eb3kpMriqMVmB3RZl1uJ1/B6N5Rt7s6Gg4U=",
+      "h1:fy2eA4vKJ73b+rju5epvBqkLKQGZlbvmjIUKLC6+VZk=",
+      "h1:rbxo+WeQd0VcyRqe++Pn0GUR4crNNBwXV2C3ixbzVLY=",
+      "h1:tWPBVtJ1cWvUiyH8uW+T2AM3J8kxnsrKFRLWFBMH25Q=",
+      "h1:u1bsx6PE27yHeRClqElhHetgzLLm95aTRLcyMVQCmc4=",
+      "zh:03477f46e1c6d4d393f766c49106520fa128893796ef665edafa21f5306be78a",
+      "zh:0e5c9b0383580243ae96e06addb3965220559997f2bf1f4612cacddd6c8cc902",
+      "zh:6c24eccdf47e1ea73c9a25ffbdbcd08e0a4cb45cad321ce6345726c2bd3d0327",
+      "zh:81cdaf589f22b0c99b2c83261c7867735a99fe4fd0fa38be4c901c4170daf3f7",
+      "zh:cbbdea7f0a81fb3769cd708ec51c526401740451b482f7cd97b3bdcea4b9883c",
+      "zh:f809ab383cca0a5f83072981c64208cbd7fa67e986a86ee02dd2c82333221e32",
     ]
   }
   EOF
