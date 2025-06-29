@@ -42,6 +42,13 @@ inputs = {
       ports          = [22]
       v4_cidr_blocks = ["0.0.0.0/0"]
     },
+    {
+      direction      = "ingress"
+      description    = "Allow postgres"
+      protocol       = "TCP"
+      ports          = [6432]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
     # CONSUL
     {
       direction      = "ingress"
@@ -86,6 +93,13 @@ inputs = {
       protocol       = "UDP"
       ports          = [8301, 8302, 8600]
       v4_cidr_blocks = ["0.0.0.0/0"]
-    }
+    },
+    {
+      direction      = "egress"
+      description    = "Allow postgres"
+      protocol       = "TCP"
+      ports          = [6432]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
   ]
 }

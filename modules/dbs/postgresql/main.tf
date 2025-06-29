@@ -1,34 +1,49 @@
-resource "yandex_mdb_postgresql_cluster" "main" {
-  name        = var.cluster_name
-  environment = "PRESTABLE"
-  network_id  = var.network_id
-  folder_id   = var.folder_id
-  version     = "16"
+locals {
+  db_name              = "${var.project_prefix}--${var.db_name}-${random_id.this.hex}--${var.env}"
+  cluster_name         = "${var.project_prefix}--${var.cluster_name}-${random_id.this.hex}--${var.env}"
+}
 
-  resources {
-    resource_preset_id = "s3-c1-m4"
-    disk_type_id       = "network-ssd"
-    disk_size          = 20
+
+resource "yandex_mdb_postgresql_cluster_v2" "this" {
+  # GENERAL
+  name                 = local.cluster_name
+  description          = "${var.project_prefix} database cluster for ${var.env} environment"
+  network_id           = var.network_id
+
+
+  # CLUSTER
+  environment          = var.cluster_environment
+  config {
+    version            = var.db_version
+    resources {
+      disk_size          = var.disk_size
+      disk_type_id       = var.disk_type_id
+      resource_preset_id = var.resource_preset_id
+    }
   }
-
-  host {
-    zone      = var.zone
-    subnet_id = var.subnet_id
+  hosts = {
+    default = {
+      zone             = var.zone
+      subnet_id        = var.subnet_id
+      assign_public_ip = var.assign_public_ip
+    }
   }
+}
 
-  user {
-    name     = var.db_user
-    password = var.db_password
-  }
+# USER
+resource "yandex_mdb_postgresql_user" "this" {
+  cluster_id           = yandex_mdb_postgresql_cluster_v2.this.id
+  name                 = var.db_login
+  password             = var.db_password
+}
 
-  database {
-    name  = var.db_name
-    owner = var.db_user
-  }
+# DATABASE
+resource "yandex_mdb_postgresql_database" "this" {
+  cluster_id           = yandex_mdb_postgresql_cluster_v2.this.id
+  name                 = var.db_name
+  owner                = yandex_mdb_postgresql_user.this.name
+}
 
-  maintenance_window {
-    type = "ANYTIME"
-  }
-
-  deletion_protection = false
+resource "random_id" "this" {
+  byte_length          = 3
 }
