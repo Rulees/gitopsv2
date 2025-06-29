@@ -1,7 +1,12 @@
-schema "myapp" {}
+# Default schema to aboid dropping
+schema "public" {}
+
+
+
+schema "this" {}
 
 table "users" {
-  schema = schema.myapp
+  schema = schema.this
   column "id" {
     null = false
     type = int

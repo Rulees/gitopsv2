@@ -60,6 +60,7 @@ infrastructure/prod/vpc
 infrastructure/dev/vpc/atlas/atlas
 infrastructure/dev/vpc/atlas/posgresql
 secrets/dev/
+infrastructure/dev/vpc/atlas
 infrastructure/dev/vpc/soa
 infrastructure/dev/vpc/autoscale
 infrastructure/dev/vpc/loadbalance
