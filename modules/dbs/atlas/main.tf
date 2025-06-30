@@ -11,6 +11,7 @@ resource "atlas_schema" "main" {
   hcl                    = data.atlas_schema.this.hcl
 
   tx_mode                = var.transaction_mode
+  exclude                = var.atlas_exclude
   
   # lint {
   #   review               = var.lint_review_mode

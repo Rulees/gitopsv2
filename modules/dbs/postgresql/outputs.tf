@@ -32,3 +32,9 @@ output "db_name" {
   value       = yandex_mdb_postgresql_database.this.name
   sensitive   = true
 }
+
+# Full
+# output "database_url" {
+#   value = "postgresql://${var.db_login}:${var.db_password}@c-${yandex_mdb_postgresql_cluster_v2.this.id}.rw.mdb.yandexcloud.net:${var.db_port}/${yandex_mdb_postgresql_database.this.name}?sslmode=verify-full&sslrootcert=/root/.postgresql/root.crt"
+#   sensitive = true
+# }

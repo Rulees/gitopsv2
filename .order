@@ -57,9 +57,6 @@ infrastructure/prod/registry
 infrastructure/prod/consul_server
 infrastructure/prod/vpc
 
-infrastructure/dev/vpc/atlas/atlas
-infrastructure/dev/vpc/atlas/posgresql
-secrets/dev/
 infrastructure/dev/vpc/atlas
 infrastructure/dev/vpc/soa
 infrastructure/dev/vpc/autoscale
@@ -85,6 +82,7 @@ secrets/admin
 secrets/admin/gitlab.env
 secrets/admin/gitlab_ssh_key
 secrets/admin/yc_ssh_key
+
 
 secrets/ops
 secrets/dev/atlas

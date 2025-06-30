@@ -32,13 +32,17 @@
           state: directory
           mode: '0755'
 
-      - name: Configure dnsmasq for Consul
+      - name: Configure dnsmasq for Consul and fallback yandex resolver(10.10.2.2)
         copy:
           dest: /etc/dnsmasq.d/consul
           content: |
             server=/service.consul/127.0.0.1#8600
+            server=10.10.2.2
             listen-address=127.0.0.1
             bind-interfaces
+            no-resolv
+            log-queries
+            log-facility=/var/log/dnsmasq.log
 
       - name: Restart dnsmasq
         systemd:
@@ -84,5 +88,6 @@
           network_mode: host
           dns_servers:
             - 127.0.0.1
+            - 8.8.8.8
           dns_search_domains:
             - service.consul

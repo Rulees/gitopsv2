@@ -127,6 +127,9 @@ cache:
 
     - echo "📦 PWD                          >>>     $(echo ${REGISTRY_ID})"
 
+    # DATABASE_SECRET_URL
+    - terragrunt output --working-dir ${WORK_DIR}/infrastructure/
+
 check_secrets:
   stage: check_secrets
   image: frolvlad/alpine-bash

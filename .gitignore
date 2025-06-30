@@ -60,5 +60,4 @@
 
 **/changed_services.json
 
-
-**/frontend/build
+**/frontend/build/**/*

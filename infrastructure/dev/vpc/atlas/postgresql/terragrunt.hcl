@@ -22,7 +22,7 @@ locals {
   zone               = include.root.locals.env_vars.locals.zone
   work_dir           = include.root.locals.work_dir
   labels             = merge({env = local.env}, {app = include.root.locals.app}, {service = include.root.locals.service}, length(include.root.locals.subservice) > 0 ? { subservice = include.root.locals.subservice } : {})
-  secrets            = yamldecode(file("${local.work_dir}/secrets/dev/postgresql/.yml")) 
+  secrets            = yamldecode(file("${local.work_dir}/secrets/dev/atlas/postgresql/.yml")) 
 }
 
 inputs = {
@@ -54,7 +54,7 @@ inputs = {
 
   db_login             = local.secrets.db_login
   db_password          = local.secrets.db_password
-  db_name              = "postgresql_db"
+  db_name              = "postgresql"
   
 
 
