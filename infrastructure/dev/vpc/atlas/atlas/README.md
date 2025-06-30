@@ -11,3 +11,16 @@ docker exec mysql mysql -uroot -ppass -e "SELECT 1"
 tg apply
 docker exec -it mysql mysql -uroot -ppass myapp -e "DESCRIBE users;"
 
+
+<!-- 
+MySQL and MariaDB: *.my.hcl
+PostgreSQL: *.pg.hcl
+SQLite: *.lt.hcl
+ClickHouse: *.ch.hcl
+SQL Server: *.ms.hcl
+Redshift: *.rs.hcl
+Spanner: *.sp.hcl
+Snowflake: *.sf.hcl
+Atlas' test files: *.test.hcl
+Migrate plan files: *.plan.hcl
+-->

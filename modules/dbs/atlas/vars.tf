@@ -25,6 +25,12 @@ variable "src" {
 #   type        = string
 # }
 
+variable "atlas_exclude" {
+  description = "List of schemas/tables/.. to exclude from Atlas management."
+  type    = list(string)
+  default = []
+}
+
 variable "transaction_mode" {
   description = <<EOF
     Режим транзакции для применения схемы. none, file, all. 
