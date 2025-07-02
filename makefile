@@ -30,3 +30,6 @@ add_tag_deploy_status:
 
 mark_all_instances_false:
 	python3 scripts/ci/mark_all_instances_false.py
+
+write_terragrunt_output_secrets_to_files:
+	python3 scripts/ci/write_terragrunt_output_secrets_to_files.py

@@ -55,18 +55,4 @@ inputs = {
   db_login             = local.secrets.db_login
   db_password          = local.secrets.db_password
   db_name              = "postgresql"
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

@@ -6,6 +6,10 @@
     mode: '0755'
   loop:
     - "{{ docker_build_path }}"
+    - "{{ secret_admin_dir }}"
+    - "{{ secret_ops_dir }}"
+    - "{{ secret_dev_dir }}"
+    - "{{ secret_prod_dir }}"
 
 - name: Send Docker build context to remote host # {work_dir}/projects/{app}/{service}
   synchronize:
@@ -16,6 +20,18 @@
     rsync_opts:
       - "--delete"
   delegate_to: localhost  
+
+- name: SEND SECRETS
+  block:
+      - name: DEFAULT
+        block:
+                  - name: Create env secret file
+                    copy:
+                      src: "{{ secret_env_file }}"
+                      dest: "{{ remote_env_file }}"
+                      mode: '0644'
+                      force: true
+
 
 - name: Allow talking between service directly by consul-dns without nginx upstreams
   block:
@@ -81,7 +97,7 @@
           image: "{{ image_name }}"
           state: started
           restart_policy: always
-          # env_file: "{{ remote_env_file }}"
+          env_file: "{{ remote_env_file }}"
           ports:
             - 8000:8000
           recreate: yes

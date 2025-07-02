@@ -28,9 +28,9 @@ table "users" {
     null = false
     type = int
     identity {
-        generated = ALWAYS
-        start = 1
-        increment = 1
+      generated = ALWAYS
+      start     = 1
+      increment = 1
     }
   }
   column "name" {
