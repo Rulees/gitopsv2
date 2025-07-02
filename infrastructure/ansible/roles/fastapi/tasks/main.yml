@@ -11,11 +11,11 @@
     - "{{ secret_dev_dir }}"
     - "{{ secret_prod_dir }}"
 
-- name: Copy root.crt to docker build context (for database connection)
-  copy:
-    src: /root/.postgresql/root.crt
+- name: Ensure Postgres CA root.crt exists (download if missing or outdated)
+  get_url:
+    url: https://storage.yandexcloud.net/cloud-certs/CA.pem
     dest: "{{ docker_build_path }}/root.crt"
-    mode: '0644'
+    mode: '0655'
   delegate_to: localhost
 
 - name: Send Docker build context to remote host # {work_dir}/projects/{app}/{service}

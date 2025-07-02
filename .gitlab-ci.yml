@@ -99,8 +99,8 @@ cache:
     # YC_CERTIFICATE TO CONNECT DATABASE
     ##
 
-    - mkdir -p /root/.postgresql && \
-      wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" --output-document /root/.postgresql/root.crt && chmod 0655 /root/.postgresql/root.crt
+    # - mkdir -p /root/.postgresql && \
+    #   wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" --output-document /root/.postgresql/root.crt && chmod 0655 /root/.postgresql/root.crt
     
     ##
     # TERRAGRUNT CHECK
@@ -360,12 +360,12 @@ deploy_cloud_function_trigger:
     
     - make write_terragrunt_output_secrets_to_files
 
-    ##
-    # YC_CERTIFICATE TO CONNECT DATABASE
-    ##
+    # ##
+    # # YC_CERTIFICATE TO CONNECT DATABASE
+    # ##
 
-    - mkdir -p /root/.postgresql && \
-      wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" --output-document /root/.postgresql/root.crt && chmod 0655 /root/.postgresql/root.crt
+    # - mkdir -p /root/.postgresql && \
+    #   wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" --output-document /root/.postgresql/root.crt && chmod 0655 /root/.postgresql/root.crt
 
     ##
     # DEPLOY

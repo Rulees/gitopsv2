@@ -51,7 +51,7 @@ def main():
 
     # Build command
     cmd = [
-        "terragrunt", "apply", "--all", "--non-interactive", "-lock=false", "-auto-approve", "--queue-include-external", "--parallelism=18", "--working-dir", str(working_dir)
+        "terragrunt", "apply", "--all", "--non-interactive", "-lock=false", "-auto-approve", "--queue-include-external", "--parallelism=20", "--working-dir", str(working_dir)
     ]
 
     print(f"\n🚀 Running: {' '.join(cmd)}")
