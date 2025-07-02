@@ -3,6 +3,8 @@ from sqlalchemy import create_engine, Column, Integer, String, MetaData
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from pydantic import BaseModel
 from typing import List
+import os
+
 app = FastAPI()
 
 @app.get("/")
@@ -32,7 +34,8 @@ async def get_my_ip(request: Request):
 # DataBase
 ##
 
-DATABASE_URL = "postgresql://arkselen:257752257@c-c9q05cccurv0oq9kksis.rw.mdb.yandexcloud.net:6432/postgresql?sslmode=verify-full&sslrootcert=/root/.postgresql/root.crt"
+# DATABASE_URL = "postgresql://LOMOKNM:NONO@c-c9q05cccurv0oq9kksis.rw.mdb.yandexcloud.net:6432/postgresql?sslmode=verify-full&sslrootcert=/root/.postgresql/root.crt"
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 metadata = MetaData(schema="this")
 Base = declarative_base(metadata=metadata)
