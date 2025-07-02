@@ -11,6 +11,13 @@
     - "{{ secret_dev_dir }}"
     - "{{ secret_prod_dir }}"
 
+- name: Copy root.crt to docker build context (for database connection)
+  copy:
+    src: /root/.postgresql/root.crt
+    dest: "{{ docker_build_path }}/root.crt"
+    mode: '0644'
+  delegate_to: localhost
+
 - name: Send Docker build context to remote host # {work_dir}/projects/{app}/{service}
   synchronize:
     src: "{{ docker_build_path }}/"
