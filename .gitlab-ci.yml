@@ -118,7 +118,8 @@ cache:
     ##
     # SETUP SECRETS
     ##
-
+    - export YC_SERVICE_ACCOUNT_KEY_FILE=${WORK_DIR}/secrets/admin/yc_admin_sa_key.json
+    - set -a && source ${WORK_DIR}/secrets/admin/remote-backend.env && set +a
     - chmod 600 ${WORK_DIR}/secrets/admin/yc_ssh_key
     - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
     
@@ -332,6 +333,8 @@ deploy_cloud_function_trigger:
     # SETUP SECRETS
     ##
 
+    - export YC_SERVICE_ACCOUNT_KEY_FILE=${WORK_DIR}/secrets/admin/yc_admin_sa_key.json
+    - set -a && source ${WORK_DIR}/secrets/admin/remote-backend.env && set +a
     - chmod 600 ${WORK_DIR}/secrets/admin/yc_ssh_key
     - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
     

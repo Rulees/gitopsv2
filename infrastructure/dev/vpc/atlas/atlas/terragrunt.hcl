@@ -17,6 +17,7 @@ dependency "postgresql" {
     db_port             = "6432"
     cluster_master_fqdn = "c-123134.rw.mdb.yandexcloud.net"
     db_name             = "cars"
+    database_url        = "getger"
   }
 }
 
