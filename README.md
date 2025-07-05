@@ -64,3 +64,5 @@ For now if several commits happens at once, then approve stage will fail
 
 # NEXT STAGE
 1) We have autoscale with IG for every service. and service can talk with each other by nginx /location to upstreams with these services or talk by consul dns without nginx.
+2) Frontend with react
+3) DATABASE postgresql + atlas for creating schema + service to work with this db +

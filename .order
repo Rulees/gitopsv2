@@ -92,9 +92,25 @@ secrets/dev
 secrets/prod
 
 README.md
-.order
 .gitignore
+.order
+
 .sops.yaml
 .gitlab-ci.yml
 makefile
 root.hcl
+
+
+projects/atlas/service_database/src
+projects/atlas/service_database/tests
+projects/atlas/service_database/requirements
+
+projects/atlas/service_database/src/app/router.py
+projects/atlas/service_database/src/app/schemas.py
+projects/atlas/service_database/src/app/models.py
+projects/atlas/service_database/src/app/dependencies.py
+projects/atlas/service_database/src/app/config.py
+projects/atlas/service_database/src/app/constants.py
+projects/atlas/service_database/src/app/exceptions.py
+projects/atlas/service_database/src/app/service.py
+projects/atlas/service_database/src/app/utils.py
