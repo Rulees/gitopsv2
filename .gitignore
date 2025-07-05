@@ -61,3 +61,7 @@
 **/changed_services.json
 
 **/frontend/build/**/*
+**/nginx/build/**/*
+
+**/.cache/
+
