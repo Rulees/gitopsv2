@@ -103,7 +103,8 @@ root.hcl
 
 projects/atlas/service_database/src
 projects/atlas/service_database/tests
-projects/atlas/service_database/requirements
+projects/atlas/service_database/Dockerfile
+projects/atlas/service_database/requirements.txt
 
 projects/atlas/service_database/src/app/router.py
 projects/atlas/service_database/src/app/schemas.py

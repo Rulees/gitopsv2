@@ -63,5 +63,7 @@
 **/frontend/build/**/*
 **/nginx/build/**/*
 
-**/.cache/
+**/*.cache/**/*
+
+**/root.crt
 

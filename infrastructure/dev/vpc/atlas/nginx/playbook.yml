@@ -25,6 +25,6 @@
       #   upstream_location_name: service_object
   roles:
     - docker_install
-    # - website_frontend_build
+    - website_frontend_build
     - website_deploy
     - consul_nginx_configure
