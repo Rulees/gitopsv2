@@ -94,13 +94,6 @@ cache:
         }
       }
       EOF
-
-    ##
-    # YC_CERTIFICATE TO CONNECT DATABASE
-    ##
-
-    # - mkdir -p /root/.postgresql && \
-    #   wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" --output-document /root/.postgresql/root.crt && chmod 0655 /root/.postgresql/root.crt
     
     ##
     # TERRAGRUNT CHECK
@@ -347,7 +340,6 @@ deploy_cloud_function_trigger:
     ##
 
     - make decrypt_secrets
-    
 
     ##
     # SETUP SECRETS
@@ -359,13 +351,6 @@ deploy_cloud_function_trigger:
     - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
     
     - make write_terragrunt_output_secrets_to_files
-
-    # ##
-    # # YC_CERTIFICATE TO CONNECT DATABASE
-    # ##
-
-    # - mkdir -p /root/.postgresql && \
-    #   wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" --output-document /root/.postgresql/root.crt && chmod 0655 /root/.postgresql/root.crt
 
     ##
     # DEPLOY
