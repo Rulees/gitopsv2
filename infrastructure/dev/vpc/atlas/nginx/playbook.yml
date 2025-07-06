@@ -9,20 +9,13 @@
   hosts: all
   become: true
   vars:
+    # CONSUL_NGINX_CONFIGURE
     consul_server_group: env_dev__app_atlas__service_nginx       # where consul_server is located
-    consul_dns_for_upstream: false                             # true=one dns / false=many internal_ip_addresses of service' vms
+    consul_dns_for_upstream: false                               # true=one dns / false=many internal_ip_addresses of service' vms
     services:
-      # - service_name: service_name
-      #   upstream_name: service_name
-      #   upstream_location_name: service_name
-
       - service_name: service_database
         upstream_name: service_database
         upstream_location_name: service_database
-
-      # - service_name: service_object
-      #   upstream_name: service_object
-      #   upstream_location_name: service_object
   roles:
     - docker_install
     - website_frontend_build
