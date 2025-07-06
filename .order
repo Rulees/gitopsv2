@@ -101,6 +101,10 @@ makefile
 root.hcl
 
 
+projects/atlas/nginx/frontend/src/features
+projects/atlas/nginx/frontend/src/pages
+
+
 projects/atlas/service_database/src
 projects/atlas/service_database/tests
 projects/atlas/service_database/Dockerfile
