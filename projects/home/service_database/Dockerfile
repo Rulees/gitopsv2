@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+ARG DATABASE_URL
+ARG DB_LOGIN
+ARG DB_PASSWORD
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG BUCKET_NAME
+ARG BUCKET_PATH
+
+ENV DATABASE_URL=$DATABASE_URL
+ENV DB_LOGIN=$DB_LOGIN
+ENV DB_PASSWORD=$DB_PASSWORD
+ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+ENV BUCKET_NAME=$BUCKET_NAME
+ENV BUCKET_PATH=$BUCKET_PATH
+
+
+RUN mkdir -p /root/.postgresql
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+COPY root.crt /root/.postgresql/root.crt
+ENV PYTHONPATH="/src"
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]

@@ -19,12 +19,12 @@ CASES = {
         #     "file": f"{WORK_DIR}/secrets/{ENV}/atlas/service_sex/.env",
         #     "jq": 'to_entries | .[] | "\\(.key)=\\(.value.value)"'
         # }
-    # ],
-    # f"infrastructure/{ENV}/vpc/atlas/redis": [
-    #     {
-    #         "file": f"{WORK_DIR}/secrets/{ENV}/atlas/redis/.env",
-    #         "jq": 'to_entries | .[] | "\\(.key)=\\(.value.value)"'
-    #     }
+    ],
+    f"infrastructure/{ENV}/vpc/home/postgresql": [
+        {
+            "file": f"{WORK_DIR}/secrets/{ENV}/home/service_database/.env",
+            "jq": 'to_entries | .[] | "\\(.key)=\\(.value.value)"'
+        }
     ]
 }
 

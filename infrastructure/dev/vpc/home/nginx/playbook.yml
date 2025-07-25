@@ -1,0 +1,23 @@
+# dependencies:
+#   - app: home
+#     service: nginx
+#     subservice: consul_server
+#     wait: false
+
+---
+- name: Deploy website with loadbalancing
+  hosts: all
+  become: true
+  vars:
+    # CONSUL_NGINX_CONFIGURE
+    consul_server_group: env_dev__app_home__service_nginx        # where consul_server is located
+    consul_dns_for_upstream: false                               # true=one dns / false=many internal_ip_addresses of service' vms
+    services:
+      - service_name: service_database
+        upstream_name: service_database
+        upstream_location_name: service_database
+  roles:
+    - docker_install
+    # - website_frontend_build
+    - website_deploy
+    - consul_nginx_configure

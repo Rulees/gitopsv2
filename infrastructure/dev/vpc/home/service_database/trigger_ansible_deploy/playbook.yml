@@ -1,0 +1,15 @@
+# use_subservice_infra: false
+
+# Avoid marking deploy_status=true without consul_server to be deployed
+---
+- name: Deploy fastapi backend
+  hosts: all
+  become: true
+  vars:
+    consul_server_group: "env_dev__app_home__service_nginx" # where consul_server is located
+  roles:
+    - docker_install
+    - consul_agent
+    - fastapi
+    - save_successful_hosts
+

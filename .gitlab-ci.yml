@@ -365,6 +365,7 @@ deploy_cloud_function_trigger:
     - echo "📦 ARGS                            >>>  $(echo ${args} | head -c 125)"
     - make deploy $args
   after_script:
+    - apk add py3-requests
     - make add_tag_deploy_status
   rules:
     - if: '$CI_PIPELINE_SOURCE == "trigger"'
