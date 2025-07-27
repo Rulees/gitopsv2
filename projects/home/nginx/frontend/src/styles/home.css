@@ -51,20 +51,18 @@ ul {
 
 .header-top,
 .header-bot {
-  background-color: #ffffff;
-  color: #8593a5;
-
   display: flex;
   align-items: center;
 }
 
 .header-top {
-  grid-area: hd-top;
-
+  background-color: #ffffff;
+  color: #8593a5;
   font-size: 17px;
   font-weight: 500;
   box-shadow: inset 0 -1px 0 #e5e5e5;
 
+  grid-area: hd-top;
   z-index: 1;
 }
 
@@ -80,22 +78,22 @@ ul {
 }
 
 .header-top .item:hover {
-  background-color: rgba(224, 83, 14, 0.1);
+  /* background-color: rgba(115, 255, 0, 0.1); */
   color: #0e7ae0;
 }
 
 .header-bot {
   grid-area: hd-bot;
+  justify-content: center;
+
   z-index: 2;
-  padding-bottom: 12px;
+  padding: 30px 0;
+
+  background-color: #ffffff;
+  color: #8593a5;
 }
 
 .header-bot .item {
-  cursor: pointer;
-  /* transition: background-color 0.32s ease-in-out, color 0.32s ease-in-out; */
-
-  padding: 0 15px;
-
   display: flex;
   gap: 8px;
   align-items: center;
@@ -109,7 +107,7 @@ ul {
   padding: 0 32px;
   padding-bottom: 20px;
   background-color: #f2f4f6;
-  /* background-color: #ffffff; */
+  gap: 12px;
 }
 
 .main-top,
@@ -120,10 +118,125 @@ ul {
 }
 
 .main-top {
-  grid-area: ma-top;
+  min-height: 250px;
+  margin-top: 20px;
 }
+
+.main-top article {
+  color: #8593a5;
+  text-align: center;
+}
+
+.filter-wrapper {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 320px;
+  padding: 20px;
+
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(78, 127, 255, 0.08);
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.filter-wrapper:hover {
+  box-shadow: 0 8px 12px rgba(78, 127, 255, 0.2), 0 0 8px rgba(78, 127, 255, 0.1), 0 4px 12px rgba(78, 127, 255, 0.2);
+}
+
+.filter-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filter-column h4 {
+  height: 40px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.05px;
+  margin: 0 0 8px;
+  color: #262626;
+}
+
+.filter-item {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  font-size: 16px;
+
+  padding: 0 10px;
+  height: 40px;
+  /* background: #f2f4f6; */
+  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: border 0.32 ease-in-out;
+}
+.filter-item:hover {
+  border: 1px solid #00a739;
+}
+
+.filter-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 25px 0 0 0;
+}
+
+.filter-footer button {
+  padding: 20px 40px;
+  border-radius: 8px;
+  font: 500 17px / 18px "SBSans", sans-serif;
+}
+
+.filter-footer .actions {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-footer .reset {
+  background-color: #f2f4f6;
+  color: #262626;
+  border: 1px solid #0000;
+  transition: background-color 0.17s ease-out, border-color 0.17s ease-out;
+}
+
+.filter-footer .rollup {
+  background-color: #ffffff;
+  border: 1px solid transparent;
+}
+
+.filter-footer .show {
+  min-width: 280px;
+  background-color: #009e36;
+  color: #fff;
+  border: 1px solid #009e36;
+  transition: color 0.17s ease-out;
+  letter-spacing: -0.28px;
+  width: 100%;
+}
+
+.filter-footer .reset:hover {
+  background-color: #e0e4e9;
+}
+
+.filter-footer .rollup:hover {
+  background-color: #f2f4f6;
+}
+
+.filter-footer .show:hover {
+  background-color: #009532;
+}
+
 .main-bot {
-  grid-area: ma-bot;
+  margin-top: 10px;
 }
 
 .estates {
@@ -133,13 +246,14 @@ ul {
   gap: 12px;
 }
 
-.card {
+.main-bot .item {
   min-width: 100%;
   min-height: 250px;
   background-color: #ffffff;
   border-radius: 20px;
-
   cursor: pointer;
+
+  padding: 16px;
 }
 
 footer {
@@ -157,10 +271,8 @@ footer {
   display: none;
   position: absolute;
 
-  top: 100%;
-  left: 0;
   width: 342px;
-  height: 170px;
+  height: 160px;
   padding: 0 16px 24px 16px;
   background: #fff;
   border-radius: 8px;
@@ -173,7 +285,6 @@ footer {
 .content {
   display: flex;
   flex-direction: column;
-  /* gap: 5px; */
 }
 
 .popup-close {
@@ -189,10 +300,13 @@ footer {
   color: #262626;
   line-height: 1.3;
   margin: 0;
+  transform: scaleX(1.05);
+  transform-origin: left center; /* ✅ оставляет начало строки на месте */
+  display: inline-block; /* ⬅️ нужен для transform */
 }
 
 .popup-highlight {
-  font: 600 20px/28px "SBSansDisplay", sans-serif;
+  font: 700 20px/28px "SBSansDisplay", sans-serif;
   background-image: linear-gradient(133.28deg, #6bbd3f 10.67%, #209a73 55.57%, #0276a2 83.11%);
   color: transparent;
   -webkit-background-clip: text;
@@ -202,9 +316,13 @@ footer {
 }
 
 .popup-note {
-  font: 400 14px/20px SBSans, sans-serif;
+  font: 400 15px/20px SBSans, sans-serif;
   color: #737476;
-  margin-top: 8px;
+  margin-top: 10px;
+  letter-spacing: 0.2px;
+  transform: scaleX(1.05);
+  transform-origin: left center; /* ✅ оставляет начало строки на месте */
+  display: inline-block; /* ⬅️ нужен для transform */
 }
 
 .popup-note a {

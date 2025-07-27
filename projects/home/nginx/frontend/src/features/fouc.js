@@ -4,6 +4,7 @@ window.onload = () => {
 
 const trigger = document.getElementById("consultation-trigger");
 const popup = document.getElementById("consultation-popup");
+const closeBtn = document.getElementById("popup-close");
 
 let hideTimeout;
 
@@ -19,7 +20,7 @@ if (trigger && popup) {
   const hidePopup = () => {
     hideTimeout = setTimeout(() => {
       popup.style.display = "none";
-    }, 200); // задержка, чтобы успеть попасть на popup
+    }, 220); // задержка, чтобы успеть попасть на popup
   };
 
   trigger.addEventListener("mouseenter", showPopup);
@@ -30,4 +31,11 @@ if (trigger && popup) {
     popup.style.display = "block";
   });
   popup.addEventListener("mouseleave", hidePopup);
+
+  // ✅ Close popup when clicking the close button
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      popup.style.display = "none";
+    });
+  }
 }
