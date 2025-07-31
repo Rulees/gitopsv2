@@ -57,6 +57,7 @@ infrastructure/prod/registry
 infrastructure/prod/consul_server
 infrastructure/prod/vpc
 
+infrastructure/dev/vpc/home_serverless
 infrastructure/dev/vpc/home
 infrastructure/dev/vpc/atlas
 infrastructure/dev/vpc/soa
@@ -69,6 +70,7 @@ infrastructure/prod/vpc/totemlounge/telegrambot
 infrastructure/prod/vpc/totemlounge/website
 infrastructure/prod/vpc/totemlounge/website_serverless
 
+projects/home_serverless
 projects/home
 projects/atlas
 projects/soa
@@ -88,6 +90,7 @@ secrets/admin/yc_ssh_key
 
 
 secrets/ops
+secrets/dev/home_serverless
 secrets/dev/home
 secrets/dev/atlas
 secrets/dev/soa

@@ -1,0 +1,195 @@
+/* 
+##
+# HTML
+##
+
+3.1) CLASS:           <div class="alert-text">ALERT!!</div>,
+3.2) LIST OF CLASSES: <div class="alert-text severe-alert">ALERT!!</div>,
+4) ID:                <div id="title">My Awesome 90's Page</div>
+6) CHAIN:             <div>
+                        <div class="subsection header">Latest Posts</div>
+                        <p class="subsection" id="preview">
+                          This is where a preview for a post might go.
+                        </p>
+                      </div>
+
+
+
+##
+# CSS
+##
+
+# Where to specify css code?
+1) External file + link (<head><link rel="stylesheet" href="/src/styles/global.css" />)
+2) Intenal <style> inside <head>
+3) Inline
+
+SELECTOR {
+  PROPERTY: VALUE;
+}
+
+# SELECTORS:
+1) UNIVERSAL: *
+2) TYPE:     div
+3) CLASS:    .alert-text
+4) ID:       #title
+5) GROUP(SEVERAL SELECTORS, IF SHARED PROPERTIES): 
+            .read,
+            .unread {
+              color: white;
+              background-color: black;
+            }
+
+            .read {
+              several unique declarations
+            }
+
+            .unread {
+              several unique declarations
+            }
+6) CHAIN:(APPLY IN CASE, WHEN BOTH CLASSES/ID'S SPECIFIED)
+            .subsection.header {
+              color: red;
+            }
+
+            .subsection#preview {
+              color: blue;
+            }
+# COMBINATORS
+7) DESCENDANT        (all children):
+            .ancestor .child
+
+8) CHILD             (direct children):
+            .father > .child
+
+9) NEXT SIBLING      (matches the second element only if it immediately follows the first element, and both are children of the same parent element):
+            b + m
+10)SUBSEQUENT-SIBLING (match all m elements, that goes after b, sharing the same parent):
+            b ~ m
+..
+
+
+# PROPERTIES: 
+>>Colors
+  1) color
+  2) background-color
+>>Typography basics and text-align
+  3) font-family:          "Times New Roman", serif;
+  4) font-size:            22px
+  5) font-weight:          bold/1-1000
+  6) text-align: center
+>>Image height and width
+  7)  img {
+        height: auto;
+        width: 500px; or 50%; or calc(20% + 100px);
+      }
+  8) border
+  9) padding
+  10) margin
+  11) opacity
+  12) border-radius
+  13) background-image
+  14) background-color
+  15) background-repeat
+  16) background-position
+  17) max-width
+  18) gap
+  19) grid-template-columns
+  20) display
+  21) align-items
+  22) cursor
+  23) float
+
+# VALUES:      red   >> #ff0000, 
+
+
+
+
+
+
+
+/* h1 {
+  background-color: #ff0000;
+}
+
+h2 {
+  background-color: #0000ff;
+} */
+
+/* h6 {
+  background-color: #00ff00;
+}
+
+em {
+  background-color: #000000;
+  color: #ffffff;
+} */
+/* .br {
+  display: block;
+  margin-bottom: 1px;
+}
+
+.forecast {
+  margin: 0;
+  padding: 0.3rem;
+  background-color: #eee;
+}
+
+.forecast > h1,
+.day-forecast {
+  margin: 0.5rem;
+  padding: 0.3rem;
+  font-size: 1.2rem;
+}
+
+.day-forecast {
+  background: right/contain content-box border-box no-repeat
+    url("/shared-assets/images/examples/rain.svg") white;
+}
+
+.day-forecast > h2,
+.day-forecast > p {
+  margin: 0.2rem;
+  font-size: 1rem;
+}
+
+
+<style>
+  .input-group {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 10px 15px;
+    max-width: 400px;
+    margin: 40px auto;
+    font-family: sans-serif;
+    align-items: center;
+  }
+
+  .input-group label {
+    text-align: right;
+    font-weight: bold;
+  }
+
+  .input-group input {
+    padding: 8px;
+    width: 100%;
+    font-size: 1em;
+  }
+
+  button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  #result {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+</style> */
