@@ -1,44 +1,78 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const csvData = `Школа,нет,до 500м,до 1000м,до 1500м,
-Детский сад,нет,до 500м,до 1000м,до 1500м,
+  const csvData = `Школа,нет,до 500м,до 1000м,до 1500м
+Детский сад,нет,до 500м,до 1000м,до 1500м
 Площадь ЖК,до 10Га,до 20Га,до 30 Га,до 40 Га,Более 50 Га
 Количество домов в ЖК,2-5,6-10,11-20,20-30,более 30
 Количество квартир в ЖК,До 300,300-1000,1000-1500,1500-2500,более 2500
 Этажность,3-5,8-9,9-16,16-18,19-21
-Плотность населения,,,,,
-Расстояние до Центра на авто,10-15мин,,,,час и более
-До остановки пешком,До 5мин,5-10мин,более 10мин,,
-Отопление,Свой котел,Своя котельная на газе,Цетр.теплосеть,,
-Закрытая территория,Полностью,Закр. от машин,Открытая,,
-Окна с атермальным напылением,Да,Нет,,,,
+Плотность населения,,,,
+Расстояние до Центра на авто,10-15мин,час и более
+До остановки пешком,До 5мин,5-10мин,более 10мин
+Отопление,Свой котел,Своя котельная на газе,Цетр.теплосеть
+Закрытая территория,Полностью,Закр. от машин,Открытая
+Окна с атермальным напылением,Да,Нет
 Высота потолков,"2,5-2,75м","2,8-2,85","2,85-3,00",более 3м
-Наличие Студий в ЖК,Да,Нет,,,,
+Наличие Студий в ЖК,Да,Нет
 Парковки,Подзем есть,Стилобаты,Только наземная,Многоуровневый паркинг
-Коммерция,Своя в ЖК,Рядом много,Рядом ТРЦ,,
-Дворы без машин,Да,Нет,,,,
-Наличие парка, сквера рядом,Да,Нет,,,,
+Коммерция,Своя в ЖК,Рядом много,Рядом ТРЦ
+Дворы без машин,Да,Нет
+Наличие парка, сквера рядом,Да,Нет
 Кондиционеры,Случайно,В корзинах,Сбор конденсата,Сплит-румы,капает/не капает
-Наличие водоема,Нет,Рядом,в 10-15мин,,
-Колич квартир на этаже,4-5,6-8,9-10,11-14,
-Колясочные, велосипедные,Да,Нет,,,,
-Консьерж ,Нет,Да,Консьерж-сервис премиум,,
-Вход в подъезд без ступеней,Да,Нет,,,,
-Сквозные подъезды,Да,нет,,,,
+Наличие водоема,Нет,Рядом,в 10-15мин
+Колич квартир на этаже,4-5,6-8,9-10,11-14
+Колясочные, велосипедные,Да,Нет
+Консьерж,Нет,Да,Консьерж-сервис премиум
+Вход в подъезд без ступеней,Да,Нет
+Сквозные подъезды,Да,нет
 Фитнес,На территории,Рядом,10-15 минут пешком,нет
-Зарядная станция электроавтомобилей,Да,Нет,,,,
+Зарядная станция электроавтомобилей,Да,Нет
 Видеонаблюдение,Нет,На входах и въездах,Полное,Умные камеры
 Класс жилья,Эконом,Комфорт,Комфорт+,Бизнес,Премиум
 Арендный потенциал,Низкий,Средний,Высокий,топ
-Автополив газонов и деревьев,Да,Нет,,,,
-Спортивные площадки и тренажеры,мало,много,круто,,
-Краснодар или Адыгея,Краснодар,Адыгея,,,,
-Трамвай,,,,,
-Поликлиника,,,,,`;
+Автополив газонов и деревьев,Да,Нет
+Спортивные площадки и тренажеры,мало,много,круто
+Краснодар или Адыгея,Краснодар,Адыгея
+Трамвай,Есть рядом,Есть в 10мин,Нет
+Поликлиника,Есть рядом,2-4 остановки,В другом районе`;
+
+  const selectedFilters = {};
+
+  const conflictingAnswers = {
+    "Площадь ЖК": "all-conflicting",
+    "Количество домов в ЖК": "all-conflicting",
+    "Количество квартир в ЖК": "all-conflicting",
+    Этажность: "all-conflicting",
+    "Высота потолков": "all-conflicting",
+    "Наличие Студий в ЖК": ["Да", "Нет"],
+    Парковки: "all-conflicting",
+    Отопление: "all-conflicting",
+    "Закрытая территория": "all-conflicting",
+    "Окна с атермальным напылением": ["Да", "Нет"],
+    "Дворы без машин": ["Да", "Нет"],
+    "Наличие парка, сквера рядом": ["Да", "Нет"],
+    "Наличие водоема": ["Нет", "Рядом", "в 10-15мин"],
+    "Колясочные, велосипедные": ["Да", "Нет"],
+    Консьерж: "all-conflicting",
+    "Вход в подъезд без ступеней": ["Да", "Нет"],
+    "Сквозные подъезды": ["Да", "нет"],
+    Фитнес: "all-conflicting",
+    "Зарядная станция электроавтомобилей": ["Да", "Нет"],
+    Видеонаблюдение: "all-conflicting",
+    "Класс жилья": "all-conflicting",
+    "Арендный потенциал": "all-conflicting",
+    "Автополив газонов и деревьев": ["Да", "Нет"],
+    "Спортивные площадки и тренажеры": "all-conflicting",
+    "Краснодар или Адыгея": "all-conflicting",
+    Трамвай: "all-conflicting",
+    Поликлиника: "all-conflicting",
+    // Filters with "нет" options will automatically handle the conflict logic.
+  };
 
   const parseCsvData = (csv) => {
     const lines = csv.split("\n").filter((line) => line.trim() !== "");
     const filters = {};
     lines.forEach((line) => {
+      // Split the line, accounting for commas inside quotes
       const parts = line.match(/(?:[^,"']+|"[^"]*")+/g).map((p) => p.replace(/"/g, "").trim());
       const filterName = parts[0];
       const options = parts.slice(1).filter((opt) => opt !== "");
@@ -112,7 +146,6 @@ document.addEventListener("DOMContentLoaded", () => {
           item.dataset.filterName = filterName;
           item.textContent = filterName;
 
-          // Inject popup wrapper (initially hidden)
           const popup = document.createElement("div");
           popup.classList.add("popup", "popup--filter-item");
           const wrapper = document.createElement("div");
@@ -143,7 +176,6 @@ document.addEventListener("DOMContentLoaded", () => {
           infoBlock.innerHTML = infoIcon; // Add SVG first
           infoBlock.appendChild(descriptionParagraph);
 
-          // === Собираем строго по твоей структуре ===
           wrapper.appendChild(optionsBlock);
           wrapper.appendChild(infoBlock);
           popup.appendChild(wrapper);
@@ -156,16 +188,69 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // --- FUNCTION TO HANDLE OPTION SELECTION AND CONFLICTS ---
+  function toggleSelectedOption(filterItem, filterName, optionText) {
+    if (!selectedFilters[filterName]) {
+      selectedFilters[filterName] = [];
+    }
+
+    const currentSelection = selectedFilters[filterName];
+    const index = currentSelection.indexOf(optionText);
+    const popupButtons = filterItem.querySelectorAll(".popup__button");
+
+    const conflictRule = conflictingAnswers[filterName];
+
+    // Check if the option is already selected
+    if (index > -1) {
+      // Option is already selected, so unselect it
+      currentSelection.splice(index, 1);
+    } else {
+      // Option is not selected, so check for conflicts before adding it.
+      const hasNoOption = mockBackendFilters[filterName].includes("нет");
+      const isConflictingRule = conflictRule === "all-conflicting" || (Array.isArray(conflictRule) && conflictRule.includes(optionText));
+
+      if (isConflictingRule || optionText === "нет" || hasNoOption) {
+        currentSelection.length = 0;
+      }
+
+      currentSelection.push(optionText);
+    }
+
+    // Update button classes based on the final selection state
+    popupButtons.forEach((btn) => {
+      if (currentSelection.includes(btn.textContent.trim())) {
+        btn.classList.add("selected");
+      } else {
+        btn.classList.remove("selected");
+      }
+    });
+
+    // Update the main filter item's "is-selected" state
+    updateFilterStatus(filterItem, filterName);
+  }
+
   // === POPUP FUNCTIONALITY ===
   let activeItem = null;
+  const filterGrid = document.querySelector(".filter-grid");
 
   document.addEventListener("click", (e) => {
     const clickedItem = e.target.closest(".filter-item");
+    const clickedPopupBtn = e.target.closest(".popup__button");
+
+    if (clickedPopupBtn) {
+      const filterItem = clickedPopupBtn.closest(".filter-item");
+      const filterName = filterItem.dataset.filterName;
+      const optionText = clickedPopupBtn.textContent.trim();
+
+      toggleSelectedOption(filterItem, filterName, optionText);
+      return;
+    }
 
     if (clickedItem) {
       // same toggle
       if (clickedItem === activeItem) {
         closeActivePopup();
+        filterGrid?.classList.remove("has-open-popup");
         return;
       }
 
@@ -176,38 +261,30 @@ document.addEventListener("DOMContentLoaded", () => {
       clickedItem.querySelector(".popup").classList.add("popup--active");
       activeItem = clickedItem;
 
-      // Ensure popup is fully visible inside scroll container
+      if (filterGrid) {
+        filterGrid.classList.add("has-open-popup");
+      }
+
       const popup = clickedItem.querySelector(".popup");
-      const gridContainer = document.querySelector(".filter-grid"); // Make sure this selector correctly targets your scrollable div
+      const gridContainer = document.querySelector(".filter-grid");
 
       if (popup && gridContainer) {
         const itemRect = clickedItem.getBoundingClientRect();
         const popupRect = popup.getBoundingClientRect();
         const containerRect = gridContainer.getBoundingClientRect();
 
-        // Calculate the relative positions within the scroll container
         const itemRelativeTop = itemRect.top - containerRect.top;
-        const itemRelativeBottom = itemRect.bottom - containerRect.top;
         const popupRelativeBottom = popupRect.bottom - containerRect.top;
 
-        // Desired padding from the edges
         const scrollPadding = 10;
-
         let scrollAmount = 0;
 
-        // Case 1: Popup extends below the visible area of the container
         if (popupRelativeBottom > gridContainer.clientHeight - scrollPadding) {
-          // Calculate how much to scroll down to show the full popup
           scrollAmount = popupRelativeBottom - (gridContainer.clientHeight - scrollPadding);
-
-          // IMPORTANT: Prevent scrolling the clicked item out of view from the top
-          // We don't want to scroll past the point where the item's top would be off-screen
-          const maxScrollDownWithoutHidingItem = itemRelativeTop; // Max we can scroll down before item's top hits container top
-          scrollAmount = Math.min(scrollAmount, maxScrollDownWithoutHidingItem); // Cap the scroll amount
-        }
-        // Case 2: Item is above the visible area (should not happen on click if it was visible, but for safety)
-        else if (itemRelativeTop < scrollPadding) {
-          scrollAmount = itemRelativeTop - scrollPadding; // Scroll up
+          const maxScrollDownWithoutHidingItem = itemRelativeTop;
+          scrollAmount = Math.min(scrollAmount, maxScrollDownWithoutHidingItem);
+        } else if (itemRelativeTop < scrollPadding) {
+          scrollAmount = itemRelativeTop - scrollPadding;
         }
 
         if (scrollAmount !== 0) {
@@ -216,6 +293,19 @@ document.addEventListener("DOMContentLoaded", () => {
             behavior: "smooth",
           });
         }
+      }
+
+      // Restore previously selected options for this item
+      const filterName = activeItem.dataset.filterName;
+      if (selectedFilters[filterName]) {
+        const popupButtons = activeItem.querySelectorAll(".popup__button");
+        popupButtons.forEach((button) => {
+          if (selectedFilters[filterName].includes(button.textContent.trim())) {
+            button.classList.add("selected");
+          } else {
+            button.classList.remove("selected");
+          }
+        });
       }
 
       disableOtherItems(clickedItem);
@@ -231,6 +321,9 @@ document.addEventListener("DOMContentLoaded", () => {
       activeItem.querySelector(".popup").classList.remove("popup--active");
       activeItem = null;
       enableAllItems();
+      if (filterGrid) {
+        filterGrid.classList.remove("has-open-popup");
+      }
     }
   }
 
@@ -244,6 +337,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".filter-item").forEach((el) => el.classList.remove("disabled"));
   }
 
+  function updateFilterStatus(filterItem, filterName) {
+    if (selectedFilters[filterName] && selectedFilters[filterName].length > 0) {
+      filterItem.classList.add("is-selected");
+    } else {
+      filterItem.classList.remove("is-selected");
+    }
+  }
+
+  // --- ESCAPE KEY LISTENER ---
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       if (activeItem) {
@@ -259,6 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalOverlay = document.querySelector(".filter-modal-overlay");
   const filterWrapper = modalOverlay?.querySelector(".filter-wrapper");
   const rollupBtn = filterWrapper?.querySelector(".rollup");
+  const resetBtn = document.querySelector(".filter-footer .reset button");
 
   if (filterBtn && modalOverlay && filterWrapper) {
     filterBtn.addEventListener("click", () => {
@@ -268,10 +371,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     rollupBtn?.addEventListener("click", closeModal);
 
-    modalOverlay.addEventListener("click", (e) => {
-      if (e.target === modalOverlay) {
+    modalOverlay.addEventListener("mousedown", (e) => {
+      const wrapper = modalOverlay.querySelector(".filter-wrapper");
+      const isClickOutside = !wrapper.contains(e.target);
+      if (isClickOutside) {
         closeModal();
       }
+    });
+
+    resetBtn?.addEventListener("click", () => {
+      for (const filterName in selectedFilters) {
+        selectedFilters[filterName] = [];
+      }
+      document.querySelectorAll(".filter-item.is-selected").forEach((el) => el.classList.remove("is-selected"));
+      document.querySelectorAll(".popup__button.selected").forEach((el) => el.classList.remove("selected"));
     });
   }
 
