@@ -16,6 +16,7 @@
   z-index: 1000;
 
   background: rgba(0, 0, 0, 0.5);
+  cursor: default;
 }
 
 .modal--active {
@@ -27,6 +28,7 @@
   display: flex;
   flex-direction: column;
   height: var(--modal-height);
+  position: relative;
 
   width: 100%;
   min-width: 320px;
@@ -42,6 +44,14 @@
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+}
+
+.filter-modal-close {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  color: gray;
+  cursor: pointer;
 }
 
 .filter-grid {
@@ -151,6 +161,7 @@
   padding: 20px 32px;
   border-radius: 70px;
   font: 500 17px / 18px "SBSans", sans-serif;
+  cursor: pointer;
 }
 
 .filter-toggle {
@@ -208,12 +219,12 @@
   flex-direction: column;
   gap: 10px;
   padding: 20px 15px 0px 15px;
+  cursor: pointer;
 }
 
 .popup--filter-item .popup__options {
   display: flex;
   flex-direction: column;
-  cursor: pointer;
   gap: 10px;
 }
 
@@ -226,11 +237,11 @@
   border: 1px solid #bae6fd;
   border-radius: 8px;
   font: 400 15px "SBSans", sans-serif;
+  cursor: pointer;
 }
 
 .popup--filter-item .popup__button:hover {
   box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.15);
-  /* background-color: #4e7fff; */
 }
 
 .popup--filter-item .popup__info {
@@ -244,7 +255,6 @@
 
   line-height: 1.4;
   font-size: 0.8em;
-  /* font-family: "Open Sans", sans-serif; */
   font-weight: 100;
   color: #888;
 }
