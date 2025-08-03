@@ -1,396 +1,498 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const csvData = `Школа,нет,до 500м,до 1000м,до 1500м
-Детский сад,нет,до 500м,до 1000м,до 1500м
-Площадь ЖК,до 10Га,до 20Га,до 30 Га,до 40 Га,Более 50 Га
-Количество домов в ЖК,2-5,6-10,11-20,20-30,более 30
-Количество квартир в ЖК,До 300,300-1000,1000-1500,1500-2500,более 2500
-Этажность,3-5,8-9,9-16,16-18,19-21
-Плотность населения,,,,
-Расстояние до Центра на авто,10-15мин,час и более
-До остановки пешком,До 5мин,5-10мин,более 10мин
-Отопление,Свой котел,Своя котельная на газе,Цетр.теплосеть
-Закрытая территория,Полностью,Закр. от машин,Открытая
-Окна с атермальным напылением,Да,Нет
-Высота потолков,"2,5-2,75м","2,8-2,85","2,85-3,00",более 3м
-Наличие Студий в ЖК,Да,Нет
-Парковки,Подзем есть,Стилобаты,Только наземная,Многоуровневый паркинг
-Коммерция,Своя в ЖК,Рядом много,Рядом ТРЦ
-Дворы без машин,Да,Нет
-Наличие парка, сквера рядом,Да,Нет
-Кондиционеры,Случайно,В корзинах,Сбор конденсата,Сплит-румы,капает/не капает
-Наличие водоема,Нет,Рядом,в 10-15мин
-Колич квартир на этаже,4-5,6-8,9-10,11-14
-Колясочные, велосипедные,Да,Нет
-Консьерж,Нет,Да,Консьерж-сервис премиум
-Вход в подъезд без ступеней,Да,Нет
-Сквозные подъезды,Да,нет
-Фитнес,На территории,Рядом,10-15 минут пешком,нет
-Зарядная станция электроавтомобилей,Да,Нет
-Видеонаблюдение,Нет,На входах и въездах,Полное,Умные камеры
-Класс жилья,Эконом,Комфорт,Комфорт+,Бизнес,Премиум
-Арендный потенциал,Низкий,Средний,Высокий,топ
-Автополив газонов и деревьев,Да,Нет
-Спортивные площадки и тренажеры,мало,много,круто
-Краснодар или Адыгея,Краснодар,Адыгея
-Трамвай,Есть рядом,Есть в 10мин,Нет
-Поликлиника,Есть рядом,2-4 остановки,В другом районе`;
-
   const selectedFilters = {};
 
-  const conflictingAnswers = {
-    "Площадь ЖК": "all-conflicting",
-    "Количество домов в ЖК": "all-conflicting",
-    "Количество квартир в ЖК": "all-conflicting",
-    Этажность: "all-conflicting",
-    "Высота потолков": "all-conflicting",
-    "Наличие Студий в ЖК": ["Да", "Нет"],
-    Парковки: "all-conflicting",
-    Отопление: "all-conflicting",
-    "Закрытая территория": "all-conflicting",
-    "Окна с атермальным напылением": ["Да", "Нет"],
-    "Дворы без машин": ["Да", "Нет"],
-    "Наличие парка, сквера рядом": ["Да", "Нет"],
-    "Наличие водоема": ["Нет", "Рядом", "в 10-15мин"],
-    "Колясочные, велосипедные": ["Да", "Нет"],
-    Консьерж: "all-conflicting",
-    "Вход в подъезд без ступеней": ["Да", "Нет"],
-    "Сквозные подъезды": ["Да", "нет"],
-    Фитнес: "all-conflicting",
-    "Зарядная станция электроавтомобилей": ["Да", "Нет"],
-    Видеонаблюдение: "all-conflicting",
-    "Класс жилья": "all-conflicting",
-    "Арендный потенциал": "all-conflicting",
-    "Автополив газонов и деревьев": ["Да", "Нет"],
-    "Спортивные площадки и тренажеры": "all-conflicting",
-    "Краснодар или Адыгея": "all-conflicting",
-    Трамвай: "all-conflicting",
-    Поликлиника: "all-conflicting",
-    // Filters with "нет" options will automatically handle the conflict logic.
-  };
+  const parseCsvData = (csv, hasHeader = true) => {
+    const rows = [];
+    const lines = csv
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
 
-  const parseCsvData = (csv) => {
-    const lines = csv.split("\n").filter((line) => line.trim() !== "");
-    const filters = {};
+    const parseLine = (line) => {
+      const result = [];
+      let value = "";
+      let insideQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"' && insideQuotes && nextChar === '"') {
+          value += '"';
+          i++;
+        } else if (char === '"') {
+          insideQuotes = !insideQuotes;
+        } else if (char === "," && !insideQuotes) {
+          result.push(value.trim());
+          value = "";
+        } else {
+          value += char;
+        }
+      }
+      result.push(value.trim());
+      return result;
+    };
+
+    const headers = hasHeader ? parseLine(lines.shift()) : null;
+
     lines.forEach((line) => {
-      // Split the line, accounting for commas inside quotes
-      const parts = line.match(/(?:[^,"']+|"[^"]*")+/g).map((p) => p.replace(/"/g, "").trim());
-      const filterName = parts[0];
-      const options = parts.slice(1).filter((opt) => opt !== "");
-      filters[filterName] = options;
+      const parsed = parseLine(line);
+      if (hasHeader) {
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = parsed[i] ?? "";
+        });
+        rows.push(obj);
+      } else {
+        rows.push(parsed);
+      }
     });
-    return filters;
+
+    return rows;
   };
 
-  const mockBackendFilters = parseCsvData(csvData);
+  Promise.all([fetch("/public/data/filters.csv").then((response) => response.text()), fetch("/public/data/values.csv").then((response) => response.text())])
+    .then(([filtersCsv, valuesCsv]) => {
+      const filtersData = parseCsvData(filtersCsv);
+      const valuesData = parseCsvData(valuesCsv);
 
-  const filterDescriptions = {
-    Школа: "Наличие школы рядом с жилым комплексом.",
-    "Детский сад": "Близость детского сада.",
-    "Площадь ЖК": "Общая площадь жилого комплекса.",
-    "Количество домов в ЖК": "Количество корпусов на территории ЖК.",
-    "Количество квартир в ЖК": "Общее число квартир в комплексе.",
-    Этажность: "Высота зданий в ЖК.",
-    "Плотность населения": "Число жителей на квадратный метр.",
-    "Расстояние до Центра на авто": "Время на автомобиле до центра города.",
-    "До остановки пешком": "Пешая доступность к остановке.",
-    Отопление: "Тип отопительной системы в доме.",
-    "Закрытая территория": "Наличие ограждённой и охраняемой территории.",
-    "Окна с атермальным напылением": "Энергосберегающие окна с защитой от солнца.",
-    "Высота потолков": "Высота потолков в квартирах.",
-    "Наличие Студий в ЖК": "Есть ли в комплексе студии.",
-    Парковки: "Тип и расположение парковочных мест.",
-    Коммерция: "Наличие магазинов или бизнеса в ЖК.",
-    "Дворы без машин": "Пространство во дворе без автомобилей.",
-    "Наличие парка, сквера рядом": "Близость зелёных насаждений.",
-    Кондиционеры: "Наличие и тип кондиционирования.",
-    "Наличие водоема": "Есть ли рядом река, озеро или пруд.",
-    "Колич квартир на этаже": "Количество квартир на одном этаже.",
-    "Колясочные, велосипедные": "Помещения для хранения колясок и велосипедов.",
-    Консьерж: "Наличие дежурного у входа или премиум-сервиса.",
-    "Вход в подъезд без ступеней": "Удобный вход без лестниц.",
-    "Сквозные подъезды": "Подъезды с выходом во двор и на улицу.",
-    Фитнес: "Наличие спортзала рядом или на территории.",
-    "Зарядная станция электроавтомобилей": "Электрозарядки для авто.",
-    Видеонаблюдение: "Камеры видеонаблюдения в ЖК.",
-    "Класс жилья": "Уровень комфорта и категории жилья.",
-    "Арендный потенциал": "Привлекательность ЖК для арендаторов.",
-    "Автополив газонов и деревьев": "Автоматическая система полива.",
-    "Спортивные площадки и тренажеры": "Оборудованные места для спорта.",
-    "Краснодар или Адыгея": "Регион расположения комплекса.",
-    Трамвай: "Близость трамвайной линии.",
-    Поликлиника: "Медучреждение поблизости.",
-  };
+      const mockBackendFilters = {};
+      const conflictingAnswers = {};
+      const filterDescriptions = {};
+      const filterCategories = {};
 
-  const filterCategories = {
-    Инфраструктура: ["Школа", "Детский сад", "Расстояние до Центра на авто", "До остановки пешком", "Наличие парка, сквера рядом", "Наличие водоема", "Краснодар или Адыгея", "Трамвай", "Поликлиника"],
-    Архитектура: ["Площадь ЖК", "Количество домов в ЖК", "Количество квартир в ЖК", "Этажность", "Плотность населения", "Колич квартир на этаже", "Наличие Студий в ЖК", "Высота потолков"],
-    Удобства: ["Отопление", "Закрытая территория", "Окна с атермальным напылением", "Парковки", "Коммерция", "Дворы без машин", "Кондиционеры", "Колясочные, велосипедные", "Консьерж"],
-    Сервис: ["Вход в подъезд без ступеней", "Сквозные подъезды", "Фитнес", "Зарядная станция электроавтомобилей", "Видеонаблюдение", "Класс жилья", "Арендный потенциал", "Автополив газонов и деревьев", "Спортивные площадки и тренажеры"],
-  };
+      filtersData.forEach((row) => {
+        const filterName = row["Фильтр"];
+        const possibleValues = row["Возможные значения"] || "";
+        mockBackendFilters[filterName] = possibleValues
+          .split(",")
+          .map((v) => v.trim())
+          .filter(Boolean);
+        filterDescriptions[filterName] = row["Описание"];
 
-  // 2. Render filters
-  const container = document.getElementById("filter-grid-container");
-  if (container) {
-    for (const category in filterCategories) {
-      const column = document.createElement("div");
-      column.classList.add("filter-column");
+        const conflictType = row["Конфликтующие / Тип"];
+        if (conflictType === "single") {
+          conflictingAnswers[filterName] = "all-conflicting";
+        } else if (conflictType && conflictType.startsWith("multi")) {
+          const conflictOptions = conflictType
+            .substring(conflictType.indexOf(",") + 1)
+            .split(",")
+            .map((v) => v.trim())
+            .filter(Boolean);
+          if (conflictOptions.length > 0) {
+            conflictingAnswers[filterName] = conflictOptions;
+          }
+        }
 
-      const heading = document.createElement("h4");
-      heading.textContent = category;
-      column.appendChild(heading);
+        const categoryName = row["Группа"];
+        if (categoryName) {
+          if (!filterCategories[categoryName]) {
+            filterCategories[categoryName] = [];
+          }
+          filterCategories[categoryName].push(filterName);
+        }
+      });
 
-      filterCategories[category].forEach((filterName) => {
-        if (mockBackendFilters[filterName]) {
-          const item = document.createElement("div");
-          item.classList.add("filter-item");
-          item.dataset.filterName = filterName;
-          item.textContent = filterName;
+      const mockEstates = valuesData.map((row) => {
+        const id = row["Номер ЖК"];
+        const filters = {};
+        for (const key in row) {
+          if (key !== "Номер ЖК" && row[key]) {
+            filters[key] = row[key].split(",").map((v) => v.trim());
+          }
+        }
+        // Для демонстрации, мы будем считать, что у каждого ЖК 5 изображений.
+        // Это позволяет нам показать логику "3 из 5"
+        const imageCount = 5;
+        const images = Array.from({ length: imageCount }, (_, i) => `/public/images/${id}/${i + 1}.jpg`);
 
-          const popup = document.createElement("div");
-          popup.classList.add("popup", "popup--filter-item");
-          const wrapper = document.createElement("div");
-          wrapper.classList.add("popup__wrapper");
+        return { id, filters, images };
+      });
 
-          const optionsBlock = document.createElement("div");
-          optionsBlock.classList.add("popup__options");
-          optionsBlock.setAttribute("data-popup-role", "options");
+      // 2. Render filters
+      const container = document.getElementById("filter-grid-container");
+      if (container) {
+        for (const category in filterCategories) {
+          const column = document.createElement("div");
+          column.classList.add("filter-column");
 
-          mockBackendFilters[filterName].forEach((opt) => {
-            const option = document.createElement("span");
-            option.textContent = opt;
-            option.classList.add("popup__button");
-            optionsBlock.appendChild(option);
-          });
+          const heading = document.createElement("h4");
+          heading.textContent = category;
+          column.appendChild(heading);
 
-          const infoBlock = document.createElement("div");
-          infoBlock.classList.add("popup__info");
-          infoBlock.setAttribute("data-popup-role", "info");
-          const infoIcon = `
+          filterCategories[category].forEach((filterName) => {
+            if (mockBackendFilters[filterName]) {
+              const item = document.createElement("div");
+              item.classList.add("filter-item");
+              item.dataset.filterName = filterName;
+              item.textContent = filterName;
+
+              const popup = document.createElement("div");
+              popup.classList.add("popup", "popup--filter-item");
+              const wrapper = document.createElement("div");
+              wrapper.classList.add("popup__wrapper");
+
+              const optionsBlock = document.createElement("div");
+              optionsBlock.classList.add("popup__options");
+              optionsBlock.setAttribute("data-popup-role", "options");
+
+              mockBackendFilters[filterName].forEach((opt) => {
+                const option = document.createElement("span");
+                option.textContent = opt;
+                option.classList.add("popup__button");
+                optionsBlock.appendChild(option);
+              });
+
+              const infoBlock = document.createElement("div");
+              infoBlock.classList.add("popup__info");
+              infoBlock.setAttribute("data-popup-role", "info");
+              const infoIcon = `
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" aria-hidden="true">
   <path fill-rule="evenodd" clip-rule="evenodd" d="M8 13.5a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14M6.44 4.54c.43-.354.994-.565 1.56-.565 1.217 0 2.34.82 2.34 2.14 0 .377-.078.745-.298 1.1-.208.339-.513.614-.875.867-.217.153-.325.257-.379.328-.038.052-.038.07-.038.089a.75.75 0 0 1-1.5 0c0-.794.544-1.286 1.057-1.645.28-.196.4-.332.458-.426a.54.54 0 0 0 .075-.312c0-.3-.244-.641-.84-.641a1 1 0 0 0-.608.223c-.167.138-.231.287-.231.418a.75.75 0 0 1-1.5 0c0-.674.345-1.22.78-1.577M8 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
 </svg>`;
 
-          const descriptionText = filterDescriptions[filterName] || "Описание недоступно.";
-          const descriptionParagraph = document.createElement("p");
-          descriptionParagraph.textContent = descriptionText;
-          infoBlock.innerHTML = infoIcon; // Add SVG first
-          infoBlock.appendChild(descriptionParagraph);
+              const descriptionText = filterDescriptions[filterName] || "Описание недоступно.";
+              const descriptionParagraph = document.createElement("p");
+              descriptionParagraph.textContent = descriptionText;
+              infoBlock.innerHTML = infoIcon; // Add SVG first
+              infoBlock.appendChild(descriptionParagraph);
 
-          wrapper.appendChild(optionsBlock);
-          wrapper.appendChild(infoBlock);
-          popup.appendChild(wrapper);
-          item.appendChild(popup);
-          column.appendChild(item);
+              wrapper.appendChild(optionsBlock);
+              wrapper.appendChild(infoBlock);
+              popup.appendChild(wrapper);
+              item.appendChild(popup);
+              column.appendChild(item);
+            }
+          });
+          container.appendChild(column);
+        }
+      }
+
+      function toggleSelectedOption(filterItem, filterName, optionText) {
+        if (!selectedFilters[filterName]) {
+          selectedFilters[filterName] = [];
+        }
+
+        const currentSelection = selectedFilters[filterName];
+        const index = currentSelection.indexOf(optionText);
+        const popupButtons = filterItem.querySelectorAll(".popup__button");
+
+        const conflictRule = conflictingAnswers[filterName];
+
+        if (index > -1) {
+          currentSelection.splice(index, 1);
+        } else {
+          const isConflictingRule = conflictRule === "all-conflicting" || (Array.isArray(conflictRule) && conflictRule.includes(optionText));
+          const hasNoOption = mockBackendFilters[filterName].includes("Нет") || mockBackendFilters[filterName].includes("нет");
+          const isNoOption = optionText === "Нет" || optionText === "нет";
+
+          if (isConflictingRule || isNoOption || hasNoOption) {
+            currentSelection.length = 0;
+          }
+
+          currentSelection.push(optionText);
+        }
+
+        popupButtons.forEach((btn) => {
+          if (currentSelection.includes(btn.textContent.trim())) {
+            btn.classList.add("selected");
+          } else {
+            btn.classList.remove("selected");
+          }
+        });
+
+        updateFilterStatus(filterItem, filterName);
+      }
+
+      let activeItem = null;
+      const filterGrid = document.querySelector(".filter-grid");
+
+      document.addEventListener("click", (e) => {
+        const clickedItem = e.target.closest(".filter-item");
+        const clickedPopupBtn = e.target.closest(".popup__button");
+
+        if (clickedPopupBtn) {
+          const filterItem = clickedPopupBtn.closest(".filter-item");
+          const filterName = filterItem.dataset.filterName;
+          const optionText = clickedPopupBtn.textContent.trim();
+          toggleSelectedOption(filterItem, filterName, optionText);
+          applyFilter();
+          return;
+        }
+
+        if (clickedItem) {
+          if (clickedItem === activeItem) {
+            closeActivePopup();
+            filterGrid?.classList.remove("has-open-popup");
+            return;
+          }
+
+          closeActivePopup();
+
+          clickedItem.classList.add("active");
+          clickedItem.querySelector(".popup").classList.add("popup--active");
+          activeItem = clickedItem;
+
+          if (filterGrid) {
+            filterGrid.classList.add("has-open-popup");
+          }
+
+          const popup = clickedItem.querySelector(".popup");
+          const gridContainer = document.querySelector(".filter-grid");
+
+          if (popup && gridContainer) {
+            const itemRect = clickedItem.getBoundingClientRect();
+            const popupRect = popup.getBoundingClientRect();
+            const containerRect = gridContainer.getBoundingClientRect();
+
+            const itemRelativeTop = itemRect.top - containerRect.top;
+            const popupRelativeBottom = popupRect.bottom - containerRect.top;
+
+            const scrollPadding = 10;
+            let scrollAmount = 0;
+
+            if (popupRelativeBottom > gridContainer.clientHeight - scrollPadding) {
+              scrollAmount = popupRelativeBottom - (gridContainer.clientHeight - scrollPadding);
+              const maxScrollDownWithoutHidingItem = itemRelativeTop;
+              scrollAmount = Math.min(scrollAmount, maxScrollDownWithoutHidingItem);
+            } else if (itemRelativeTop < scrollPadding) {
+              scrollAmount = itemRelativeTop - scrollPadding;
+            }
+
+            if (scrollAmount !== 0) {
+              gridContainer.scrollBy({
+                top: scrollAmount,
+                behavior: "smooth",
+              });
+            }
+          }
+
+          const filterName = activeItem.dataset.filterName;
+          if (selectedFilters[filterName]) {
+            const popupButtons = activeItem.querySelectorAll(".popup__button");
+            popupButtons.forEach((button) => {
+              if (selectedFilters[filterName].includes(button.textContent.trim())) {
+                button.classList.add("selected");
+              } else {
+                button.classList.remove("selected");
+              }
+            });
+          }
+
+          disableOtherItems(clickedItem);
+        } else if (!e.target.closest(".popup--filter-item")) {
+          closeActivePopup();
         }
       });
 
-      container.appendChild(column);
-    }
-  }
-
-  // --- FUNCTION TO HANDLE OPTION SELECTION AND CONFLICTS ---
-  function toggleSelectedOption(filterItem, filterName, optionText) {
-    if (!selectedFilters[filterName]) {
-      selectedFilters[filterName] = [];
-    }
-
-    const currentSelection = selectedFilters[filterName];
-    const index = currentSelection.indexOf(optionText);
-    const popupButtons = filterItem.querySelectorAll(".popup__button");
-
-    const conflictRule = conflictingAnswers[filterName];
-
-    // Check if the option is already selected
-    if (index > -1) {
-      // Option is already selected, so unselect it
-      currentSelection.splice(index, 1);
-    } else {
-      // Option is not selected, so check for conflicts before adding it.
-      const hasNoOption = mockBackendFilters[filterName].includes("нет");
-      const isConflictingRule = conflictRule === "all-conflicting" || (Array.isArray(conflictRule) && conflictRule.includes(optionText));
-
-      if (isConflictingRule || optionText === "нет" || hasNoOption) {
-        currentSelection.length = 0;
-      }
-
-      currentSelection.push(optionText);
-    }
-
-    // Update button classes based on the final selection state
-    popupButtons.forEach((btn) => {
-      if (currentSelection.includes(btn.textContent.trim())) {
-        btn.classList.add("selected");
-      } else {
-        btn.classList.remove("selected");
-      }
-    });
-
-    // Update the main filter item's "is-selected" state
-    updateFilterStatus(filterItem, filterName);
-  }
-
-  // === POPUP FUNCTIONALITY ===
-  let activeItem = null;
-  const filterGrid = document.querySelector(".filter-grid");
-
-  document.addEventListener("click", (e) => {
-    const clickedItem = e.target.closest(".filter-item");
-    const clickedPopupBtn = e.target.closest(".popup__button");
-
-    if (clickedPopupBtn) {
-      const filterItem = clickedPopupBtn.closest(".filter-item");
-      const filterName = filterItem.dataset.filterName;
-      const optionText = clickedPopupBtn.textContent.trim();
-
-      toggleSelectedOption(filterItem, filterName, optionText);
-      return;
-    }
-
-    if (clickedItem) {
-      // same toggle
-      if (clickedItem === activeItem) {
-        closeActivePopup();
-        filterGrid?.classList.remove("has-open-popup");
-        return;
-      }
-
-      // close previous and open new
-      closeActivePopup();
-
-      clickedItem.classList.add("active");
-      clickedItem.querySelector(".popup").classList.add("popup--active");
-      activeItem = clickedItem;
-
-      if (filterGrid) {
-        filterGrid.classList.add("has-open-popup");
-      }
-
-      const popup = clickedItem.querySelector(".popup");
-      const gridContainer = document.querySelector(".filter-grid");
-
-      if (popup && gridContainer) {
-        const itemRect = clickedItem.getBoundingClientRect();
-        const popupRect = popup.getBoundingClientRect();
-        const containerRect = gridContainer.getBoundingClientRect();
-
-        const itemRelativeTop = itemRect.top - containerRect.top;
-        const popupRelativeBottom = popupRect.bottom - containerRect.top;
-
-        const scrollPadding = 10;
-        let scrollAmount = 0;
-
-        if (popupRelativeBottom > gridContainer.clientHeight - scrollPadding) {
-          scrollAmount = popupRelativeBottom - (gridContainer.clientHeight - scrollPadding);
-          const maxScrollDownWithoutHidingItem = itemRelativeTop;
-          scrollAmount = Math.min(scrollAmount, maxScrollDownWithoutHidingItem);
-        } else if (itemRelativeTop < scrollPadding) {
-          scrollAmount = itemRelativeTop - scrollPadding;
-        }
-
-        if (scrollAmount !== 0) {
-          gridContainer.scrollBy({
-            top: scrollAmount,
-            behavior: "smooth",
-          });
-        }
-      }
-
-      // Restore previously selected options for this item
-      const filterName = activeItem.dataset.filterName;
-      if (selectedFilters[filterName]) {
-        const popupButtons = activeItem.querySelectorAll(".popup__button");
-        popupButtons.forEach((button) => {
-          if (selectedFilters[filterName].includes(button.textContent.trim())) {
-            button.classList.add("selected");
-          } else {
-            button.classList.remove("selected");
+      function closeActivePopup() {
+        if (activeItem) {
+          activeItem.classList.remove("active");
+          activeItem.querySelector(".popup").classList.remove("popup--active");
+          activeItem = null;
+          enableAllItems();
+          if (filterGrid) {
+            filterGrid.classList.remove("has-open-popup");
           }
+        }
+      }
+
+      function disableOtherItems(except) {
+        document.querySelectorAll(".filter-item").forEach((el) => {
+          if (el !== except) el.classList.add("disabled");
         });
       }
 
-      disableOtherItems(clickedItem);
-    } else if (!e.target.closest(".popup--filter-item")) {
-      // click outside
-      closeActivePopup();
-    }
-  });
-
-  function closeActivePopup() {
-    if (activeItem) {
-      activeItem.classList.remove("active");
-      activeItem.querySelector(".popup").classList.remove("popup--active");
-      activeItem = null;
-      enableAllItems();
-      if (filterGrid) {
-        filterGrid.classList.remove("has-open-popup");
+      function enableAllItems() {
+        document.querySelectorAll(".filter-item").forEach((el) => el.classList.remove("disabled"));
       }
-    }
-  }
 
-  function disableOtherItems(except) {
-    document.querySelectorAll(".filter-item").forEach((el) => {
-      if (el !== except) el.classList.add("disabled");
-    });
-  }
+      function updateFilterStatus(filterItem, filterName) {
+        if (selectedFilters[filterName] && selectedFilters[filterName].length > 0) {
+          filterItem.classList.add("is-selected");
+        } else {
+          filterItem.classList.remove("is-selected");
+        }
+      }
 
-  function enableAllItems() {
-    document.querySelectorAll(".filter-item").forEach((el) => el.classList.remove("disabled"));
-  }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (activeItem) {
+            closeActivePopup();
+          } else if (modalOverlay?.classList.contains("modal--active")) {
+            closeModal();
+          }
+        }
+      });
 
-  function updateFilterStatus(filterItem, filterName) {
-    if (selectedFilters[filterName] && selectedFilters[filterName].length > 0) {
-      filterItem.classList.add("is-selected");
-    } else {
-      filterItem.classList.remove("is-selected");
-    }
-  }
+      const filterBtn = document.getElementById("filter-toggle-btn");
+      const modalOverlay = document.querySelector(".filter-modal-overlay");
+      const filterWrapper = modalOverlay?.querySelector(".filter-wrapper");
+      const rollupBtn = filterWrapper?.querySelector(".rollup");
+      const resetBtn = document.querySelector(".filter-footer .reset button");
 
-  // --- ESCAPE KEY LISTENER ---
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      if (activeItem) {
+      document.addEventListener("click", (e) => {
+        if (e.target.closest("#filter-modal-close")) {
+          closeModal();
+        }
+      });
+
+      if (filterBtn && modalOverlay && filterWrapper) {
+        filterBtn.addEventListener("click", () => {
+          modalOverlay.classList.add("modal--active");
+          document.body.classList.add("modal-open");
+        });
+
+        rollupBtn?.addEventListener("click", closeModal);
+
+        modalOverlay.addEventListener("mousedown", (e) => {
+          const wrapper = modalOverlay.querySelector(".filter-wrapper");
+          const isClickOutside = !wrapper.contains(e.target);
+          if (isClickOutside) {
+            closeModal();
+          }
+        });
+
+        resetBtn?.addEventListener("click", () => {
+          for (const filterName in selectedFilters) {
+            selectedFilters[filterName] = [];
+          }
+          document.querySelectorAll(".filter-item.is-selected").forEach((el) => el.classList.remove("is-selected"));
+          document.querySelectorAll(".popup__button.selected").forEach((el) => el.classList.remove("selected"));
+          applyFilter();
+        });
+      }
+
+      function closeModal() {
+        modalOverlay.classList.remove("modal--active");
+        document.body.classList.remove("modal-open");
         closeActivePopup();
-      } else if (modalOverlay?.classList.contains("modal--active")) {
-        closeModal();
       }
-    }
-  });
 
-  // === MODAL FUNCTIONALITY ===
-  const filterBtn = document.getElementById("filter-toggle-btn");
-  const modalOverlay = document.querySelector(".filter-modal-overlay");
-  const filterWrapper = modalOverlay?.querySelector(".filter-wrapper");
-  const rollupBtn = filterWrapper?.querySelector(".rollup");
-  const resetBtn = document.querySelector(".filter-footer .reset button");
+      const mainBot = document.querySelector(".main-bot .estates");
+      const showBtn = document.querySelector(".filter-footer .show button");
 
-  if (filterBtn && modalOverlay && filterWrapper) {
-    filterBtn.addEventListener("click", () => {
-      modalOverlay.classList.add("modal--active");
-      document.body.classList.add("modal-open");
+      const applyFilter = () => {
+        const active = Object.entries(selectedFilters).filter(([, val]) => val.length > 0);
+        const filtered = mockEstates.filter((estate) =>
+          active.every(([name, selected]) => {
+            const estateVals = estate.filters[name] || [];
+            return selected.some((v) => estateVals.includes(v));
+          })
+        );
+        renderEstates(filtered);
+        if (showBtn) showBtn.textContent = `Выбрано ${filtered.length} ЖК`;
+      };
+
+      const renderEstates = (estates) => {
+        if (!mainBot) return;
+        mainBot.innerHTML = "";
+        estates.forEach((estate) => {
+          const imageCount = 5; // Для этой демонстрации, у всех ЖК 5 изображений.
+          const images = Array.from({ length: imageCount }, (_, i) => `/public/images/estates/${estate.id}/${i + 1}.jpg`);
+
+          const div = document.createElement("div");
+          div.classList.add("item", "box-shadow");
+
+          div.innerHTML = `
+        <div class="images">
+          <div class="gallery">
+              <img src="${images[0]}" />
+              <button class="nav-area nav-area-prev" aria-label="Показать предыдущее изображение">
+                  <div class="show-on-hover">
+                      <div class="icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"><path fill="currentColor" fill-rule="evenodd" d="M4.91 8.59a.833.833 0 0 1 0-1.18l5-5a.833.833 0 1 1 1.18 1.18L6.678 8l4.41 4.41a.833.833 0 1 1-1.178 1.18l-5-5Z" clip-rule="evenodd"></path></svg>
+                      </div>
+                  </div>
+              </button>
+              <button class="nav-area nav-area-next" aria-label="Показать следующее изображение">
+                  <div class="show-on-hover">
+                      <div class="icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"><path fill="currentColor" fill-rule="evenodd" d="M11.09 8.59a.833.833 0 0 0 0-1.18l-5-5a.833.833 0 1 0-1.18 1.18L9.322 8l-4.41 4.41a.833.833 0 1 0 1.178 1.18l5-5Z" clip-rule="evenodd"></path></svg>
+                      </div>
+                  </div>
+              </button>
+          </div>
+          <div class="counter">
+              <span class="text">1 из ${images.length}</span>
+              <span class="button button-active"></span>
+              <span class="button"></span>
+              <span class="button"></span>
+          </div>
+        </div>
+        <div class="description">
+          <header>ЖК # ${estate.id}</header>
+          <button>Узнать ЖК</button>
+        </div>
+      `;
+          mainBot.appendChild(div);
+
+          const gallery = div.querySelector(".gallery");
+          if (gallery) {
+            const imgElement = gallery.querySelector("img");
+            const counterTextElement = div.querySelector(".counter .text");
+            const prevButton = gallery.querySelector(".nav-area-prev");
+            const nextButton = gallery.querySelector(".nav-area-next");
+            const dotButtons = div.querySelectorAll(".counter .button");
+            let currentImageIndex = 0;
+
+            const updateGallery = () => {
+              // Логика для 3-х точек
+              dotButtons.forEach((btn) => btn.classList.remove("button-active"));
+
+              if (currentImageIndex === 0) {
+                // Первое фото, активна первая точка
+                dotButtons[0].classList.add("button-active");
+              } else if (currentImageIndex === images.length - 1) {
+                // Последнее фото, активна последняя точка
+                dotButtons[2].classList.add("button-active");
+              } else {
+                // Все остальные фото, активна средняя точка
+                dotButtons[1].classList.add("button-active");
+              }
+
+              imgElement.src = images[currentImageIndex] || "";
+              counterTextElement.textContent = `${currentImageIndex + 1} из ${images.length}`;
+            };
+
+            prevButton.addEventListener("click", () => {
+              currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+              updateGallery();
+            });
+
+            nextButton.addEventListener("click", () => {
+              currentImageIndex = (currentImageIndex + 1) % images.length;
+              updateGallery();
+            });
+          }
+        });
+      };
+
+      renderEstates(mockEstates);
+
+      // inject call inside your existing toggleSelectedOption
+      const originalToggle = toggleSelectedOption;
+      toggleSelectedOption = function (...args) {
+        originalToggle(...args);
+        applyFilter();
+      };
+
+      // also update reset button (already present)
+      resetBtn?.addEventListener("click", () => {
+        for (const filterName in selectedFilters) selectedFilters[filterName] = [];
+        document.querySelectorAll(".filter-item.is-selected").forEach((el) => el.classList.remove("is-selected"));
+        document.querySelectorAll(".popup__button.selected").forEach((el) => el.classList.remove("selected"));
+        applyFilter();
+      });
+
+      document.addEventListener("click", (e) => {
+        if (e.target.closest("#show-choosed-estates")) {
+          console.log("Delegated show-click triggered");
+          closeModal();
+        }
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching CSV files:", error);
     });
-
-    rollupBtn?.addEventListener("click", closeModal);
-
-    modalOverlay.addEventListener("mousedown", (e) => {
-      const wrapper = modalOverlay.querySelector(".filter-wrapper");
-      const isClickOutside = !wrapper.contains(e.target);
-      if (isClickOutside) {
-        closeModal();
-      }
-    });
-
-    resetBtn?.addEventListener("click", () => {
-      for (const filterName in selectedFilters) {
-        selectedFilters[filterName] = [];
-      }
-      document.querySelectorAll(".filter-item.is-selected").forEach((el) => el.classList.remove("is-selected"));
-      document.querySelectorAll(".popup__button.selected").forEach((el) => el.classList.remove("selected"));
-    });
-  }
-
-  function closeModal() {
-    modalOverlay.classList.remove("modal--active");
-    document.body.classList.remove("modal-open");
-    closeActivePopup();
-  }
 });
