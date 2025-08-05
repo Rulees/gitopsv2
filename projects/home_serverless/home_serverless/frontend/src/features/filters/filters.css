@@ -218,8 +218,12 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 20px 15px 0px 15px;
+  padding: 20px 15px 20px 15px;
   cursor: pointer;
+}
+
+.popup--filter-item .popup__wrapper:has(.popup__info) {
+  padding-bottom: 12px;
 }
 
 .popup--filter-item .popup__options {
@@ -249,7 +253,6 @@
   align-items: center;
   gap: 8px;
   padding-top: 7px;
-  padding-bottom: 12px;
   padding-right: 16px;
   margin: 0px;
 
@@ -260,7 +263,7 @@
 }
 
 .popup--filter-item .popup__info p {
-  opacity: 82%;
+  opacity: 90%;
 }
 
 .popup__info svg {
