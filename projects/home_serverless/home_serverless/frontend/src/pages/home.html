@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/src/features/filters/filters.css" />
     <link rel="stylesheet" href="/src/features/consultation/popup.css" />
     <link rel="stylesheet" href="/src/features/widget/widget.css" />
+    <link rel="stylesheet" href="/src/features/pagination/pagination.css" />
     <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
   </head>
   <body>
@@ -206,6 +207,18 @@
         <div class="main-bot">
           <section class="estates">
           </section>
+          <div class="pgnt-visible">
+            <button class="show-more-estates" id="show-more-estates">Показать ещё</button>
+            <div class="pgnt">
+              <button class="pgnt-item pgnt__prev-page">
+                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 16 16" fill="none"><path fill="currentColor" fill-rule="evenodd" d="M4.91 8.59a.833.833 0 0 1 0-1.18l5-5a.833.833 0 1 1 1.18 1.18L6.678 8l4.41 4.41a.833.833 0 1 1-1.178 1.18l-5-5Z" clip-rule="evenodd"></path></svg>
+              </button>
+              <ul class="pgnt__list"></ul>
+              <button class="pgnt-item pgnt__next-page">
+                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 16 16" fill="none"><path fill="currentColor" fill-rule="evenodd" d="M11.09 8.59a.833.833 0 0 0 0-1.18l-5-5a.833.833 0 1 0-1.18 1.18L9.322 8l-4.41 4.41a.833.833 0 1 0 1.178 1.18l5-5Z" clip-rule="evenodd"></path></svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <footer class="footer">
@@ -223,5 +236,6 @@
     <script src="/src/features/fouc.js"></script>
     <script src="/src/features/filters/filters.js"></script>
     <script src="/src/features/widget/widget.js"></script>
+    <script src="/src/features/pagination/pagination.js"></script>
   </body>
 </html>

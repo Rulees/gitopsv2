@@ -174,7 +174,7 @@
   cursor: pointer;
   color: #4e7fff;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 20px;
   font: 600 20px / 20px "SBSans", sans-serif;
   box-shadow: 0 0 8px 0 var(--color-component-shadow-opacity-8, rgba(0, 0, 0, 0.08)), 0 2px 12px 0 var(--color-component-shadow-opacity-8, rgba(0, 0, 0, 0.08));
 }
