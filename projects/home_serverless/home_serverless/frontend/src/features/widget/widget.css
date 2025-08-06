@@ -27,6 +27,12 @@
   visibility: visible;
 }
 
+.b24-widget-button-wrapper.hide-on-modal {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
 .b24-widget-button-visible {
   visibility: visible;
   -webkit-animation: b24-widget-button-visible 1s ease-out forwards 1;

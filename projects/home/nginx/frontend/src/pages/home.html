@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <style>
       body {
@@ -7,13 +7,14 @@
       }
     </style>
     <meta charset="UTF-8" />
-    <title>Captain Application</title>
+    <title>Народный фильтр Новостроек Краснодара и Адыгеи</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="stylesheet" href="/projects/home/nginx/frontend/src/styles/home.css" />
     <link rel="stylesheet" href="/projects/home/nginx/frontend/src/features/filters/filters.css" />
     <link rel="stylesheet" href="/projects/home/nginx/frontend/src/features/consultation/popup.css" />
     <link rel="stylesheet" href="/projects/home/nginx/frontend/src/features/widget/widget.css" />
+    <link rel="stylesheet" href="/projects/home/nginx/frontend/src/features/pagination/pagination.css" />
     <link rel="icon" type="image/x-icon" href="/projects/home/nginx/frontend/public/favicon.ico" />
   </head>
   <body>
@@ -80,22 +81,19 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    <div class="popup popup--consultation" id="popup-allies">
+      <div class="popup__wrapper">
+        <div class="popup__close" id="popup-allies-close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+            <path fill="currentColor" fill-rule="evenodd" d="M3.244 3.244a.833.833 0 0 1 1.179 0l8.333 8.333a.833.833 0 1 1-1.179 1.179L3.244 4.423a.833.833 0 0 1 0-1.179Z" clip-rule="evenodd"></path>
+            <path fill="currentColor" fill-rule="evenodd" d="M12.756 3.244a.833.833 0 0 1 0 1.179l-8.333 8.333a.833.833 0 1 1-1.179-1.179l8.333-8.333a.833.833 0 0 1 1.179 0Z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <div class="popup__title">Получите консультацию<br />по любому вопросу</div>
+        <p class="popup__highlight">о недвижимости</p>
+        <p class="popup__note">Звоните на номер <a href="tel:79069270227">+79069270227</a></p>
+      </div>
+    </div>
 
 
 
@@ -132,7 +130,7 @@
           </svg>
           <p>Краснодар</p>
         </div>
-        <div class="item">
+        <div class="item" id="trigger-popup-allies">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"><path fill="currentColor" d="M11.334 3.833a3.333 3.333 0 1 1-6.667 0 3.333 3.333 0 0 1 6.667 0ZM5.561 9.175a6.277 6.277 0 0 0-4.228 5.933c0 .216.176.392.393.392h5.477a.841.841 0 0 1-.01-.032L5.562 9.175ZM8.798 15.5h5.477a.392.392 0 0 0 .392-.392 6.277 6.277 0 0 0-4.228-5.933l-1.632 6.293a.841.841 0 0 1-.01.032Zm.004-6.653a6.375 6.375 0 0 0-.41-.014h-.784a6.37 6.37 0 0 0-.41.014L8 11.94l.802-3.093Z"></path></svg>
           <p>Партнерам</p>
         </div>
@@ -206,6 +204,18 @@
         <div class="main-bot">
           <section class="estates">
           </section>
+          <div class="pgnt-visible">
+            <button class="show-more-estates" id="show-more-estates">Показать ещё</button>
+            <div class="pgnt">
+              <button class="pgnt-item pgnt__prev-page">
+                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 16 16" fill="none"><path fill="currentColor" fill-rule="evenodd" d="M4.91 8.59a.833.833 0 0 1 0-1.18l5-5a.833.833 0 1 1 1.18 1.18L6.678 8l4.41 4.41a.833.833 0 1 1-1.178 1.18l-5-5Z" clip-rule="evenodd"></path></svg>
+              </button>
+              <ul class="pgnt__list"></ul>
+              <button class="pgnt-item pgnt__next-page">
+                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 16 16" fill="none"><path fill="currentColor" fill-rule="evenodd" d="M11.09 8.59a.833.833 0 0 0 0-1.18l-5-5a.833.833 0 1 0-1.18 1.18L9.322 8l-4.41 4.41a.833.833 0 1 0 1.178 1.18l5-5Z" clip-rule="evenodd"></path></svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <footer class="footer">
@@ -219,6 +229,9 @@
         </div>
       </footer>
     <script src="/projects/home/nginx/frontend/src/features/fouc.js"></script>
+    <script src="/projects/home/nginx/frontend/src/features/pagination/pagination.js"></script>
+    <script src="/projects/home/nginx/frontend/src/features/consultation/consult.js"></script>
+    <script src="/projects/home/nginx/frontend/src/features/consultation/allies.js"></script>
     <script src="/projects/home/nginx/frontend/src/features/filters/filters.js"></script>
     <script src="/projects/home/nginx/frontend/src/features/widget/widget.js"></script>
   </body>

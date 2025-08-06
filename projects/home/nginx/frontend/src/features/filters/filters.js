@@ -348,6 +348,12 @@ document.addEventListener("DOMContentLoaded", () => {
         filterBtn.addEventListener("click", () => {
           modalOverlay.classList.add("modal--active");
           document.body.classList.add("modal-open");
+
+          // Add this block to find the widget and hide it
+          const widgetWrapper = document.querySelector(".b24-widget-button-wrapper");
+          if (widgetWrapper) {
+            widgetWrapper.classList.add("hide-on-modal");
+          }
         });
 
         rollupBtn?.addEventListener("click", closeModal);
@@ -374,6 +380,17 @@ document.addEventListener("DOMContentLoaded", () => {
         modalOverlay.classList.remove("modal--active");
         document.body.classList.remove("modal-open");
         closeActivePopup();
+
+        document.body.style.pointerEvents = "none";
+        setTimeout(() => {
+          document.body.style.pointerEvents = "";
+        }, 250);
+
+        // Add this block to find the widget and show it again
+        const widgetWrapper = document.querySelector(".b24-widget-button-wrapper");
+        if (widgetWrapper) {
+          widgetWrapper.classList.remove("hide-on-modal");
+        }
       }
 
       const mainBot = document.querySelector(".main-bot .estates");
@@ -387,15 +404,49 @@ document.addEventListener("DOMContentLoaded", () => {
             return selected.some((v) => estateVals.includes(v));
           })
         );
-        renderEstates(filtered);
+        paginateAndRender(filtered, renderEstates);
         if (showBtn) showBtn.textContent = `Выбрано ${filtered.length} ЖК`;
+        if (filtered.length === 0) {
+          if (mainBot) {
+            mainBot.innerHTML = `
+                                    <div class="no-results" style="
+                                    display: flex; 
+                                    flex-direction: column; 
+                                    align-items: center; 
+                                    justify-content: center; 
+                                    padding: 20px 20px 40px 20px; 
+                                    color: #555; 
+                                    font-family: Arial, sans-serif;
+                                    text-align: center;
+                                    gap: 16px;
+                                    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.15);
+                                    border-radius: 20px;
+                                    background-color: #ffffff;
+                                    color: #262626;
+                                  ">
+                                    <img 
+                                      src="https://statics.dmclk.ru/web-ui-library/illustrations/png/Box-180.png" 
+                                      alt="Пустая коробка" 
+                                      width="180" height="180"
+                                      style="object-fit: contain;"
+                                    >
+                                    <div style="font-size: 1.6rem; font-weight: 600;">Поиск не дал результатов</div>
+                                    <div style="font-size: 1rem; line-height: 1.4;">
+                                      Попробуйте изменить критерии поиска или свяжитесь с нами
+                                    </div>
+                                  </div>
+`;
+          }
+        } else {
+          paginateAndRender(filtered, renderEstates);
+        }
       };
 
-      const renderEstates = (estates) => {
+      const renderEstates = (estates, append = false) => {
         if (!mainBot) return;
-        mainBot.innerHTML = "";
+        if (!append) mainBot.innerHTML = "";
         estates.forEach((estate) => {
-          const imageCount = 5; // Для этой демонстрации, у всех ЖК 5 изображений.
+          const imageCount = 5;
           const images = Array.from({ length: imageCount }, (_, i) => `/projects/home/nginx/frontend/public/images/estates/${estate.id}/${i + 1}.jpg`);
 
           const div = document.createElement("div");
@@ -475,7 +526,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       };
 
-      renderEstates(mockEstates);
+      paginateAndRender(mockEstates, renderEstates);
 
       // inject call inside your existing toggleSelectedOption
       const originalToggle = toggleSelectedOption;

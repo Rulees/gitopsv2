@@ -4,6 +4,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const socialLinksContainer = widgetWrapper.querySelector(".b24-widget-button-social");
   const toggleButton = widgetWrapper.querySelector("[data-b24-crm-button-block-button]");
 
+  // Select the filter modal element
+  const filterModal = document.querySelector(".filter-modal-overlay");
+
   // Иконки внутри кнопки
   const mainIcons = toggleButton.querySelectorAll(".b24-widget-button-icon-container .b24-widget-button-inner-item");
   const closeIcon = toggleButton.querySelector(".b24-widget-button-close");
