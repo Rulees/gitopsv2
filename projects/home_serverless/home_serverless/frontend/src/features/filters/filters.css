@@ -184,6 +184,7 @@
   color: #262626;
   border: 1px solid #0000;
   transition: background-color 0.17s ease-out, border-color 0.17s ease-out;
+  text-wrap: nowrap;
 }
 
 .filter-footer .show button {
