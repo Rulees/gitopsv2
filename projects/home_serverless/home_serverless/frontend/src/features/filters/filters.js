@@ -1,6 +1,28 @@
 document.addEventListener("DOMContentLoaded", () => {
   const selectedFilters = {};
 
+  const parseDescriptionsCsv = (csv) => {
+    const rows = [];
+
+    // Регулярное выражение для поиска номера и описания в кавычках.
+    // Флаг 'g' позволяет найти все совпадения в файле.
+    // Флаг 's' (dotAll) позволяет '.' соответствовать переносам строк.
+    const regex = /(\d+),\s*"([^"]*)"/gs;
+
+    let match;
+    while ((match = regex.exec(csv)) !== null) {
+      // match[1] - это Номер ЖК
+      // match[2] - это полное Описание
+      const obj = {
+        "Номер ЖК": match[1].trim(),
+        Описание: match[2].trim().replace(/""/g, '"'),
+      };
+      rows.push(obj);
+    }
+
+    return rows;
+  };
+
   const parseCsvData = (csv, hasHeader = true) => {
     const rows = [];
     const lines = csv
@@ -51,15 +73,23 @@ document.addEventListener("DOMContentLoaded", () => {
     return rows;
   };
 
-  Promise.all([fetch("/public/data/filters.csv").then((response) => response.text()), fetch("/public/data/values.csv").then((response) => response.text())])
-    .then(([filtersCsv, valuesCsv]) => {
+  Promise.all([fetch("/public/data/filters.csv").then((response) => response.text()), fetch("/public/data/values.csv").then((response) => response.text()), fetch("/public/data/descriptions.csv").then((response) => response.text())])
+    .then(([filtersCsv, valuesCsv, descriptionsCsv]) => {
       const filtersData = parseCsvData(filtersCsv);
       const valuesData = parseCsvData(valuesCsv);
+      const descriptionsData = parseDescriptionsCsv(descriptionsCsv);
 
       const mockBackendFilters = {};
       const conflictingAnswers = {};
-      const filterDescriptions = {};
+      const filterDefinitions = {};
       const filterCategories = {};
+      const descriptions = {};
+
+      descriptionsData.forEach((row) => {
+        let descriptionText = row["Описание"] || "";
+        const formattedDescription = `<div><p>${descriptionText.replace(/\n/g, "</p><p>")}</p></div>`;
+        descriptions[row["Номер ЖК"]] = formattedDescription;
+      });
 
       filtersData.forEach((row) => {
         const filterName = row["Фильтр"];
@@ -68,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .split(",")
           .map((v) => v.trim())
           .filter(Boolean);
-        filterDescriptions[filterName] = row["Описание"];
+        filterDefinitions[filterName] = row["Описание"];
 
         const conflictType = row["Конфликтующие / Тип"];
         if (conflictType === "single") {
@@ -102,7 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
         // Для демонстрации, мы будем считать, что у каждого ЖК 5 изображений.
-        // Это позволяет нам показать логику "3 из 5"
         const imageCount = 5;
         const images = Array.from({ length: imageCount }, (_, i) => `/public/images/${id}/${i + 1}.jpg`);
 
@@ -151,18 +180,18 @@ document.addEventListener("DOMContentLoaded", () => {
   <path fill-rule="evenodd" clip-rule="evenodd" d="M8 13.5a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14M6.44 4.54c.43-.354.994-.565 1.56-.565 1.217 0 2.34.82 2.34 2.14 0 .377-.078.745-.298 1.1-.208.339-.513.614-.875.867-.217.153-.325.257-.379.328-.038.052-.038.07-.038.089a.75.75 0 0 1-1.5 0c0-.794.544-1.286 1.057-1.645.28-.196.4-.332.458-.426a.54.54 0 0 0 .075-.312c0-.3-.244-.641-.84-.641a1 1 0 0 0-.608.223c-.167.138-.231.287-.231.418a.75.75 0 0 1-1.5 0c0-.674.345-1.22.78-1.577M8 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
 </svg>`;
 
-              const descriptionText = filterDescriptions[filterName];
+              const definitionText = filterDefinitions[filterName];
 
-              if (descriptionText) {
+              if (definitionText) {
                 const descriptionParagraph = document.createElement("p");
-                descriptionParagraph.textContent = descriptionText;
+                descriptionParagraph.textContent = definitionText;
                 infoBlock.innerHTML = infoIcon; // Add SVG first
                 infoBlock.appendChild(descriptionParagraph);
               }
 
               wrapper.appendChild(optionsBlock);
 
-              if (descriptionText) {
+              if (definitionText) {
                 wrapper.appendChild(infoBlock);
               }
 
@@ -381,6 +410,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.remove("modal-open");
         closeActivePopup();
 
+        document.body.style.pointerEvents = "none";
+        setTimeout(() => {
+          document.body.style.pointerEvents = "";
+        }, 250);
+
         // Add this block to find the widget and show it again
         const widgetWrapper = document.querySelector(".b24-widget-button-wrapper");
         if (widgetWrapper) {
@@ -447,6 +481,10 @@ document.addEventListener("DOMContentLoaded", () => {
           const div = document.createElement("div");
           div.classList.add("item", "box-shadow");
 
+          const description = descriptions[estate.id] || "";
+
+          const formattedDescription = description.replace(/\r?\n/g, "<br>");
+
           div.innerHTML = `
         <div class="images">
           <div class="gallery">
@@ -473,8 +511,9 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="button"></span>
           </div>
         </div>
-        <div class="description">
+        <div class="definition">
           <header>ЖК # ${estate.id}</header>
+          <div class="description">${formattedDescription}</div>
           <button>Узнать ЖК</button>
         </div>
       `;
