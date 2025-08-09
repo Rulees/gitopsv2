@@ -127,8 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const id = row["Номер ЖК"];
         const filters = {};
         for (const key in row) {
-          if (key !== "Номер ЖК" && row[key]) {
-            filters[key] = row[key].split(",").map((v) => v.trim());
+          if (key !== "Номер ЖК") {
+            filters[key] = row[key] ? row[key].split(",").map((v) => v.trim()) : [""];
           }
         }
         // Для демонстрации, мы будем считать, что у каждого ЖК 5 изображений.
@@ -425,17 +425,79 @@ document.addEventListener("DOMContentLoaded", () => {
       const mainBot = document.querySelector(".main-bot .estates");
       const showBtn = document.querySelector(".filter-footer .show button");
 
+      // Helper function to check if an estate has incomplete data for the *active selected* filters
+      // This specifically checks for filter values that are arrays containing an empty string,
+      // which results from parsing an empty cell (e.g., ",,") in the CSV.
+      const isDataIncompleteForActiveFilters = (estate, activeFilters) => {
+        return activeFilters.some(([filterName]) => {
+          const estateVals = estate.filters[filterName];
+          // Data is incomplete if the specific filter's value for this estate is an array containing an empty string
+          return estateVals && estateVals.includes("");
+        });
+      };
+
       const applyFilter = () => {
         const active = Object.entries(selectedFilters).filter(([, val]) => val.length > 0);
-        const filtered = mockEstates.filter((estate) =>
-          active.every(([name, selected]) => {
-            const estateVals = estate.filters[name] || [];
-            return selected.some((v) => estateVals.includes(v));
-          })
-        );
-        paginateAndRender(filtered, renderEstates);
-        if (showBtn) showBtn.textContent = `Выбрано ${filtered.length} ЖК`;
-        if (filtered.length === 0) {
+
+        // If no filters are active, show all estates as fully appropriate
+        if (active.length === 0) {
+          paginateAndRender(mockEstates, renderEstates);
+          if (showBtn) showBtn.textContent = `Выбрано ${mockEstates.length} ЖК`;
+          return;
+        }
+
+        const fullyAppropriateEstates = [];
+        const incompleteDataEstates = [];
+
+        mockEstates.forEach((estate) => {
+          let matchesAllSelectedFilters = true;
+          let hasIncompleteDataForActiveFilter = false;
+
+          active.forEach(([filterName, selectedValues]) => {
+            const estateVals = estate.filters[filterName] || [];
+
+            // Check if estate has empty data for this active filter
+            if (estateVals.includes("")) {
+              hasIncompleteDataForActiveFilter = true;
+            }
+
+            // Check if estate matches any of the selected values OR if its data is incomplete
+            const matchesCurrentFilter = selectedValues.some((v) => estateVals.includes(v));
+
+            // If the estate does NOT match AND its data is NOT incomplete for this filter,
+            // then it doesn't match ALL selected filters overall.
+            // This is the key change: if data is incomplete, we still consider it "potentially matching"
+            if (!matchesCurrentFilter && !estateVals.includes("")) {
+              matchesAllSelectedFilters = false;
+            }
+          });
+
+          // An estate is considered "matching" if it either fully matches OR
+          // matches all non-incomplete data filters and has incomplete data for others.
+          // This ensures that estates with "missing" data are not just discarded.
+          if (matchesAllSelectedFilters) {
+            if (hasIncompleteDataForActiveFilter) {
+              incompleteDataEstates.push(estate);
+            } else {
+              fullyAppropriateEstates.push(estate);
+            }
+          }
+        });
+
+        const totalMatchingEstates = fullyAppropriateEstates.length + incompleteDataEstates.length;
+
+        // 3. Construct the final list to display, inserting a special marker for the divider
+        let estatesToDisplay = [...fullyAppropriateEstates];
+        if (incompleteDataEstates.length > 0) {
+          estatesToDisplay.push({ isDivider: true }); // Special marker object for the divider
+          estatesToDisplay = estatesToDisplay.concat(incompleteDataEstates);
+        }
+
+        // Update the count for the "Выбрано ЖК" button
+        if (showBtn) showBtn.textContent = `Выбрано ${totalMatchingEstates} ЖК`;
+
+        // Handle no results message if no estates match any selected filters
+        if (totalMatchingEstates === 0) {
           if (mainBot) {
             mainBot.innerHTML = `
                                     <div class="no-results" style="
@@ -467,7 +529,8 @@ document.addEventListener("DOMContentLoaded", () => {
 `;
           }
         } else {
-          paginateAndRender(filtered, renderEstates);
+          // Pass the combined list with the divider marker to paginateAndRender
+          paginateAndRender(estatesToDisplay, renderEstates);
         }
       };
 
@@ -475,6 +538,44 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!mainBot) return;
         if (!append) mainBot.innerHTML = "";
         estates.forEach((estate) => {
+          // Check if the current item is the special divider marker
+          if (estate.isDivider) {
+            const divider = document.createElement("div");
+            divider.classList.add("divider");
+            divider.style.cssText = `
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                position: relative;
+                height: 40px;
+                width: 100%;
+                max-width: 700px;
+                margin: 50px auto 30px auto;
+                padding-bottom: 20px;
+
+                border-bottom: 2px dashed rgb(209 209 209);
+                font-size: 1.3rem;
+                color: #262626;
+                
+
+            `;
+            divider.innerHTML = `
+                <span style="
+                    display: inline-block;
+                    position: relative;
+                    top: -10px;
+
+                    font-weight: 600;
+                ">
+                    Часть данных об этих ЖК отсутствует
+                </span>
+            `;
+            mainBot.appendChild(divider);
+            return; // Skip rendering an estate card for this special divider object
+          }
+
+          // Existing estate rendering logic below for actual estates
           const imageCount = 5;
           const images = Array.from({ length: imageCount }, (_, i) => `/projects/home/nginx/frontend/public/images/estates/${estate.id}/${i + 1}.jpg`);
 
