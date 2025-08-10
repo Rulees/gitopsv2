@@ -82,12 +82,28 @@ ul {
   padding: 0 15px;
 
   cursor: pointer;
-  transition: background-color 0.32s ease-in-out, color 0.32s ease-in-out;
+  transition: background-color 0.3s ease-in-out, color 0.2s ease-in-out;
 }
 
+.header-top .item__phone {
+  margin-left: auto;
+}
 .header-top .item:hover {
-  /* background-color: rgba(115, 255, 0, 0.1); */
-  color: #0e7ae0;
+  color: #313131;
+  background-color: #bae6fd;
+}
+
+.item__phone a {
+  display: block;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  color: inherit;
+}
+.item__phone:hover {
+  color: #262626;
+  background-color: #bae6fd;
 }
 
 .header-mid {
@@ -305,12 +321,12 @@ ul {
   flex-grow: 0;
   align-self: stretch;
 
-  padding: 20px 40px;
+  padding: 17px 40px;
   border-radius: 15px;
   font: 500 20px / 21px "SBSans", sans-serif;
 
   width: 100%;
-  max-width: 250px;
+  max-width: 225px;
 
   background-color: #5a88ff;
   color: #fff;
@@ -340,12 +356,11 @@ ul {
 }
 
 .estates .description::-webkit-scrollbar {
-  width: 7px;
-  margin: 20px 0;
+  width: 10px;
 }
 .estates .description::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  border-radius: 10px;
 }
 
 footer {

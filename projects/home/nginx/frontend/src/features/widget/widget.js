@@ -10,6 +10,15 @@ document.addEventListener("DOMContentLoaded", function () {
   // Иконки внутри кнопки
   const mainIcons = toggleButton.querySelectorAll(".b24-widget-button-icon-container .b24-widget-button-inner-item");
   const closeIcon = toggleButton.querySelector(".b24-widget-button-close");
+  const partnersButton = document.getElementById("trigger-popup-allies");
+  const consultButton = document.getElementById("trigger-popup-consultation");
+
+  if (partnersButton) {
+    partnersButton.addEventListener("click", toggleWidget);
+  }
+  if (consultButton) {
+    consultButton.addEventListener("click", toggleWidget);
+  }
 
   // Функция для переключения состояния виджета
   function toggleWidget() {
