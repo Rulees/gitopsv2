@@ -322,3 +322,10 @@
   background-color: #00aeef;
   background-size: 43%;
 }
+
+@media (max-width: 768px) {
+  .b24-widget-button-position-bottom-right {
+    right: 20px;
+    bottom: 140px;
+  }
+}
