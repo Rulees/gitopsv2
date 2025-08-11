@@ -124,6 +124,11 @@ ul {
   align-items: center;
 }
 
+.header-mid h1 {
+  font-weight: 600;
+  color: #4e7fff;
+}
+
 .header-bot {
   grid-area: hd-bot;
   justify-content: center;
