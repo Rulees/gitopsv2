@@ -135,7 +135,7 @@ ul {
 
   background-color: #f2f4f6;
   color: #8593a5;
-  padding: 20px 32px 20px 32px;
+  padding: 20px 32px;
 }
 
 .header-bot article {
@@ -217,7 +217,7 @@ ul {
   justify-content: center;
   align-items: center;
 
-  background-color: #0000;
+  background-color: transparent;
   border: none;
   bottom: 0;
   top: 0;
@@ -387,4 +387,28 @@ footer {
 
 footer .links {
   padding-left: 20px;
+}
+
+/* @media (min-width: 1280px) {} */
+
+@media (max-width: 1024px) {
+  #trigger-popup-consultation p {
+    display: none;
+  }
+  #trigger-popup-consultation {
+    height: 45px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-top .item p {
+    display: none;
+  }
+  .header-top .item {
+    height: 45px;
+    padding: 0 13px;
+  }
+  .header-top .item__phone {
+    font-size: 15px;
+  }
 }

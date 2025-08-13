@@ -6,6 +6,18 @@
   let renderFn = null;
   let shouldScrollToTop = false;
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const pageFromUrl = parseInt(urlParams.get("page"), 10);
+  if (!isNaN(pageFromUrl) && pageFromUrl > 0) {
+    currentPage = pageFromUrl;
+  }
+
+  function updateURLPageParam(page) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", page);
+    window.history.pushState({}, "", url);
+  }
+
   function paginateAndRender(estates, renderEstates) {
     fullEstateList = estates;
     renderFn = renderEstates;
@@ -43,6 +55,7 @@
     if (totalPages > 1) {
       renderPaginationControls(totalPages, (pageNum) => {
         currentPage = pageNum;
+        updateURLPageParam(currentPage);
         shouldScrollToTop = true;
         paginateAndRender(fullEstateList, renderFn);
       });
@@ -68,6 +81,7 @@
 
       btn.addEventListener("click", () => {
         shouldScrollToTop = true;
+        updateURLPageParam(i);
         onPageChange(i);
       });
 
@@ -79,6 +93,7 @@
     prevBtn.onclick = () => {
       if (currentPage > 1) {
         shouldScrollToTop = true;
+        updateURLPageParam(currentPage - 1);
         onPageChange(currentPage - 1);
       }
     };
@@ -86,6 +101,7 @@
     nextBtn.onclick = () => {
       if (currentPage < totalPages) {
         shouldScrollToTop = true;
+        updateURLPageParam(currentPage + 1);
         onPageChange(currentPage + 1);
       }
     };
@@ -115,12 +131,15 @@
       if (!fullEstateList.length || !renderFn) return;
 
       currentPage++;
+      updateURLPageParam(currentPage);
+
       const start = (currentPage - 1) * ESTATES_PER_PAGE;
       const visibleEstates = fullEstateList.slice(start, start + ESTATES_PER_PAGE);
       renderFn(visibleEstates, true);
 
       renderPaginationControls(totalPages, (pageNum) => {
         currentPage = pageNum;
+        updateURLPageParam(currentPage);
         shouldScrollToTop = true;
         paginateAndRender(fullEstateList, renderFn);
       });
