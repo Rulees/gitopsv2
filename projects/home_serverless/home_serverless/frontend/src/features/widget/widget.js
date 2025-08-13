@@ -10,6 +10,24 @@ document.addEventListener("DOMContentLoaded", function () {
   // Иконки внутри кнопки
   const mainIcons = toggleButton.querySelectorAll(".b24-widget-button-icon-container .b24-widget-button-inner-item");
   const closeIcon = toggleButton.querySelector(".b24-widget-button-close");
+  const partnersButton = document.getElementById("trigger-popup-allies");
+  const consultButton = document.getElementById("trigger-popup-consultation");
+
+  // Партнёрам — всегда клик
+  if (partnersButton) {
+    partnersButton.addEventListener("click", function (e) {
+      e.preventDefault();
+      // Если меню скрыто — открываем
+      if (!socialLinksContainer.classList.contains("b24-widget-button-show")) {
+        toggleWidget();
+      }
+    });
+  }
+
+  // Консультация — только на устройствах с hover (ПК)
+  if (consultButton && window.matchMedia("(hover: hover)").matches) {
+    consultButton.addEventListener("click", toggleWidget);
+  }
 
   // Функция для переключения состояния виджета
   function toggleWidget() {

@@ -13,10 +13,19 @@ document.addEventListener("DOMContentLoaded", function () {
   const partnersButton = document.getElementById("trigger-popup-allies");
   const consultButton = document.getElementById("trigger-popup-consultation");
 
+  // Партнёрам — всегда клик
   if (partnersButton) {
-    partnersButton.addEventListener("click", toggleWidget);
+    partnersButton.addEventListener("click", function (e) {
+      e.preventDefault();
+      // Если меню скрыто — открываем
+      if (!socialLinksContainer.classList.contains("b24-widget-button-show")) {
+        toggleWidget();
+      }
+    });
   }
-  if (consultButton) {
+
+  // Консультация — только на устройствах с hover (ПК)
+  if (consultButton && window.matchMedia("(hover: hover)").matches) {
     consultButton.addEventListener("click", toggleWidget);
   }
 
