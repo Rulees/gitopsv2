@@ -140,6 +140,7 @@ ul {
 
 .header-bot article {
   max-width: 800px;
+  text-align: center;
 }
 
 .main {
@@ -188,6 +189,7 @@ ul {
   background-color: #ffffff;
   border-radius: 20px;
   cursor: pointer;
+  overflow: hidden;
 
   padding: 16px 0 16px 16px;
 }
@@ -314,7 +316,6 @@ ul {
   justify-content: space-between;
 
   min-width: 250px;
-  overflow: hidden;
 }
 
 .estates .definition header {
@@ -325,8 +326,8 @@ ul {
   flex-shrink: 0;
   flex-grow: 0;
   align-self: stretch;
+  padding: 10px 20px;
 
-  padding: 17px 40px;
   border-radius: 15px;
   font: 500 20px / 21px "SBSans", sans-serif;
 
@@ -387,4 +388,109 @@ footer {
 
 footer .links {
   padding-left: 20px;
+}
+
+@media (min-width: 1280px) {
+}
+
+@media (max-width: 1100px) {
+  .estates .description p {
+    font-size: 15px;
+  }
+  .estates .images {
+    --height: 235px;
+  }
+  .estates .definition button {
+    padding: 10px 15px;
+    font: 500 18px / 18px "SBSans", sans-serif;
+    margin-top: 12px;
+  }
+  .estates .definition header {
+    font: 600 22px/32px "SBSans", sans-serif;
+  }
+}
+
+@media (max-width: 1024px) {
+  #trigger-popup-consultation p {
+    display: none;
+  }
+  #trigger-popup-consultation {
+    height: 45px;
+  }
+}
+
+@media (max-width: 768px) {
+  .estates .images {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    min-width: 0;
+  }
+  .header-top .item p {
+    display: none;
+  }
+  .header-top .item {
+    height: 45px;
+    padding: 0 13px;
+  }
+  .header-top .item__phone {
+    font-size: 15px;
+    display: none;
+  }
+
+  .estates .item {
+    flex-direction: column;
+    padding-right: 16px;
+  }
+
+  .estates .description {
+    margin-right: -16px;
+    /* padding-right: 16px; */
+  }
+
+  .estates .definition {
+    padding-right: 0px;
+  }
+
+  .estates .definition header {
+    margin-bottom: 16px;
+    font: 600 18px "SBSans", sans-serif;
+  }
+  .estates .description p {
+    font-size: 14px;
+    margin: 0;
+  }
+  .estates .definition button {
+    max-width: none;
+    padding: 10px 15px;
+    font: 500 17px / 17px "SBSans", sans-serif;
+    margin-top: 16px;
+    border-radius: 8px;
+  }
+
+  .main {
+    padding: 0;
+  }
+
+  .header-mid {
+    padding: 0 16px 0 16px;
+  }
+
+  .header-mid h1 {
+    font-size: 20px;
+  }
+
+  .header-mid svg {
+    width: 100px !important;
+    height: 77px !important;
+  }
+
+  .header-bot {
+    padding: 10px 16px;
+  }
+
+  .header-bot article {
+    font-size: 14px;
+  }
 }

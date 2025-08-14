@@ -360,4 +360,17 @@
   .filter-footer .reset button svg {
     display: flex !important;
   }
+
+  .filter-toggle {
+    padding: 0 15px;
+    margin-left: 16px;
+    margin-right: 16px;
+
+    font: 600 15px / 15px "SBSans", sans-serif;
+  }
+
+  .filter-toggle svg {
+    width: 14px;
+    height: 14px;
+  }
 }
