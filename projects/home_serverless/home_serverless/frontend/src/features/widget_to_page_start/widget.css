@@ -1,0 +1,75 @@
+.scroll-to-top-btn {
+  /* Позиционирование */
+  position: fixed;
+  bottom: 25px;
+  left: 16px;
+  z-index: 1000;
+
+  /* Размеры и форма */
+  height: 56px;
+  padding: 0 20px;
+  min-width: 40px;
+  border-radius: 48px;
+
+  /* Визуальные стили */
+  background-color: #e7eef3;
+  color: #262626;
+  border: none;
+  box-shadow: 0 1px 3px #2426291a, 0 6px 20px #24262929;
+
+  /* Выравнивание содержимого */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px; /* Расстояние между иконкой и текстом */
+
+  /* Поведение */
+  cursor: pointer;
+  transition: opacity 0.5s, visibility 0.5s, background-color 0.4s;
+  box-sizing: border-box;
+  outline: none;
+}
+
+/* Стили для иконки */
+.btn-icon {
+  display: block;
+  line-height: 0;
+}
+
+.btn-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* Стили для текста */
+.btn-text {
+  font: 500 15px / 18px SBSans, sans-serif;
+  color: #262626;
+}
+
+/* Класс для скрытия кнопки */
+.scroll-to-top-btn.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.scroll-to-top-btn:hover {
+  background-color: #e0e4e9;
+}
+
+.scroll-to-top-btn:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .scroll-to-top-btn {
+    width: 48px;
+    height: 40px;
+    padding: 0;
+  }
+
+  .btn-text {
+    display: none;
+  }
+}
