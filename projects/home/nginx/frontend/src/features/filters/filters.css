@@ -48,10 +48,16 @@
 
 .filter-modal-close {
   position: absolute;
-  right: 15px;
-  top: 15px;
+  right: 0px;
+  top: 0px;
   color: gray;
   cursor: pointer;
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .filter-grid {
