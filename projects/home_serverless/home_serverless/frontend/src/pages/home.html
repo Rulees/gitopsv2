@@ -15,9 +15,18 @@
     <link rel="stylesheet" href="/src/features/consultation/popup.css" />
     <link rel="stylesheet" href="/src/features/widget/widget.css" />
     <link rel="stylesheet" href="/src/features/pagination/pagination.css" />
+    <link rel="stylesheet" href="/src/features/widget_to_page_start/widget.css" />
     <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
   </head>
   <body>
+    <button class="scroll-to-top-btn hidden" type="button" aria-label="Вернуться наверх">
+      <span class="btn-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8.75852 14.9199V3.74989L13.6385 8.62989C14.0285 9.01989 14.6685 9.01989 15.0585 8.62989C15.4485 8.23989 15.4485 7.60989 15.0585 7.21989L8.46852 0.629888C8.28168 0.442635 8.02803 0.337402 7.76352 0.337402C7.499 0.337402 7.24535 0.442635 7.05852 0.629888L0.458516 7.20989C0.0685156 7.59989 0.0685156 8.22989 0.458516 8.61989C0.848516 9.00989 1.47852 9.00989 1.868516 8.61989L6.75852 3.74989V14.9199C6.75852 15.4699 7.20852 15.9199 7.75852 15.9199C8.30852 15.9199 8.75852 15.4699 8.75852 14.9199Z" fill="#242629"></path>
+          </svg>
+      </span>
+      <span class="btn-text">В начало</span>
+  </button>
 
     <div dir="ltr" data-b24-crm-button-cont="" class="b24-widget-button-wrapper b24-widget-button-position-bottom-right">
       <div data-b24-crm-hello-cont="" class="b24-widget-button-popup" style="border-color: #6fc1c2;">
@@ -228,5 +237,6 @@
     <script src="/src/features/filters/filters.js"></script>
     <script src="/src/features/consultation/consult.js"></script>
     <script src="/src/features/widget/widget.js"></script>
+    <script src="/src/features/widget_to_page_start/widget.js"></script>
   </body>
 </html>
