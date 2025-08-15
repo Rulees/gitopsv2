@@ -13,9 +13,9 @@
 
 .popup--consultation {
   /* top: ; */ /*  doesnt work! change inside js!*/
-  width: 342px;
+  width: 317px;
   height: 160px;
-  padding: 0 16px 24px 16px;
+  padding: 0 10px 24px 16px;
   border-radius: 8px;
   color: #333;
   font-size: 14px;
@@ -71,4 +71,20 @@
 
 .popup__note a {
   color: #007bff;
+}
+
+@media (max-width: 768px) {
+  .popup--consultation {
+    width: 290px;
+    padding: 0 10px 18px 16px;
+  }
+  .popup__title {
+    font-size: 18px;
+  }
+  .popup__highlight {
+    font-size: 18px;
+  }
+  .popup__note {
+    font-size: 14px;
+  }
 }

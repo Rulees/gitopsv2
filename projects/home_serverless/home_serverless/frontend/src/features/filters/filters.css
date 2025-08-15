@@ -373,4 +373,9 @@
     width: 14px;
     height: 14px;
   }
+
+  .filter-item {
+    font-size: 15px;
+    font-family: sans-serif;
+  }
 }
