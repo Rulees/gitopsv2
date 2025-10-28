@@ -140,7 +140,9 @@ ul {
 
 .header-bot article {
   max-width: 800px;
+  font-size: 17px;
   text-align: center;
+  line-height: 1.35;
 }
 
 .main {
