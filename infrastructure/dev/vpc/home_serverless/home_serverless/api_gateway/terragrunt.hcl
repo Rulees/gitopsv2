@@ -46,7 +46,7 @@ inputs = {
   network_id         = dependency.network.outputs.vpc_id
   service_account_id = dependency.sa_api_gateway_editor.outputs.sa_id
   container_id       = dependency.serverless_container.outputs.container_id
-  dns_zone_id        = "dnsdghfje6n679tplso0"
+  dns_zone_id        = "dns12p5f0ll3325ftjlo"
 
   # RESOURCES
   api_gateway_name   = "api-gateway"

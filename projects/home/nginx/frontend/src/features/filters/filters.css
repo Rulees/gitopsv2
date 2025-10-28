@@ -183,7 +183,7 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 20px 40px;
+  padding: 12px 40px;
 
   cursor: pointer;
   color: #4e7fff;
@@ -335,9 +335,11 @@
     gap: 20px;
     margin-right: -16px; /* for scrollbar*/
   }
+
   .filter-wrapper {
     padding: 32px 16px 24px 16px;
   }
+
   .filter-footer {
     padding: 24px 0 0 0;
     justify-content: flex-start;
