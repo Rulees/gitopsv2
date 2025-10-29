@@ -1,8 +1,9 @@
 # dependencies:
-#   - app: home
-#     service: nginx
-#     subservice: consul_server
-#     wait: false
+#   - path_to_playbook: /dev/vpc/home/nginx/consul_server
+#     when_to_launch: intime 
+#   - path_to_playbook: /dev/vpc/home/nginx/monitoring
+#     path_to_infra: /dev/vpc/home/nginx
+#     when_to_launch: after
 
 ---
 - name: Deploy website with loadbalancing

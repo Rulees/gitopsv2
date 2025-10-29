@@ -1,0 +1,39 @@
+  groups:
+  - name: First instance alerts
+    rules:
+      # CPU load is > xx%
+      - alert: HostHighCpuLoad
+        expr: 100 * (1 - avg by(instance) (irate(node_cpu_seconds_total{mode="idle",metric="cpu"}[1m]))) > 0.001
+        for: 5s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+
+  - name: Second instance alerts
+    rules:
+      # Memory Usage >= 10%    
+      - alert: HostOutOfMemory
+        expr: 100 * (1 - ((avg_over_time(node_memory_MemFree_bytes[1m]) + avg_over_time(node_memory_Cached_bytes[1m]) + avg_over_time(node_memory_Buffers_bytes[1m])) / avg_over_time(node_memory_MemTotal_bytes{metric="vm"}[1m]))) > 10 # filtering by job name
+        for: 5s
+        labels:
+          severity: warning
+        annotations:
+          summary: Host out of memory (instance {{ $labels.instance }})
+          description: "Node memory is filling up\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+
+
+  - name: always-firing-alerts
+    rules:
+      - alert: AlwaysFiringAlert
+        expr: up == 1  # Это условие всегда будет истинным
+        for: 20s  # Проверка состояния на протяжении 1 минуты
+        labels:
+          severity: critical
+        annotations:
+          summary: "This alert always fires!"
+          description: "The `up` metric is always 1, meaning the service is up."

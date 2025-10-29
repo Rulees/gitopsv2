@@ -45,18 +45,14 @@ def extract_dependencies(playbook_path):
                 in_block = True
                 continue
             if in_block:
-                if line.startswith("#   - app:"):
+                if line.startswith("#   - path_to_playbook:"):
                     if current:
                         dependencies.append(current)
-                    current = {"app": line.split(":", 1)[1].strip()}
-                elif line.startswith("#     service:"):
-                    current["service"] = line.split(":", 1)[1].strip()
-                elif line.startswith("#     subservice:"):
-                    current["subservice"] = line.split(":", 1)[1].strip()
-                elif line.startswith("#     wait:"):
-                    current["wait"] = line.split(":", 1)[1].strip()
-                elif line.startswith("#     path:"):
-                    current["path"] = line.split(":", 1)[1].strip()
+                    current = {"path_to_playbook": line.split(":", 1)[1].strip()}
+                elif line.startswith("#     path_to_infra:"):
+                    current["path_to_infra"] = line.split(":", 1)[1].strip()
+                elif line.startswith("#     when_to_launch:"):
+                    current["when_to_launch"] = line.split(":", 1)[1].strip()
                 elif not line.startswith("#"):
                     if current:
                         dependencies.append(current)
@@ -80,7 +76,7 @@ def print_dependency(dep, indent=""):
     playbook_short = rel_path(dep['path'] / 'playbook.yml')
     print(f"{indent}   [deps: ] playbook: {playbook_short}")
     print(f"{indent}            infra:    {infra_short}")
-    print(f"{indent}            type:     {'Async' if dep.get('wait', 'true') == 'false' else 'Sync'}\n")
+    print(f"{indent}            type:     {'Async' if dep.get('when_to_launch', 'intime') == 'after' else 'Sync'}\n")
 
 # === Асинхронный запуск ansible-playbook ===
 async def run_ansible_playbook(m, group, playbook, deploy_status=None):
@@ -100,10 +96,24 @@ async def run_ansible_playbook(m, group, playbook, deploy_status=None):
         *cmd,
         cwd=str(ANSIBLE_DIR),
         stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.STDOUT
+        stderr=asyncio.subprocess.PIPE
     )
-    stdout, _ = await proc.communicate()
-    return proc.returncode, stdout.decode()
+    
+    # Read output in real-time without waiting for completion
+    async def read_stream(stream, print_func):
+        while True:
+            line = await stream.readline()
+            if not line:
+                break
+            print_func(line.decode().strip())
+
+    # Start reading the stdout and stderr asynchronously
+    asyncio.create_task(read_stream(proc.stdout, print))
+    asyncio.create_task(read_stream(proc.stderr, print))
+    
+    # Wait for process to finish
+    returncode = await proc.wait()
+    return returncode, "Process completed."
 
 async def run_playbook(m, processed_playbooks, level=0, deploy_status=None):
     indent = "  " * level
@@ -142,6 +152,7 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None):
     background_tasks = []
     printed_playbooks = set()
 
+    # Process dependencies based on `when_to_launch`
     for dep in dependencies:
         dep = dep.copy()
         dep["env"] = m["env"]
@@ -173,13 +184,21 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None):
             printed_playbooks.add(dep_playbook_key)
         if dep_playbook_key in processed_playbooks:
             continue
-    
-        if dep.get("wait", "true") == "false":
-            task = asyncio.create_task(run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status))
-            background_tasks.append(task)
-        else:
+
+        # If `when_to_launch` is "before", run the dependency before the main playbook
+        if dep.get("when_to_launch", "intime") == "before":
             await run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status)
 
+        # If `when_to_launch` is "intime", run immediately
+        if dep.get("when_to_launch", "intime") == "intime":
+            await run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status)
+
+        # If `when_to_launch` is "after", run in the background after the main playbook
+        if dep.get("when_to_launch", "intime") == "after":
+            task = asyncio.create_task(run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status))
+            background_tasks.append(task)
+
+    # Run the main playbook after handling dependencies
     returncode, output = await run_ansible_playbook(m, group, playbook, deploy_status=deploy_status)
 
     status = "SUCCESS" if returncode == 0 else "FAILED"
@@ -193,6 +212,7 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None):
     print(output.strip())
     print("\n==========================================================================================================================\n")
 
+    # Wait for background tasks (dependencies with `when_to_launch` as "after")
     if background_tasks:
         await asyncio.gather(*background_tasks)
 
