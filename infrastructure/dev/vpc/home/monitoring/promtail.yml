@@ -1,0 +1,33 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /positions.yml
+
+clients:
+  - url: http://loki.service.monitoring:3100/loki/api/v1/push # Loki server dynamically discovered by Consul
+
+
+scrape_configs:
+  - job_name: nginx
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: nginx
+          __path__: /var/log/nginx/*.log
+  
+
+  - job_name: apache
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: apache
+          __path__: /var/log/apache2/*.log
+
+  - job_name: system
+    static_configs:
+    - targets: [localhost]
+      labels:
+        job: varlogs
+        __path__: /var/log/*log

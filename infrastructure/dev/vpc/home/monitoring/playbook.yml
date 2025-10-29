@@ -1,0 +1,15 @@
+---
+- name: Deploy Monitoring Stack
+  hosts: all
+  become: true
+  vars:
+    enable_promtail: true
+    enable_node_exporter: true
+    enable_prometheus: true
+    enable_loki: true
+    enable_grafana: true
+  roles:
+    - docker_install
+    - docker_compose
+    - consul_agent               # install agent to setup dns-name for dynamic discovery Loki's ip to send logs there
+    - monitoring

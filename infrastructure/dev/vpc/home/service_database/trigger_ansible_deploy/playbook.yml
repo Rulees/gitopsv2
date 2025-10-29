@@ -7,9 +7,14 @@
   become: true
   vars:
     consul_server_group: "env_dev__app_home__service_nginx" # where consul_server is located
+    enable_promtail: true
+    enable_node_exporter: true
   roles:
     - docker_install
     - consul_agent
     - fastapi
     - save_successful_hosts
+    - monitoring
+        
+
 

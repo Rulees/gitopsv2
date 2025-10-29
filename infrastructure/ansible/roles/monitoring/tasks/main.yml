@@ -1,0 +1,76 @@
+---
+- name: Run Promtail Docker container
+  docker_container:
+    name: promtail
+    image: grafana/promtail
+    state: started
+    restart_policy: always
+    ports:
+      - "9080:9080"
+    volumes:
+      - ./promtail.yml:/etc/promtail/promtail.yml
+      - /var/log:/var/log
+    command:
+      - '--config.file=/etc/promtail/promtail.yml'
+  when: enable_promtail | default(false)
+
+
+- name: Run Node Exporter Docker container
+  docker_container:
+    name: node_exporter
+    image: prom/node-exporter
+    state: started
+    restart_policy: always
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/root:ro
+    network_mode: host
+  when: enable_node_exporter | default(false)
+
+# Run Prometheus
+- name: Run Prometheus Docker container
+  docker_container:
+    name: prometheus
+    image: prom/prometheus
+    state: started
+    restart_policy: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+  when: enable_prometheus | default(false)
+
+# Run Loki
+- name: Run Loki Docker container
+  docker_container:
+    name: loki
+    image: grafana/loki
+    state: started
+    restart_policy: always
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki.yml:/etc/loki/loki.yml
+    command:
+      - '--config.file=/etc/loki/loki.yml'
+  when: enable_loki | default(false)
+
+# Run Grafana
+- name: Run Grafana Docker container
+  docker_container:
+    name: grafana
+    image: grafana/grafana
+    state: started
+    restart_policy: always
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+    command:
+      - '--config.file=/etc/grafana/grafana.ini'
+  when: enable_grafana | default(false)
