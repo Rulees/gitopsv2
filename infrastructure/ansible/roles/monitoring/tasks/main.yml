@@ -1,26 +1,56 @@
 ---
-- name: Run Promtail Docker container
-  docker_container:
-    name: promtail
-    image: grafana/promtail
-    state: started
-    restart_policy: always
-    ports:
-      - "9080:9080"
-    volumes:
-      - ./promtail.yml:/etc/promtail/promtail.yml
-      - /var/log:/var/log
-    command:
-      - '--config.file=/etc/promtail/promtail.yml'
+
+- name: Promtail
   when: enable_promtail | default(false)
+  block:
+      - name: Create /etc/promtail directory
+        file:
+          path: /etc/promtail
+          state: directory
+          owner: root
+          group: root
+          mode: '0755'
+
+      - name: Copy Promtail config file to remote host
+        copy:
+          src: "{{ config_dir }}/promtail.yml"
+          dest: /etc/promtail/promtail.yml
+          force: true
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Run Promtail Docker container
+        docker_container:
+          name: promtail
+          image: grafana/promtail
+          state: started
+          restart_policy: always
+          recreate: yes
+          ports:
+            - "9080:9080"
+          volumes:
+            - /etc/promtail/promtail.yml:/etc/promtail/promtail.yml     # this is only needed if you are going to send syslogs
+            - /var/log:/var/log                                         # get access to vm logs(not only container logs)
+          command:
+            - '--config.file=/etc/promtail/promtail.yml'
+          network_mode: host
+          dns_servers:
+            - 127.0.0.1
+            - 8.8.8.8
+          dns_search_domains:
+            - service.consul
+          
 
 
 - name: Run Node Exporter Docker container
+  when: enable_node_exporter | default(false)
   docker_container:
     name: node_exporter
     image: prom/node-exporter
     state: started
     restart_policy: always
+    recreate: yes
     ports:
       - "9100:9100"
     volumes:
@@ -28,49 +58,162 @@
       - /sys:/host/sys:ro
       - /:/host/root:ro
     network_mode: host
-  when: enable_node_exporter | default(false)
+    dns_servers:
+            - 127.0.0.1
+            - 8.8.8.8
+    dns_search_domains:
+      - service.consul
 
-# Run Prometheus
-- name: Run Prometheus Docker container
-  docker_container:
-    name: prometheus
-    image: prom/prometheus
-    state: started
-    restart_policy: always
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+
+- name: VictoriaMetricsMAgent
+  when: enable_vmagent | default(false)
+  block:
+      - name: Create /etc/vmagent directory
+        file:
+          path: /etc/vmagent
+          state: directory
+          owner: root
+          group: root
+          mode: '0755'
+
+      - name: Copy VMAgent config file to remote host
+        copy:
+          src: "{{ config_dir }}/vmagent.yml"
+          dest: /etc/vmagent/vmagent.yml
+          force: true
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Run VMAgent Docker container
+        docker_container:
+          name: vmagent
+          image: victoriametrics/vmagent
+          state: started
+          restart_policy: always
+          recreate: yes
+          ports:
+            - "8429:8429"
+          volumes:
+            - /etc/vmagent/vmagent.yml:/etc/vmagent/vmagent.yml
+            - /proc:/host/proc:ro
+            - /sys:/host/sys:ro
+            - /:/host/root:ro
+          command:
+            - "-promscrape.config=/etc/vmagent/vmagent.yml"
+            - "-remoteWrite.url=http://leader.service.consul:9090/api/v1/write"
+          network_mode: host
+          dns_servers:
+            - 127.0.0.1
+            - 8.8.8.8
+          dns_search_domains:
+            - service.consul
+          
+
+
+- name: Prometheus
   when: enable_prometheus | default(false)
+  block:
+      - name: Create /etc/prometheus directory
+        file:
+          path: /etc/prometheus
+          state: directory
+          owner: root
+          group: root
+          mode: '0755'
 
-# Run Loki
-- name: Run Loki Docker container
-  docker_container:
-    name: loki
-    image: grafana/loki
-    state: started
-    restart_policy: always
-    ports:
-      - "3100:3100"
-    volumes:
-      - ./loki.yml:/etc/loki/loki.yml
-    command:
-      - '--config.file=/etc/loki/loki.yml'
+      - name: Copy Prometheus config files to remote host
+        copy:
+          src: "{{ item.src }}"
+          dest: "{{ item.dest }}"
+          force: true
+          owner: root
+          group: root
+          mode: '0644'
+        loop:
+          - { src: '{{ config_dir }}/prometheus.yml', dest: '/etc/prometheus/prometheus.yml' }
+          - { src: '{{ config_dir }}/rules.yml', dest: '/etc/prometheus/rules.yml' }
+      
+      - name: Create Prometheus data directory with correct permissions
+        file:
+          path: /prometheus/data 
+          state: directory
+          owner: 65534 
+          group: 65534
+          mode: '0755'
+
+      - name: Run Prometheus Docker container
+        docker_container:
+          name: prometheus
+          image: prom/prometheus
+          state: started
+          restart_policy: always
+          recreate: yes
+          ports:
+            - "9090:9090"
+          volumes:
+            - /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+            - /etc/prometheus/rules.yml:/etc/prometheus/rules.yml
+            - /prometheus/:/prometheus
+          command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--web.enable-remote-write-receiver'
+          network_mode: host
+          
+
+
+- name: Loki
   when: enable_loki | default(false)
+  block:
+      - name: Create /etc/loki directory
+        file:
+          path: /etc/loki
+          state: directory
+          owner: root
+          group: root
+          mode: '0755'
 
-# Run Grafana
+      - name: Copy Loki config file to remote host
+        copy:
+          src: "{{ config_dir }}/loki.yml"
+          dest: /etc/loki/loki.yml
+          force: true
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Run Loki Docker container
+        docker_container:
+          name: loki
+          image: grafana/loki
+          state: started
+          restart_policy: always
+          recreate: yes
+          user: "0:0"
+          ports:
+            - "3100:3100"
+          volumes:
+            - /etc/loki/loki.yml:/etc/loki/loki.yml
+            - /var/lib/loki/chunks:/loki/chunks
+          command:
+            - '--config.file=/etc/loki/loki.yml'
+          network_mode: host
+          
+
+
 - name: Run Grafana Docker container
+  when: enable_grafana | default(false)
   docker_container:
     name: grafana
     image: grafana/grafana
     state: started
     restart_policy: always
+    recreate: yes
     ports:
       - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: "admin"
-    command:
-      - '--config.file=/etc/grafana/grafana.ini'
-  when: enable_grafana | default(false)
+    network_mode: host
+    
+    # environment:
+      # GF_SECURITY_ADMIN_PASSWORD: "admin"
+    # command:
+      # - '--config.file=/etc/grafana/grafana.ini'

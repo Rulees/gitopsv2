@@ -11,5 +11,6 @@
     - docker_install
     - consul_agent
     - fastapi
+    - consul_dns_enable
     - save_successful_hosts
 
