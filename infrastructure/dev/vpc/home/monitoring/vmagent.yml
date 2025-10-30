@@ -1,0 +1,44 @@
+global:
+  scrape_interval: 10s
+
+scrape_configs:
+  - job_name: admin_nginx_server
+    static_configs:
+      - targets: ['leader.service.consul:9100']
+
+  - job_name: service_database
+    consul_sd_configs:
+      - server: "leader.service.consul:8500"
+        services: ['service_database']
+    
+    relabel_configs:
+      - source_labels: [__meta_consul_address]
+        target_label: __address__
+        replacement: '$1:9100'
+
+
+# ###
+# # DYNAMIC FILTERING TARGETS(VMS) BY USING TAGS. FOR EXAMPLE:  (1) YandexCloud:  metric: cpu  (2) rules.yml:  by(instance)  (3) param..{metric="cpu"}
+# ###
+
+# scrape_configs:
+#   - job_name: instances
+#     yandexcloud_sd_configs:
+#       - service: compute
+#         yandex_passport_oauth_token: ""
+#     relabel_configs:
+#       - source_labels: [__meta_yandexcloud_instance_label_service]                                               # get label "service" from YC. 
+#         target_label: "service"                                                                                  # assign name for existed/new label in Prometheus
+#         replacement: "$1"                                                                                        # get value of label "service" from every vm and write: 
+
+#       - source_labels: [__meta_yandexcloud_instance_public_ip_0]                                                 # get public_ip
+#         target_label: __address__
+#         replacement: "$1:9100"
+
+
+# scrape_configs:
+#   - job_name: 'admin_nginx_server'
+#     static_configs:
+#       - targets: ['localhost:9100']
+
+

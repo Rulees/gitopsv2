@@ -5,16 +5,18 @@
 - name: Deploy fastapi backend
   hosts: all
   become: true
-  vars:
-    consul_server_group: "env_dev__app_home__service_nginx" # where consul_server is located
-    enable_promtail: true
-    enable_node_exporter: true
   roles:
     - docker_install
-    - consul_agent
+    - role: consul_agent
+      vars:
+        consul_server_group: "env_dev__app_home__service_nginx" # where consul_server is located
     - fastapi
     - save_successful_hosts
-    - monitoring
+    - consul_dns_enable                                         # for promtail be able see loki + for prometheus be able see node-exporters
+    - role: monitoring
+      vars:
+        enable_promtail: true
+        enable_node_exporter: true
         
 
 

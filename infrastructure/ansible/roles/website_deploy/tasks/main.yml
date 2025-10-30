@@ -22,6 +22,9 @@
     recursive: yes
     rsync_opts:
       - "--delete"
+      # - "-vvv"
+      # - "--progress"
+      # - "--stats"
   delegate_to: localhost  
 
 - name: SEND SECRETS

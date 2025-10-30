@@ -64,6 +64,21 @@ inputs = {
       ports          = [8301, 8302, 8600]
       v4_cidr_blocks = ["0.0.0.0/0"]
     },
+    # MONITORING
+    {
+      direction      = "ingress"
+      description    = "Allow Grafana, Prometheus, Loki, NodeExporter, VictoriaMericsAgent"
+      protocol       = "TCP"
+      ports          = [3000, 9090, 3100, 9100, 8429]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      direction      = "ingress"
+      description    = "Allow Grafana, Prometheus, Loki, NodeExporter"
+      protocol       = "UDP"
+      ports          = [3000, 9090, 3100, 9100, 8429]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
     # Исходящие правила
     {
       direction      = "egress"
@@ -101,5 +116,20 @@ inputs = {
       ports          = [6432]
       v4_cidr_blocks = ["0.0.0.0/0"]
     },
+    # MONITORING
+    {
+      direction      = "egress"
+      description    = "Allow Grafana, Prometheus, Loki, NodeExporter, VictoriaMericsAgent"
+      protocol       = "TCP"
+      ports          = [3000, 9090, 3100, 9100, 8429]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      direction      = "egress"
+      description    = "Allow Grafana, Prometheus, Loki, NodeExporter, VictoriaMericsAgent"
+      protocol       = "UDP"
+      ports          = [3000, 9090, 3100, 9100, 8429]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    }
   ]
 }

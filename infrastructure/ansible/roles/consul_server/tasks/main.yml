@@ -15,6 +15,22 @@
 #     name: consul
 #     state: present
 
+- name: Register the default service
+  ansible.builtin.copy:
+    dest: /opt/consul/config/leader.json
+    content: |
+      {
+        "service": {
+          "name": "leader",
+          "tags": {{ ["role=leader"] | to_json }},
+          "port": 8500,
+          "check": {
+            "http": "http://localhost:8500/v1/agent/self",
+            "interval": "10s"
+          }
+        }
+      }
+
 - name: Run Consul server in Docker
   ignore_errors: yes
   docker_container:

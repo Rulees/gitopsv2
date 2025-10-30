@@ -6,7 +6,9 @@ positions:
   filename: /positions.yml
 
 clients:
-  - url: http://loki.service.monitoring:3100/loki/api/v1/push # Loki server dynamically discovered by Consul
+  - url: http://leader.service.consul:3100/loki/api/v1/push # Loki server dynamically discovered by Consul
+  # - url: http://localhost:3100/loki/api/v1/push
+
 
 
 scrape_configs:
