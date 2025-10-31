@@ -26,6 +26,7 @@
     recursive: yes
     rsync_opts:
       - "--delete"
+      - "--exclude .terragrunt-cache"
   delegate_to: localhost  
 
 - name: SEND SECRETS
@@ -61,6 +62,8 @@
           env_file: "{{ remote_env_file }}"
           ports:
             - 8000:8000
+          volumes:
+            - /var/log:/var/log                                                # for loki to get logs
           recreate: yes
           network_mode: host
           dns_servers:

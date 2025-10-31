@@ -10,13 +10,13 @@
     <title>Народный фильтр Новостроек Краснодара и Адыгеи</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="stylesheet" href="/projects/home/nginx/frontend/src/styles/home.css" />
-    <link rel="stylesheet" href="/projects/home/nginx/frontend/src/features/filters/filters.css" />
-    <link rel="stylesheet" href="/projects/home/nginx/frontend/src/features/consultation/popup.css" />
-    <link rel="stylesheet" href="/projects/home/nginx/frontend/src/features/widget/widget.css" />
-    <link rel="stylesheet" href="/projects/home/nginx/frontend/src/features/pagination/pagination.css" />
-    <link rel="stylesheet" href="/projects/home/nginx/frontend/src/features/widget_to_page_start/widget.css" />
-    <link rel="icon" type="image/x-icon" href="/projects/home/nginx/frontend/public/favicon.ico" />
+    <link rel="stylesheet" href="/src/styles/home.css" />
+    <link rel="stylesheet" href="/src/features/filters/filters.css" />
+    <link rel="stylesheet" href="/src/features/consultation/popup.css" />
+    <link rel="stylesheet" href="/src/features/widget/widget.css" />
+    <link rel="stylesheet" href="/src/features/pagination/pagination.css" />
+    <link rel="stylesheet" href="/src/features/widget_to_page_start/widget.css" />
+    <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
   </head>
   <body>
     <button class="scroll-to-top-btn hidden" type="button" aria-label="Вернуться наверх">
@@ -27,6 +27,7 @@
       </span>
       <span class="btn-text">В начало</span>
   </button>
+  
   
     <div dir="ltr" data-b24-crm-button-cont="" class="b24-widget-button-wrapper b24-widget-button-position-bottom-right">
       <div data-b24-crm-hello-cont="" class="b24-widget-button-popup" style="border-color: #6fc1c2;">
@@ -44,7 +45,7 @@
       </div>
   
       <div data-b24-crm-button-block="" class="b24-widget-button-social b24-widget-button-hide">
-        <a data-b24-crm-button-widget-blank="" data-b24-crm-button-widget="openline_ank_chats_app24_whats_app" class="b24-widget-button-social-item" title="" data-b24-widget-sort="400" href="https://instagram.com/sergrealtor_krd" target="_blank" rel="noopener" style="background-image: url('/projects/home/nginx/frontend/public/images/instagram.svg'); background-repeat: no-repeat; background-position: center; background-size: contain;">
+        <a data-b24-crm-button-widget-blank="" data-b24-crm-button-widget="openline_ank_chats_app24_whats_app" class="b24-widget-button-social-item" title="" data-b24-widget-sort="400" href="https://instagram.com/sergrealtor_krd" target="_blank" rel="noopener" style="background-image: url('/public/images/instagram.svg'); background-repeat: no-repeat; background-position: center; background-size: contain;">
           <i></i>
           <span data-b24-crm-button-tooltip="" class="b24-widget-button-social-tooltip">Instagram</span>
         </a>
@@ -54,12 +55,12 @@
           <span data-b24-crm-button-tooltip="" class="b24-widget-button-social-tooltip">Позвонить</span>
         </a>
 
-        <a data-b24-crm-button-widget-blank="" data-b24-crm-button-widget="openline_ank_chats_app24_telegram" class="b24-widget-button-social-item" title="" data-b24-widget-sort="400" style="background-image: url('/projects/home/nginx/frontend/public/images/telegram.svg'); background-repeat: no-repeat; background-position: center; background-size: contain;" href="https://t.me/+79069270227?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%20%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B9%20%D0%AE%D1%80%D1%8C%D0%B5%D0%B2%D0%B8%D1%87,%20%D0%BC%D0%B5%D0%BD%D1%8F%20%D0%B7%D0%BE%D0%B2%D1%83%D1%82...%20%D0%9D%D1%83%D0%B6%D0%BD%D0%B0%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BF%D0%BE%20%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8" target="_blank" rel="noopener">
+        <a data-b24-crm-button-widget-blank="" data-b24-crm-button-widget="openline_ank_chats_app24_telegram" class="b24-widget-button-social-item" title="" data-b24-widget-sort="400" style="background-image: url('/public/images/telegram.svg'); background-repeat: no-repeat; background-position: center; background-size: contain;" href="https://t.me/+79069270227?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%20%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B9%20%D0%AE%D1%80%D1%8C%D0%B5%D0%B2%D0%B8%D1%87,%20%D0%BC%D0%B5%D0%BD%D1%8F%20%D0%B7%D0%BE%D0%B2%D1%83%D1%82...%20%D0%9D%D1%83%D0%B6%D0%BD%D0%B0%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8F%20%D0%BF%D0%BE%20%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8" target="_blank" rel="noopener">
           <i></i>
           <span data-b24-crm-button-tooltip="" class="b24-widget-button-social-tooltip">Telegram</span>
         </a>
 
-        <a data-b24-crm-button-widget-blank="" data-b24-crm-button-widget="openline_ank_chats_app24_whats_app" class="b24-widget-button-social-item" title="" data-b24-widget-sort="400" href="https://wa.me/79069270227" target="_blank" rel="noopener" style="background-image: url('/projects/home/nginx/frontend/public/images/whatsapp.svg'); background-repeat: no-repeat; background-position: center; background-size: contain;">
+        <a data-b24-crm-button-widget-blank="" data-b24-crm-button-widget="openline_ank_chats_app24_whats_app" class="b24-widget-button-social-item" title="" data-b24-widget-sort="400" href="https://wa.me/79069270227" target="_blank" rel="noopener" style="background-image: url('/public/images/whatsapp.svg'); background-repeat: no-repeat; background-position: center; background-size: contain;">
           <i></i>
           <span data-b24-crm-button-tooltip="" class="b24-widget-button-social-tooltip">WhatsApp</span>
         </a>
@@ -142,7 +143,7 @@
       </div>
       <div class="header-mid">
           <div class="item">
-            <a href="/projects/home/nginx/frontend/src/pages/home.html" class="header-mid-link">
+          <a href="https://home.arkselen.ru" class="header-mid-link">
               <svg width="170" height="130" viewBox="0 0 38.361736 29.554492" xmlns="http://www.w3.org/2000/svg">
                 <g transform="matrix(-1,0,0,1,56.361393,-14.498112)">
                   <path
@@ -153,7 +154,7 @@
             </a>
           </div>
           <div class="item">
-            <a href="/projects/home/nginx/frontend/src/pages/home.html" class="header-mid-link">
+          <a href="https://home.arkselen.ru" class="header-mid-link">
               <h1>Народный фильтр Новостроек</h1>
             </a>
           </div>
@@ -230,11 +231,13 @@
 
       </div>
     </footer>
-    <script src="/projects/home/nginx/frontend/src/features/fouc.js"></script>
-    <script src="/projects/home/nginx/frontend/src/features/pagination/pagination.js"></script>
-    <script src="/projects/home/nginx/frontend/src/features/filters/filters.js"></script>
-    <script src="/projects/home/nginx/frontend/src/features/consultation/consult.js"></script>
-    <script src="/projects/home/nginx/frontend/src/features/widget/widget.js"></script>
-    <script src="/projects/home/nginx/frontend/src/features/widget_to_page_start/widget.js"></script>
+      
+
+    <script src="/src/features/fouc.js"></script>
+    <script src="/src/features/pagination/pagination.js"></script>
+    <script src="/src/features/filters/filters.js"></script>
+    <script src="/src/features/consultation/consult.js"></script>
+    <script src="/src/features/widget/widget.js"></script>
+    <script src="/src/features/widget_to_page_start/widget.js"></script>
   </body>
 </html>

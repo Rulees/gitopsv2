@@ -335,11 +335,9 @@
     gap: 20px;
     margin-right: -16px; /* for scrollbar*/
   }
-
   .filter-wrapper {
     padding: 32px 16px 24px 16px;
   }
-
   .filter-footer {
     padding: 24px 0 0 0;
     justify-content: flex-start;

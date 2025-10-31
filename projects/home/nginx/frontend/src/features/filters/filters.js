@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return rows;
   };
 
-  Promise.all([fetch("/projects/home/nginx/frontend/public/data/filters.csv").then((response) => response.text()), fetch("/projects/home/nginx/frontend/public/data/values.csv").then((response) => response.text()), fetch("/projects/home/nginx/frontend/public/data/descriptions.csv").then((response) => response.text())])
+  Promise.all([fetch("/public/data/filters.csv").then((response) => response.text()), fetch("/public/data/values.csv").then((response) => response.text()), fetch("/public/data/descriptions.csv").then((response) => response.text())])
     .then(([filtersCsv, valuesCsv, descriptionsCsv]) => {
       const filtersData = parseCsvData(filtersCsv);
       const valuesData = parseCsvData(valuesCsv);
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         // Для демонстрации, мы будем считать, что у каждого ЖК 5 изображений.
         const imageCount = 5;
-        const images = Array.from({ length: imageCount }, (_, i) => `/projects/home/nginx/frontend/public/images/${id}/${i + 1}.jpg`);
+        const images = Array.from({ length: imageCount }, (_, i) => `/public/images/${id}/${i + 1}.jpg`);
 
         return { id, filters, images };
       });
@@ -577,7 +577,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Existing estate rendering logic below for actual estates
           const imageCount = 5;
-          const images = Array.from({ length: imageCount }, (_, i) => `/projects/home/nginx/frontend/public/images/estates/${estate.id}/${i + 1}.jpg`);
+          const images = Array.from({ length: imageCount }, (_, i) => `/public/images/estates/${estate.id}/${i + 1}.jpg`);
 
           const div = document.createElement("div");
           div.classList.add("item", "box-shadow");
