@@ -6,7 +6,7 @@ positions:
   filename: /positions.yml
 
 clients:
-  - url: http://leader.service.consul:3100/loki/api/v1/push # Loki server dynamically discovered by Consul
+  - url: http://monitoring_service_name.service.consul:3100/loki/api/v1/push # Loki server dynamically discovered by Consul    # monitoring_service_name will be replaced in ansible task with var "consul_service_name_of_monitoring_leader" 
   # - url: http://localhost:3100/loki/api/v1/push
 
 
@@ -33,3 +33,10 @@ scrape_configs:
       labels:
         job: varlogs
         __path__: /var/log/*log
+
+  - job_name: docker  
+    static_configs:
+    - targets: [localhost]
+      labels:
+        job: docker
+        __path__: /var/lib/docker/containers/*/*.log

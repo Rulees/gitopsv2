@@ -1,4 +1,13 @@
 ---
+- name: Wait for leader/monitoring.service.consul be accessible
+  uri:
+    url: "http://{{ consul_service_name_of_monitoring_leader }}.service.consul:8500/v1/agent/self"
+    method: GET
+  register: monitoring_leader
+  until: monitoring_leader.status == 200 and monitoring_leader.json != ""
+  retries: 130 
+  delay: 5
+
 
 - name: Promtail
   when: enable_promtail | default(false)
@@ -19,6 +28,12 @@
           owner: root
           group: root
           mode: '0644'
+      
+      - name: Replace static monitoring_leader_name with var 'consul_service_name_of_monitoring_leader' in Promtail config
+        replace:
+          path: /etc/promtail/promtail.yml
+          regexp: "monitoring_service_name"
+          replace: "{{ consul_service_name_of_monitoring_leader }}"
 
       - name: Run Promtail Docker container
         docker_container:
@@ -31,7 +46,8 @@
             - "9080:9080"
           volumes:
             - /etc/promtail/promtail.yml:/etc/promtail/promtail.yml     # this is only needed if you are going to send syslogs
-            - /var/log:/var/log                                         # get access to vm logs(not only container logs)
+            - /var/log:/var/log                                         # get access to system logs
+            - /var/lib/docker/containers:/var/lib/docker/containers     # docker logs
           command:
             - '--config.file=/etc/promtail/promtail.yml'
           network_mode: host
@@ -101,7 +117,7 @@
             - /:/host/root:ro
           command:
             - "-promscrape.config=/etc/vmagent/vmagent.yml"
-            - "-remoteWrite.url=http://leader.service.consul:9090/api/v1/write"
+            - "-remoteWrite.url=http://{{ consul_service_name_of_monitoring_leader }}.service.consul:9090/api/v1/write"
           network_mode: host
           dns_servers:
             - 127.0.0.1

@@ -9,7 +9,7 @@
     # - role: consul_agent                                          # 1) install agent to setup dns-name for dynamic discovery  2)  Not necessary for now, cause now all monitroing infra is deployed on consul_server and there are role "consul_server" applied with name leader.service.consul instead of this "consul_agent"
       # vars:
         # consul_server_group: "env_dev__app_home__service_nginx"   # for consul client to find out where consul_server is located
-    - consul_dns_enable                                           # for promtail to see loki + for prometheus to see node-exporters + for vmagent to see prometheus
+    - consul_dns_enable                                             # for promtail to see loki + for prometheus to see node-exporters + for vmagent to see prometheus
     - role: monitoring
       vars:
         enable_promtail: true
@@ -18,8 +18,9 @@
         enable_prometheus: true
         enable_loki: true
         enable_grafana: true
+        consul_service_name_of_monitoring_leader: leader            # or "monitoring" if monitoring is not on consul_server
 
 
-# 1) promtail.yml
-# 2) vmagent.yml
-# 3) /roles/monitoring > vmagent
+# 1) promtail.yml       - 
+# 2) vmagent.yml        - 
+# 3) /roles/monitoring  - twice!
