@@ -18,18 +18,27 @@ def rel_path(path):
             return path[len(base):].lstrip("/")
     return path
 
-# === Чтение use_subservice_infra из playbook.yml ===
-def extract_use_subservice_infra(playbook_path):
-    use_subservice_infra = True
+def extract_metadata(playbook_path):
+    """Извлекает метаданные (use_subservice_infra, skip) из playbook.yml."""
+    metadata = {
+        "use_subservice_infra": True,  # По умолчанию True
+        "skip": False                  # По умолчанию False
+    }
+
+    if not playbook_path.exists():
+        return metadata
+    
     try:
         with open(playbook_path, 'r') as file:
             for line in file:
                 line = line.strip()
                 if line.startswith("# use_subservice_infra:"):
-                    use_subservice_infra = line.split(":", 1)[1].strip().lower() == 'true'
+                    metadata["use_subservice_infra"] = line.split(":", 1)[1].strip().lower() == 'true'
+                elif line.startswith("# skip:"):
+                    metadata["skip"] = line.split(":", 1)[1].strip().lower() == 'true'
     except Exception as e:
-        print(f"❌ Error reading use_subservice_infra from {playbook_path}: {e}")
-    return use_subservice_infra
+        print(f"❌ Error reading metadata from {playbook_path}: {e}")
+    return metadata
 
 # === Парсинг зависимостей из комментариев в playbook.yml ===
 def extract_dependencies(playbook_path):
@@ -48,7 +57,15 @@ def extract_dependencies(playbook_path):
                 if line.startswith("#   - path_to_playbook:"):
                     if current:
                         dependencies.append(current)
-                    current = {"path_to_playbook": line.split(":", 1)[1].strip()}
+                    parts = line.split(":", 1)[1].strip().split()
+                    current = {
+                        "path_to_playbook": parts,
+                        "env": parts[0] if len(parts) > 0 else None,
+                        "app": parts[1] if len(parts) > 1 else None,
+                        "service": parts[2] if len(parts) > 2 else None,
+                        "subservice": parts[3] if len(parts) > 3 else None,
+                        "path_to_infra": None
+                    }
                 elif line.startswith("#     path_to_infra:"):
                     current["path_to_infra"] = line.split(":", 1)[1].strip()
                 elif line.startswith("#     when_to_launch:"):
@@ -63,118 +80,145 @@ def extract_dependencies(playbook_path):
         print(f"❌ Error reading dependencies from {playbook_path}: {e}")
     return dependencies
 
-def print_deploy_info(group, playbook, m, use_subservice_infra, is_subservice, indent=""):
-    infra_path = m['path'].parent if is_subservice and not use_subservice_infra else m['path']
-    infra_short = rel_path(infra_path)
-    playbook_short = rel_path(playbook)
-    print(f"{indent}🚀 [DEPLOY] group:    {group}")
-    print(f"{indent}            playbook: {playbook_short}")
-    print(f"{indent}            infra:    {infra_short}\n")
+
+def print_deploy_info(full_service_name, playbook, limit_group, infra_source_raw=None, indent=""):
+    """
+    Печатает информацию о развертывании, показывая SERVICE в поле 'group', 
+    а фактический LIMIT хостов в отдельном поле 'limit'.
+    """
+    
+    if infra_source_raw:
+        limit_display = f"{limit_group}"
+    else:
+        limit_display = limit_group
+    
+    print(f"{indent}🚀 [DEPLOY] group:    {full_service_name}") 
+    print(f"{indent}            playbook: {rel_path(playbook)}")
+    print(f"{indent}            infra:    {limit_display}\n") 
 
 def print_dependency(dep, indent=""):
-    infra_short = rel_path(dep["path"].parent if dep.get("subservice") and not dep.get("use_subservice_infra", True) else dep["path"])
-    playbook_short = rel_path(dep['path'] / 'playbook.yml')
-    print(f"{indent}   [deps: ] playbook: {playbook_short}")
-    print(f"{indent}            infra:    {infra_short}")
-    print(f"{indent}            type:     {'Async' if dep.get('when_to_launch', 'intime') == 'after' else 'Sync'}\n")
+    group_name = build_group_name(
+        dep.get("env"),
+        dep.get("app"),
+        dep.get("service"),
+        dep.get("subservice")
+    )
+    playbook_path_raw = ' '.join(dep.get("path_to_playbook", []))
+    infra_source = dep.get("path_to_infra", "N/A")
+    when_to_launch = dep.get("when_to_launch", "intime")
+    print(f"{indent}   [deps: ] group:    {group_name}")
+    print(f"{indent}            playbook: {playbook_path_raw}")
+    print(f"{indent}            infra:    {infra_source}")
+    print(f"{indent}            launch:   {when_to_launch}\n")
 
-# === Асинхронный запуск ansible-playbook ===
-async def run_ansible_playbook(m, group, playbook, deploy_status=None):
+
+async def run_ansible_playbook(m, limit_group, playbook, deploy_status=None, start_at_task=None):
     is_serverless = "serverless" in m["service"]
     cmd = [
         "ansible-playbook", str(playbook),
         "-e", f"env={m['env']}", "-e", f"app={m['app']}", "-e", f"service={m['service']}",
-        "--diff"
+        "--diff",
     ]
+    
+    if start_at_task:
+        cmd.extend(["--start-at-task", start_at_task])
+
     if not is_serverless:
-        limit = group
+        limit = limit_group
         if deploy_status:
-            limit = f"{group}:&deploy_status_{deploy_status}"
+            limit = f"{limit_group}:&deploy_status_{deploy_status}"
         cmd += ["-i", str(ANSIBLE_DIR / "inventory" / "yc_compute.py"), "-l", limit]
 
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         cwd=str(ANSIBLE_DIR),
         stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
+        stderr=asyncio.subprocess.STDOUT
     )
-    
-    # Read output in real-time without waiting for completion
-    async def read_stream(stream, print_func):
+
+    if proc.stdout:
         while True:
-            line = await stream.readline()
+            line = await proc.stdout.readline()
             if not line:
                 break
-            print_func(line.decode().strip())
+            print(line.decode().rstrip(), flush=True)
 
-    # Start reading the stdout and stderr asynchronously
-    asyncio.create_task(read_stream(proc.stdout, print))
-    asyncio.create_task(read_stream(proc.stderr, print))
+    await proc.wait()
     
-    # Wait for process to finish
-    returncode = await proc.wait()
-    return returncode, "Process completed."
+    return proc.returncode, ""
 
-async def run_playbook(m, processed_playbooks, level=0, deploy_status=None):
-    indent = "  " * level
-
+async def run_playbook(m, processed_playbooks, level=0, deploy_status=None, start_at_task=None):
+    indent = "  " * level
+    
     playbook = m["path"] / "playbook.yml"
     is_subservice = m.get("subservice") is not None
+    
+    metadata = m.get("metadata", extract_metadata(playbook))
+    
+    use_subservice_infra = metadata["use_subservice_infra"] if is_subservice else True
+    
+    full_service_name = build_group_name(m["env"], m["app"], m["service"], m.get("subservice"))
+    
+    limit_group = ""
+    infra_source_raw = m.get("path_to_infra")
+    
+    if infra_source_raw:
+        infra_parts = infra_source_raw.split()
+        
+        if len(infra_parts) >= 3:
+            infra_env = infra_parts[0]
+            infra_app = infra_parts[1]
+            infra_service = infra_parts[2]
+            infra_subservice = infra_parts[3] if len(infra_parts) > 3 else None
 
-    # Читаем use_subservice_infra из playbook.yaml если есть subservice
-    if is_subservice and "use_subservice_infra" not in m:
-        if playbook.exists():
-            use_subservice_infra = extract_use_subservice_infra(playbook)
+            limit_group = build_group_name(infra_env, infra_app, infra_service, infra_subservice)
         else:
-            use_subservice_infra = True
+            print(f"❌ Ошибка: Некорректный path_to_infra: {infra_source_raw}. Использую дефолтную группу.")
+            limit_group = full_service_name
     else:
-        use_subservice_infra = m.get("use_subservice_infra", True)
-
-    # Группа: если use_subservice_infra: false — group как у service, иначе с subservice
-    if is_subservice and not use_subservice_infra:
-        group = build_group_name(m["env"], m["app"], m["service"])
-    else:
-        group = build_group_name(m["env"], m["app"], m["service"], m.get("subservice"))
-
+        if is_subservice and not use_subservice_infra:
+            limit_group = build_group_name(m["env"], m["app"], m["service"])
+        else:
+            limit_group = full_service_name
+    
+    
     playbook_key = str(playbook.resolve())
     if playbook_key in processed_playbooks:
         return 0
     processed_playbooks.add(playbook_key)
 
     if not playbook.exists():
-        print(f"{indent}⚠️ Skipping {group}: playbook not found")
+        print(f"{indent}⚠️ Пропускаю {full_service_name}: playbook не найден")
         return 1
 
-    print_deploy_info(group, playbook, m, use_subservice_infra, is_subservice, indent)
+    print_deploy_info(full_service_name, playbook, limit_group, infra_source_raw, indent)
 
     # Извлекаем зависимости
     dependencies = extract_dependencies(playbook)
     background_tasks = []
     printed_playbooks = set()
 
-    # Process dependencies based on `when_to_launch`
     for dep in dependencies:
         dep = dep.copy()
         dep["env"] = m["env"]
         base = WORK_DIR / "infrastructure" / dep["env"]
         subservice = dep.get("subservice")
 
-        # ВОТ ЗДЕСЬ НЕ ТРОГАЙ ЛОГИКУ infra!
         if dep["app"] == "infra":
             dep_path = base / dep["service"]
         else:
             dep_path = base / "vpc" / dep["app"] / dep["service"]
 
         if subservice:
-            dep_playbook_path = dep_path / subservice / "playbook.yml"
-            dep_use_subservice_infra = True
-            if dep_playbook_path.exists():
-                dep_use_subservice_infra = extract_use_subservice_infra(dep_playbook_path)
-            dep["path"] = dep_path / subservice
-            dep["use_subservice_infra"] = dep_use_subservice_infra
+            dep_path_full = dep_path / subservice
         else:
-            dep["path"] = dep_path
-            dep["use_subservice_infra"] = True
+            dep_path_full = dep_path
+
+        dep_playbook_path = dep_path_full / "playbook.yml"
+        dep_metadata = extract_metadata(dep_playbook_path)
+            
+        dep["path"] = dep_path_full
+        dep["metadata"] = dep_metadata 
 
         dep_playbook_file = dep["path"] / "playbook.yml"
         dep_playbook_key = str(dep_playbook_file.resolve())
@@ -185,34 +229,29 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None):
         if dep_playbook_key in processed_playbooks:
             continue
 
-        # If `when_to_launch` is "before", run the dependency before the main playbook
-        if dep.get("when_to_launch", "intime") == "before":
-            await run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status)
-
-        # If `when_to_launch` is "intime", run immediately
         if dep.get("when_to_launch", "intime") == "intime":
-            await run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status)
-
-        # If `when_to_launch` is "after", run in the background after the main playbook
-        if dep.get("when_to_launch", "intime") == "after":
-            task = asyncio.create_task(run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status))
+            task = asyncio.create_task(run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status, start_at_task=start_at_task))
             background_tasks.append(task)
+        else:
+            await run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status, start_at_task=start_at_task)
 
-    # Run the main playbook after handling dependencies
-    returncode, output = await run_ansible_playbook(m, group, playbook, deploy_status=deploy_status)
+    returncode, output = await run_ansible_playbook(m, limit_group, playbook, deploy_status=deploy_status, start_at_task=start_at_task)
 
     status = "SUCCESS" if returncode == 0 else "FAILED"
     status_display = {
         "SUCCESS": "\033[92m✔️✔️✔️✔️✔️✔️✔️✔️✔️✔️ SUCCESS\033[0m",
         "FAILED": "\033[91m❌❌❌❌❌❌❌❌❌❌ FAILED\033[0m"
-    }[status]
+    }
 
-    print(f"\n========== [{group}]")
-    print(f"🔹 Status: {status_display}")
-    print(output.strip())
+    # ‼️ ИЗМЕНЕНИЕ: Заголовок уже напечатан в run_ansible_playbook
+    # print(f"\n========== [{group}]")
+    print(f"🔹 {status_display.get(status, status)}")
+    
+    # ‼️ ИЗМЕНЕНИЕ: Вывод (output) уже напечатан, так что эта строка не нужна
+    # print(output.strip())
+    
     print("\n==========================================================================================================================\n")
 
-    # Wait for background tasks (dependencies with `when_to_launch` as "after")
     if background_tasks:
         await asyncio.gather(*background_tasks)
 
@@ -226,20 +265,41 @@ async def main():
     service = os.getenv("SERVICE")
     subservice = os.getenv("SUBSERVICE")
     deploy_status = os.getenv("DEPLOY_STATUS")
+    start_at_task = os.getenv("START_AT_TASK")
 
-    matches = find_matching_services(env, app, service, subservice=subservice)
-    if not matches:
+    all_matches = find_matching_services(env, app, service, subservice=subservice)
+    if not all_matches:
         print("⚠️ No matching services for deploy.")
         return
 
+    initial_matches = []
+    is_specific_request = service is not None or subservice is not None
+    
     print("\n==========================================================================================================================\n")
-    print("📦 Matched groups:")
-    for m in matches:
+    for m in all_matches:
+        playbook_path = m["path"] / "playbook.yml"
+        metadata = extract_metadata(playbook_path)
+        m["metadata"] = metadata
+        
+        # Фильтрация:
+        if not is_specific_request and metadata["skip"]:
+            print(f" - {build_group_name(m['env'], m['app'], m['service'], m.get('subservice'))} (skip: True)")
+            continue
+            
+        initial_matches.append(m)
+
+
+    if not initial_matches:
+        print("⚠️ No matching services found for initial deploy after filtering.")
+        return
+
+    for m in initial_matches:
         print(f" - {build_group_name(m['env'], m['app'], m['service'], m.get('subservice'))}")
     print("\n==========================================================================================================================\n")
 
     processed_playbooks = set()
-    results = await asyncio.gather(*(run_playbook(m, processed_playbooks, deploy_status=deploy_status) for m in matches))
+    
+    results = await asyncio.gather(*(run_playbook(m, processed_playbooks, deploy_status=deploy_status, start_at_task=start_at_task) for m in initial_matches))
 
     if any(code != 0 for code in results):
         sys.exit(1)
