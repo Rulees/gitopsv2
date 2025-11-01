@@ -1,4 +1,4 @@
-![pic](/infrastructure/dev/vpc/home/README.excalidraw)
+![pic](/infrastructure/dev/vpc/home/README.excalidraw.png)
 
 # remove posgresql from remote state, if deleted manually
 
