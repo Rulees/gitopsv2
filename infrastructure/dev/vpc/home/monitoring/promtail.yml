@@ -6,8 +6,7 @@ positions:
   filename: /positions.yml
 
 clients:
-  - url: http://monitoring_service_name.service.consul:3100/loki/api/v1/push # Loki server dynamically discovered by Consul    # monitoring_service_name will be replaced in ansible task with var "consul_service_name_of_monitoring_leader" 
-  # - url: http://localhost:3100/loki/api/v1/push
+  - url: http://monitoring.service.consul:3100/loki/api/v1/push # Loki server dynamically discovered by Consul 
 
 
 

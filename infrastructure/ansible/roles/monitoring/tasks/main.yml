@@ -1,7 +1,7 @@
 ---
-- name: Wait for leader/monitoring.service.consul be accessible
+- name: Wait for monitoring.service.consul be accessible
   uri:
-    url: "http://{{ consul_service_name_of_monitoring_leader }}.service.consul:8500/v1/agent/self"
+    url: "http://monitoring.service.consul:8500/v1/agent/self"
     method: GET
   register: monitoring_leader
   until: monitoring_leader.status == 200 and monitoring_leader.json != ""
@@ -29,11 +29,11 @@
           group: root
           mode: '0644'
       
-      - name: Replace static monitoring_leader_name with var 'consul_service_name_of_monitoring_leader' in Promtail config
-        replace:
-          path: /etc/promtail/promtail.yml
-          regexp: "monitoring_service_name"
-          replace: "{{ consul_service_name_of_monitoring_leader }}"
+      # - name: Replace static monitoring_leader_name with var 'consul_service_name_of_monitoring_leader' in Promtail config
+      #   replace:
+      #     path: /etc/promtail/promtail.yml
+      #     regexp: "monitoring_service_name"
+      #     replace: "{{ consul_service_name_of_monitoring_leader }}"
 
       - name: Run Promtail Docker container
         docker_container:
@@ -117,7 +117,7 @@
             - /:/host/root:ro
           command:
             - "-promscrape.config=/etc/vmagent/vmagent.yml"
-            - "-remoteWrite.url=http://{{ consul_service_name_of_monitoring_leader }}.service.consul:9090/api/v1/write"
+            - "-remoteWrite.url=http://monitoring.service.consul:9090/api/v1/write"
           network_mode: host
           dns_servers:
             - 127.0.0.1
@@ -228,8 +228,3 @@
     ports:
       - "3000:3000"
     network_mode: host
-    
-    # environment:
-      # GF_SECURITY_ADMIN_PASSWORD: "admin"
-    # command:
-      # - '--config.file=/etc/grafana/grafana.ini'

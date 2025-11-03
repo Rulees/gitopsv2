@@ -21,3 +21,6 @@
         - service_name: service_database
           upstream_name: service_database
           upstream_location_name: service_database
+        - service_name: monitoring
+          upstream_name: monitoring
+          upstream_location_name: monitoring

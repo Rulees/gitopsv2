@@ -12,7 +12,7 @@ dependency "network" {
 }
 
 dependency "sg" {
-  config_path                             = "../../../sg/"
+  config_path                             = "./sg/"
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "providers", "terragrunt-info", "show"]
   mock_outputs = {
     sg_id = "sg-id-fake"
