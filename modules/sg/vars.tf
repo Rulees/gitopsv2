@@ -13,6 +13,12 @@ variable "env" {
   type               = string
 }
 
+variable "sg_name" {
+  description        = "Security_group short name."
+  type               = string
+  default            = "default"
+}
+
 
 variable "security_group_runners" {
   type = list(object({

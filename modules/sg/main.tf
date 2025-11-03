@@ -17,7 +17,7 @@ locals {
 
 
 resource "yandex_vpc_security_group" "this" {
-  name        = "${var.project_prefix}--sg--${var.env}"
+  name        = "${var.project_prefix}--sg-${var.sg_name}--${var.env}"
   description = "Combined security group for (web and internal) + (ingress and egress)"
   network_id  = var.network_id  # In the end we get vpc_id from module network
 
