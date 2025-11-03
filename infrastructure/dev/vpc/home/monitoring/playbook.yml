@@ -6,9 +6,11 @@
   roles:
     - docker_install
     - docker_compose
-    - role: consul_agent                                          # 1) install agent to setup dns-name for dynamic discovery  2)  Not necessary for now, cause now all monitroing infra is deployed on consul_server and there are role "consul_server" applied with name leader.service.consul instead of this "consul_agent"
+    - role: consul_agent                                            # 1) install agent to setup dns-name for dynamic discovery
       vars:
         consul_server_group: "env_dev__app_home__service_nginx"     # for consul client to find out where consul_server is located
+        consul_service_port: 3000
+        consul_check_http: "http://localhost:{{ consul_service_port }}/api/health"
     - consul_dns_enable                                             # for promtail to see loki + for prometheus to see node-exporters + for vmagent to see prometheus
     - role: monitoring
       vars:
