@@ -1,30 +1,30 @@
-# dependencies:
-#   - app: soa
-#     service: nginx
-#     subservice: consul_server
-#     wait: false
+# # dependencies:
+# #   - app: soa
+# #     service: nginx
+# #     subservice: consul_server
+# #     wait: false
 
----
-- name: Deploy website with loadbalancing
-  hosts: all
-  become: true
-  vars:
-    consul_server_group: env_dev__app_soa__service_nginx       # where consul_server is located
-    consul_dns_for_upstream: false                             # true=one dns / false=many internal_ip_addresses of service' vms
-    services:
-      - service_name: service_name
-        upstream_name: service_name
-        upstream_location_name: service_name
+# ---
+# - name: Deploy website with loadbalancing
+#   hosts: all
+#   become: true
+#   vars:
+#     consul_server_group: env_dev__app_soa__service_nginx       # where consul_server is located
+#     consul_dns_for_upstream: false                             # true=one dns / false=many internal_ip_addresses of service' vms
+#     services:
+#       - service_name: service_name
+#         upstream_name: service_name
+#         upstream_location_name: service_name
 
-      - service_name: service_color
-        upstream_name: service_color
-        upstream_location_name: service_color
+#       - service_name: service_color
+#         upstream_name: service_color
+#         upstream_location_name: service_color
 
-      - service_name: service_object
-        upstream_name: service_object
-        upstream_location_name: service_object
-  roles:
-    - docker_install
-    - website_frontend_build
-    - website_deploy
-    - consul_nginx_configure
+#       - service_name: service_object
+#         upstream_name: service_object
+#         upstream_location_name: service_object
+#   roles:
+#     - docker_install
+#     - website_frontend_build
+#     - website_deploy
+#     - consul_nginx_configure

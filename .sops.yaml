@@ -14,39 +14,25 @@ creation_rules:
     encrypted_regex: '.*'
     key_groups:
       - age:
-          - age1sgrucltyqyjnvvqlz5rmkn72gyt90xadggeedrxeh2yrg92epewsh3gypt
-        # kms:
-        #   - arn: arn:aws:kms:eu-north-1:590184089880:key/8b991131-2f94-4ab9-9d17-859a7f4d15b3
-
+          - age1pdjzu9ezfcl44wxdl6wad62pm3u2zshl8easgslsff3x0zyxjfeqjz2qwh
   # 🔐 CI 
   - path_regex: ^secrets/ops/.*$
     encrypted_regex: '.*'
     key_groups:
       - age:
-          - age1dhg605wqtcsta2tp4g3kgnxk2ka552umuqca6690khdfnxxs9c2s98ct3x
-        # kms:
-        #   - arn: arn:aws:kms:eu-north-1:590184089880:key/8b991131-2f94-4ab9-9d17-859a7f4d15b3
-
-
+          - age1qkh7zef3lfrg09hfwgdf364ml9cxx4axp7ka0vvgcqffrewh8u6stngks0
   # 🔐 Dev
   - path_regex: ^secrets/dev/.*$
     encrypted_regex: '.*'
     key_groups:
       - age:
-          - age1z8834xslghj7v9uhtjqu0a949qfeg34eyaevhxl56dgkh9rx9vjq0d7hgy
-        # kms:
-        #   - arn: arn:aws:kms:eu-north-1:590184089880:key/8b991131-2f94-4ab9-9d17-859a7f4d15b3
-
+          - age1xstmrg0se0f5awzat6nelmy0ckndxxpx2zxc2mvlx6ps6kyvkv6qh67mv6
   # 🔐 Prod
   - path_regex: ^secrets/prod/.*$
     encrypted_regex: '.*'
     key_groups:
       - age:
-          - age1zewwvsatk3n5je85x2pl70z03a957rk39d2g6gzmg49ejw7q6p0qy0a22k
-        # kms:
-        #   - arn: arn:aws:kms:eu-north-1:590184089880:key/8b991131-2f94-4ab9-9d17-859a7f4d15b3
-
-#   Script
+          - age1asjrd3206mvw5pwlwhn3aajh4ty6wfjaqmt4zs7ulc7k5mlqk9wskxy0au
   - path_regex: ^scripts/send_vars_to_gitlab.sh
     encrypted_regex: '.*'
     key_groups:
