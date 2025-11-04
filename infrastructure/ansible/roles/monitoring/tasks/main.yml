@@ -1,4 +1,41 @@
 ---
+- name: Grafana
+  when: enable_grafana | default(false)
+  block:
+      - name: Create /etc/grafana/provisioning/datasources directory
+        file:
+          path: /etc/grafana/provisioning/datasources
+          state: directory
+          owner: root
+          group: root
+          mode: '0755'
+      
+      - name: Copy Grafana datasources to remote host
+        copy:
+          src: "{{ item.src }}"
+          dest: "{{ item.dest }}"
+          force: true
+          owner: root
+          group: root
+          mode: '0644'
+        loop:
+          - { src: "{{ config_dir }}/grafana.yml", dest: "/etc/grafana/provisioning/datasources/grafana.yml" }
+          - { src: "{{ config_dir }}/grafana.ini", dest: "/etc/grafana/grafana.ini" }
+
+      - name: Run Grafana Docker container
+        docker_container:
+          name: grafana
+          image: grafana/grafana
+          state: started
+          restart_policy: always
+          recreate: yes
+          ports:
+            - "3000:3000"
+          volumes:
+            - /etc/grafana:/etc/grafana
+          network_mode: host
+
+
 - name: Wait for monitoring.service.consul be accessible
   uri:
     url: "http://monitoring.service.consul:8500/v1/agent/self"
@@ -7,6 +44,44 @@
   until: monitoring_leader.status == 200 and monitoring_leader.json != ""
   retries: 130 
   delay: 5
+
+
+- name: Loki
+  when: enable_loki | default(false)
+  block:
+      - name: Create /etc/loki directory
+        file:
+          path: /etc/loki
+          state: directory
+          owner: root
+          group: root
+          mode: '0755'
+
+      - name: Copy Loki config file to remote host
+        copy:
+          src: "{{ config_dir }}/loki.yml"
+          dest: /etc/loki/loki.yml
+          force: true
+          owner: root
+          group: root
+          mode: '0644'
+
+      - name: Run Loki Docker container
+        docker_container:
+          name: loki
+          image: grafana/loki
+          state: started
+          restart_policy: always
+          recreate: yes
+          user: "0:0"
+          ports:
+            - "3100:3100"
+          volumes:
+            - /etc/loki/loki.yml:/etc/loki/loki.yml
+            - /var/lib/loki/chunks:/loki/chunks
+          command:
+            - '--config.file=/etc/loki/loki.yml'
+          network_mode: host
 
 
 - name: Promtail
@@ -78,53 +153,7 @@
             - 127.0.0.1
             - 8.8.8.8
     dns_search_domains:
-      - service.consul
-
-
-- name: VictoriaMetricsMAgent
-  when: enable_vmagent | default(false)
-  block:
-      - name: Create /etc/vmagent directory
-        file:
-          path: /etc/vmagent
-          state: directory
-          owner: root
-          group: root
-          mode: '0755'
-
-      - name: Copy VMAgent config file to remote host
-        copy:
-          src: "{{ config_dir }}/vmagent.yml"
-          dest: /etc/vmagent/vmagent.yml
-          force: true
-          owner: root
-          group: root
-          mode: '0644'
-
-      - name: Run VMAgent Docker container
-        docker_container:
-          name: vmagent
-          image: victoriametrics/vmagent
-          state: started
-          restart_policy: always
-          recreate: yes
-          ports:
-            - "8429:8429"
-          volumes:
-            - /etc/vmagent/vmagent.yml:/etc/vmagent/vmagent.yml
-            - /proc:/host/proc:ro
-            - /sys:/host/sys:ro
-            - /:/host/root:ro
-          command:
-            - "-promscrape.config=/etc/vmagent/vmagent.yml"
-            - "-remoteWrite.url=http://monitoring.service.consul:9090/api/v1/write"
-          network_mode: host
-          dns_servers:
-            - 127.0.0.1
-            - 8.8.8.8
-          dns_search_domains:
-            - service.consul
-          
+      - service.consul          
 
 
 - name: Prometheus
@@ -177,54 +206,47 @@
           network_mode: host
           
 
-
-- name: Loki
-  when: enable_loki | default(false)
+- name: VictoriaMetricsMAgent
+  when: enable_vmagent | default(false)
   block:
-      - name: Create /etc/loki directory
+      - name: Create /etc/vmagent directory
         file:
-          path: /etc/loki
+          path: /etc/vmagent
           state: directory
           owner: root
           group: root
           mode: '0755'
 
-      - name: Copy Loki config file to remote host
+      - name: Copy VMAgent config file to remote host
         copy:
-          src: "{{ config_dir }}/loki.yml"
-          dest: /etc/loki/loki.yml
+          src: "{{ config_dir }}/vmagent.yml"
+          dest: /etc/vmagent/vmagent.yml
           force: true
           owner: root
           group: root
           mode: '0644'
 
-      - name: Run Loki Docker container
+      - name: Run VMAgent Docker container
         docker_container:
-          name: loki
-          image: grafana/loki
+          name: vmagent
+          image: victoriametrics/vmagent
           state: started
           restart_policy: always
           recreate: yes
-          user: "0:0"
           ports:
-            - "3100:3100"
+            - "8429:8429"
           volumes:
-            - /etc/loki/loki.yml:/etc/loki/loki.yml
-            - /var/lib/loki/chunks:/loki/chunks
+            - /etc/vmagent/vmagent.yml:/etc/vmagent/vmagent.yml
+            - /proc:/host/proc:ro
+            - /sys:/host/sys:ro
+            - /:/host/root:ro
           command:
-            - '--config.file=/etc/loki/loki.yml'
+            - "-promscrape.config=/etc/vmagent/vmagent.yml"
+            - "-remoteWrite.url=http://monitoring.service.consul:9090/api/v1/write"
           network_mode: host
+          dns_servers:
+            - 127.0.0.1
+            - 8.8.8.8
+          dns_search_domains:
+            - service.consul
           
-
-
-- name: Run Grafana Docker container
-  when: enable_grafana | default(false)
-  docker_container:
-    name: grafana
-    image: grafana/grafana
-    state: started
-    restart_policy: always
-    recreate: yes
-    ports:
-      - "3000:3000"
-    network_mode: host

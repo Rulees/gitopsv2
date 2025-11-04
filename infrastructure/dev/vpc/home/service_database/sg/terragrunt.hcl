@@ -36,14 +36,14 @@ inputs = {
       description    = "from external VictoriaMetricsAgent to internal NodeExporter"
       protocol       = "TCP"
       ports          = [9100]
-      v4_cidr_blocks = ["10.10.0.0/24"]
+      v4_cidr_blocks = ["10.10.0.0/16"]
     },
     {
       direction      = "egress"
       description    = "from internal Promtail to external Loki"
       protocol       = "TCP"
       ports          = [3100]
-      v4_cidr_blocks = ["10.10.0.0/24"]
+      v4_cidr_blocks = ["10.10.0.0/16"]
     },
     ##
     # CONSUL
@@ -53,28 +53,28 @@ inputs = {
       description    = "Consul"
       protocol       = "TCP"
       ports          = [8300, 8301, 8302, 8500, 8600]
-      v4_cidr_blocks = ["10.10.0.0/24"]
+      v4_cidr_blocks = ["0.0.0.0/0"]
     },
     {
       direction      = "ingress"
       description    = "Consul"
       protocol       = "UDP"
       ports          = [8300, 8301, 8302, 8500, 8600]
-      v4_cidr_blocks = ["10.10.0.0/24"]
+      v4_cidr_blocks = ["0.0.0.0/0"]
     },
     {
       direction      = "egress"
       description    = "Consul"
       protocol       = "TCP"
       ports          = [8300, 8301, 8302, 8500, 8600]
-      v4_cidr_blocks = ["10.10.0.0/24"]
+      v4_cidr_blocks = ["0.0.0.0/0"]
     },
     {
       direction      = "egress"
       description    = "Consul"
       protocol       = "UDP"
       ports          = [8300, 8301, 8302, 8500, 8600]
-      v4_cidr_blocks = ["10.10.0.0/24"]
+      v4_cidr_blocks = ["0.0.0.0/0"]
     },
     ##
     # FASTAPI
@@ -91,7 +91,7 @@ inputs = {
       description    = "from external Nginx/ConsulServer to internal Fastapi"
       protocol       = "TCP"
       ports          = [8000]
-      v4_cidr_blocks = ["10.10.0.0/24"]
+      v4_cidr_blocks = ["10.10.0.0/16"]
     },
     ##
     # DEFAULT
@@ -110,7 +110,7 @@ inputs = {
       ports          = [22]
       v4_cidr_blocks = ["0.0.0.0/0"]
     },
-     {
+    {
       direction      = "egress"
       description    = "outgoing HTTP/HTTPS"
       protocol       = "TCP"
