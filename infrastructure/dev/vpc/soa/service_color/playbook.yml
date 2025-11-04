@@ -1,7 +1,7 @@
-- name: Empty playbook because deploy happen inside cloud function
-  hosts: all
-  become: true
-  tasks:
+# - name: Empty playbook because deploy happen inside cloud function
+#   hosts: all
+#   become: true
+#   tasks:
 
-  - debug:
-      msg: "empty playbook"
+#   - debug:
+#       msg: "empty playbook"

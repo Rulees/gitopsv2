@@ -1,9 +1,9 @@
-# use_subservice_infra: false
+# # use_subservice_infra: false
 
----
-- name: Deploy fastapi backend
-  hosts: all
-  become: true
-  roles:
-    - docker_install
-    - consul_server
+# ---
+# - name: Deploy fastapi backend
+#   hosts: all
+#   become: true
+#   roles:
+#     - docker_install
+#     - consul_server

@@ -15,7 +15,7 @@ variables:
 
 
 cache:
-  key: plugin-cache
+  key: pluginsv2
   paths:
     - plugin-cache/
 
@@ -43,9 +43,12 @@ cache:
 
     - |
       if command -v apt &> /dev/null; then
-          apt update && apt install -y python3 py3-pip py3-setuptools py3-wheel aws-cli
+          apt update && apt install -y python3 py3-pip py3-setuptools py3-wheel aws-cli docker.io
+          curl -sSf https://atlasgo.sh | sh -s -- -y
+          # service docker status && service docker start && usermod -aG docker $USER && docker run hello-world && service docker status
       elif command -v apk &> /dev/null; then
-          apk --no-cache add python3 py3-pip py3-setuptools py3-wheel aws-cli
+          apk --no-cache add python3 py3-pip py3-setuptools py3-wheel aws-cli docker
+          curl -sSf https://atlasgo.sh | sh -s -- -y
       else
           echo "➖➖ Поддерживаемый пакетный менеджер не найден."
           exit 1; fi
@@ -53,8 +56,9 @@ cache:
     ##
     # DECRYPT SECRETS
     ##
-
+    
     - make decrypt_secrets
+    
     
     ##
     # SETUP SECRETS
@@ -71,12 +75,7 @@ cache:
     - echo "📦 Содержимое директории        >>>     $(ls -la)"
     - echo "📦 YC_SERVICE_ACCOUNT_KEY_FILE  >>>     $(cat ${YC_SERVICE_ACCOUNT_KEY_FILE} | head -c 30)"
     - echo "📦 AWS_ACCESS_KEY_ID            >>>     $(echo ${AWS_ACCESS_KEY_ID} | head -c 300)"
-    
-    ##
-    # CACHE
-    ##
-
-    - mkdir -p $TF_PLUGIN_CACHE_DIR
+    - echo "📦 SA_COMPUTE_VIEWER            >>>     $(cat ${WORK_DIR}/secrets/ops/yc_compute_viewer_sa_key.json | head -c 50)"
 
     ##
     # CONFIGURE TERRAFORM TO USE YANDEX MIRROR
@@ -96,14 +95,28 @@ cache:
       EOF
     
     ##
+    # CACHE
+    ##
+
+    - mkdir -p $TF_PLUGIN_CACHE_DIR
+    - terragrunt run --all providers mirror $TF_PLUGIN_CACHE_DIR --working-dir="${WORK_DIR}/infrastructure/dev/network"  &&  ls -la $TF_PLUGIN_CACHE_DIR/registry.terraform.io   # APPLY ONLY AT FIRST TIME
+
+    ##
     # TERRAGRUNT CHECK
     ##
 
-    - terragrunt hcl fmt
-    - terragrunt hcl fmt --check
-    - terragrunt init --all -upgrade
-    - terragrunt run --all validate
-  
+    - terragrunt hcl fmt             #  --experiment-mode --filter='!./infrastructure/prod/**' --filter='./root.hcl' --filter='./infrastructure/sa_/**'  --filter='./infrastructure/dev/env.hcl'  --filter='./infrastructure/dev/network/**' --filter='./infrastructure/dev/registry/**' --filter='./infrastructure/dev/sg/**' --filter='./infrastructure/dev/vpc/home/**'
+    - terragrunt hcl fmt --check     # --experiment-mode --filter='!./infrastructure/prod/**' --filter='./root.hcl' --filter='./infrastructure/sa_/**'  --filter='./infrastructure/dev/env.hcl'  --filter='./infrastructure/dev/network/**' --filter='./infrastructure/dev/registry/**' --filter='./infrastructure/dev/sg/**' --filter='./infrastructure/dev/vpc/home/**'
+    # - terragrunt init --all -upgrade -reconfigure    # --experiment-mode --filter='!./infrastructure/prod/**' --filter='./root.hcl' --filter='./infrastructure/sa_/**'  --filter='./infrastructure/dev/env.hcl'  --filter='./infrastructure/dev/network/**' --filter='./infrastructure/dev/registry/**' --filter='./infrastructure/dev/sg/**' --filter='./infrastructure/dev/vpc/home/**'
+    # - terragrunt run --all validate --experiment-mode --filter='/**/infrastructure/dev/**/home/**'
+
+    
+
+
+    # - terragrunt hcl fmt             #   --experiment-mode     --filter='!./infrastructure/prod/**'  --filter='!./infrastructure/dev/vpc/soa/**' --filter='!./infrastructure/dev/vpc/home_serverless/**' --filter='!./infrastructure/dev/vpc/atlas/**' --filter='!./infrastructure/dev/vpc/autoscale/**' --filter='!./infrastructure/dev/vpc/loadbalance/**' --filter='!./infrastructure/dev/vpc/totemlounge/**'   --filter='!./infrastructure/dev/consul_server/**' 2
+    # - terragrunt hcl fmt --check     #   --experiment-mode     --filter='!./infrastructure/prod/**'  --filter='!./infrastructure/dev/vpc/soa/**' --filter='!./infrastructure/dev/vpc/home_serverless/**' --filter='!./infrastructure/dev/vpc/atlas/**' --filter='!./infrastructure/dev/vpc/autoscale/**' --filter='!./infrastructure/dev/vpc/loadbalance/**' --filter='!./infrastructure/dev/vpc/totemlounge/**'   --filter='!./infrastructure/dev/consul_server/**' --working-dir="${WORK_DIR}"
+    # - terragrunt init --all -upgrade #   --experiment-mode     --filter='!./infrastructure/prod/**'  --filter='!./infrastructure/dev/vpc/soa/**' --filter='!./infrastructure/dev/vpc/home_serverless/**' --filter='!./infrastructure/dev/vpc/atlas/**' --filter='!./infrastructure/dev/vpc/autoscale/**' --filter='!./infrastructure/dev/vpc/loadbalance/**' --filter='!./infrastructure/dev/vpc/totemlounge/**'   --filter='!./infrastructure/dev/consul_server/**' --working-dir="${WORK_DIR}"
+    # - terragrunt run --all validate  #   --experiment-mode     --filter='!./infrastructure/prod/**'  --filter='!./infrastructure/dev/vpc/soa/**' --filter='!./infrastructure/dev/vpc/home_serverless/**' --filter='!./infrastructure/dev/vpc/atlas/**' --filter='!./infrastructure/dev/vpc/autoscale/**' --filter='!./infrastructure/dev/vpc/loadbalance/**' --filter='!./infrastructure/dev/vpc/totemlounge/**'   --filter='!./infrastructure/dev/consul_server/**' --working-dir="${WORK_DIR}"
 
 
 .ansible_config:
@@ -172,14 +185,18 @@ check_secrets:
 
 create_dev:
   stage: create_dev
-  image: alpine/terragrunt:tf1.11.4
+  image: alpine/terragrunt:tf1.13.4
   variables:
     SOPS_KEYS: "admin"  
   before_script: 
     - !reference [.install_default_deps, before_script]
   script:
     - !reference [.terragrunt_config, script]
-    - make create ENV=dev
+    - |
+      terragrunt apply  --all --non-interactive -lock=false -auto-approve --experiment-mode \
+                        --working-dir="${WORK_DIR}/infrastructure/dev"                       \        # 0) avoid errors
+                        --filter='/**/infra*/dev/**/home/**'                                  \       # 1) specify every project you are working on
+                        # --filter='[main...HEAD]'                                                      # 2) uncomment when infra is already deployed
   needs: [check_secrets]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
@@ -195,7 +212,7 @@ deploy_dev:
     SOPS_KEYS: "admin ops dev"
   script:
     - !reference [.ansible_config, script]
-    - make deploy ENV=dev
+    - make deploy ENV=dev APP=home
   needs: [create_dev]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
@@ -221,14 +238,18 @@ approve:
 
 create_prod:
   stage: create_prod
-  image: alpine/terragrunt:tf1.11.4
+  image: alpine/terragrunt:tf1.13.4
   variables:
     SOPS_KEYS: "admin"
   before_script: 
     - !reference [.install_default_deps, before_script]
   script:
     - !reference [.terragrunt_config, script]
-    - make create ENV=prod
+    - |
+      terragrunt apply  --all --non-interactive -lock=false -auto-approve --experiment-mode \
+                        --working-dir="${WORK_DIR}/infrastructure/dev"                       \        # 0) avoid errors
+                        --filter='/**/infra*/dev/**/home/**'                                  \       # 1) specify every project you are working on
+                        # --filter='[main...HEAD]'                                                      # 2) uncomment when infra is already deployed
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
@@ -243,7 +264,7 @@ deploy_prod:
     SOPS_KEYS: "admin ops prod"
   script:
     - !reference [.ansible_config, script]
-    - make deploy ENV=prod
+    - make deploy ENV=prod APP=home
   needs: [create_prod]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -253,7 +274,7 @@ deploy_prod:
 # MANUAL_JOBS>>>
 rollback_infra_prod:
   stage: manual
-  image: alpine/terragrunt:tf1.11.4
+  image: alpine/terragrunt:tf1.13.4
   variables:
     SOPS_KEYS: "admin"
     ENV: "prod"
@@ -291,7 +312,7 @@ rollback_deploy_prod:
 
 destroy_dev:
   stage: manual
-  image: alpine/terragrunt:tf1.11.4
+  image: alpine/terragrunt:tf1.13.4
   variables:
     SOPS_KEYS: "admin"
   before_script: 
@@ -301,13 +322,13 @@ destroy_dev:
     - make destroy ENV=dev
   when: manual
   allow_failure: false
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  # rules:
+  #   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 
 destroy_prod:
   stage: manual
-  image: alpine/terragrunt:tf1.11.4
+  image: alpine/terragrunt:tf1.13.4
   variables:
     SOPS_KEYS: "admin"
   before_script: 
