@@ -35,6 +35,7 @@
     - groups[consul_server_group] is defined
     - groups[consul_server_group] | length > 0
 
+
 - name: Wait for Consul server leader election
   uri:
     url: "http://{{ consul_server_ip }}:8500/v1/status/leader"
