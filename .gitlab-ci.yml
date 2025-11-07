@@ -99,7 +99,7 @@ cache:
     ##
 
     - mkdir -p $TF_PLUGIN_CACHE_DIR
-    # - terragrunt run --all providers mirror $TF_PLUGIN_CACHE_DIR --working-dir="${WORK_DIR}/infrastructure/dev/network" # APPLY ONLY AT FIRST SUCCESSFUL TIMES TO CREATE CACHE
+    # - terragrunt run --all providers mirror $TF_PLUGIN_CACHE_DIR --working-dir="${WORK_DIR}/infrastructure/dev/network" # APPLY ONLY ONCE TO CREATE CACHE(only successuful job is counted), THEN COMMENT OUT!
     - ls -la $TF_PLUGIN_CACHE_DIR/registry.terraform.io
 
     ##
@@ -108,8 +108,11 @@ cache:
 
     - terragrunt hcl fmt
     - terragrunt hcl fmt --check
-    # - terragrunt init --all -upgrade --non-interactive -lock=false --experiment-mode --working-dir="${WORK_DIR}" --filter='/**/infra*/dev/**/home/**'     #--filter='!./infrastructure/prod/**'  --filter='!./infrastructure/dev/vpc/soa/**' --filter='!./infrastructure/dev/vpc/home_serverless/**' --filter='!./infrastructure/dev/vpc/atlas/**' --filter='!./infrastructure/dev/vpc/autoscale/**' --filter='!./infrastructure/dev/vpc/loadbalance/**' --filter='!./infrastructure/dev/vpc/totemlounge/**'   --filter='!./infrastructure/dev/consul_server/**' --working-dir="${WORK_DIR}"
-    # - terragrunt run --all validate --experiment-mode --working-dir="${WORK_DIR} --filter='/**/infra*/dev/**/home/**'
+    # - terragrunt init --all -upgrade --non-interactive -lock=false --experiment-mode --working-dir="${WORK_DIR}" --filter='/**/infra*/dev/**/home/**'     #--filter='!./infrastructure/prod/**'  --filter='!./infrastructure/dev/vpc/soa/**' --filter='!./infrastructure/dev/vpc/home_serverless/**' --filter='!./infrastructure/dev/vpc/atlas/**' --filter='!./infrastructure/dev/vpc/autoscale/**' --filter='!./infrastructure/dev/vpc/loadbalance/**' --filter='!./infrastructure/dev/vpc/totemlounge/**'   --filter='!./infrastructure/dev/consul_server/**' --working-dir="${WORK_DIR}" # not necessary. it seems for changing version
+    - |
+      terragrunt run  --all validate --experiment-mode --working-dir="${WORK_DIR}" --filter='/**/infra*/sa_/**' --filter='/**/infra*/dev/network' --filter='/**/infra*/dev/sg' --filter='/**/infra*/dev/registry' \
+                      --filter='/**/infra*/dev/**/home/**'
+                      
 
 
 .ansible_config:
@@ -186,9 +189,9 @@ create_dev:
   script:
     - !reference [.terragrunt_config, script]
     - |
-      terragrunt apply  --all --non-interactive -lock=false -auto-approve --experiment-mode \
-                        --working-dir="${WORK_DIR}" \
-                        --filter="[HEAD~4]" 
+      terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
+                       --filter='/**/infra*/dev/**/home/**'                                                             \
+                    #  --filter="[HEAD^1]" 
   # needs: [check_secrets]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
@@ -238,10 +241,9 @@ create_prod:
   script:
     - !reference [.terragrunt_config, script]
     - |
-      terragrunt apply  --all --non-interactive -lock=false -auto-approve --experiment-mode \
-                        --working-dir="${WORK_DIR}/infrastructure/dev"                       \
-                        --filter='/**/infra*/dev/**/home/**'                                  \
-                        # --filter='[main...HEAD]'
+      terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
+                       --filter='/**/infra*/prod/**/home/**'                                                            \
+                    #  --filter='[main...HEAD]'
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
@@ -268,8 +270,8 @@ rollback_infra_prod:
   stage: manual
   image: alpine/terragrunt:tf1.13.4
   variables:
-    SOPS_KEYS: "admin"
     ENV: "prod"
+    SOPS_KEYS: "admin"
   before_script:
     - !reference [.install_default_deps, before_script]
   script:
