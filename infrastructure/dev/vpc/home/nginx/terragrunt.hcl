@@ -31,10 +31,7 @@ dependency "sa_cert_downloader" {
 dependency "sa_compute_viewer" {
   config_path                             = "../../../../sa_/compute_viewer"
 }
-##################
 
-
-#######
 
 locals {
   env            = include.root.locals.env_vars.locals.env
@@ -52,7 +49,7 @@ inputs = {
   scheduling_policy_preemptible = false
   serial_port_enable            = false
 
-  
+  ###
 
   # COMPUTE RESOURCES
   name                          = "vm"

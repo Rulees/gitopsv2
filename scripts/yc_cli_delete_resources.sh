@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-#!/usr/bin/env bash
 
-MIN=${1:-500}
+MIN=${1:-1000}
 shift || true
 
 ASYNC_FLAG=1
