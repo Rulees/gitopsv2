@@ -16,7 +16,7 @@ variable "env" {
 variable "sg_name" {
   description        = "Security_group short name."
   type               = string
-  default            = "default"
+  default            = "-"
 }
 
 
