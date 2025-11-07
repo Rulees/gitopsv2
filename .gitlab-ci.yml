@@ -187,8 +187,8 @@ create_dev:
     - !reference [.terragrunt_config, script]
     - |
       terragrunt apply  --all --non-interactive -lock=false -auto-approve --experiment-mode \
-                        --working-dir="${WORK_DIR}"                                          \
-                        --filter="{/**/infra*/dev/**/home/**} | [HEAD~3]" 
+                        --working-dir="${WORK_DIR}" \
+                        --filter="[HEAD~4]" 
   # needs: [check_secrets]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
