@@ -15,7 +15,7 @@ variables:
 
 
 cache:
-  key: pluginsv5
+  key: pluginsv4
   paths:
     - plugin-cache/
 
@@ -99,7 +99,7 @@ cache:
     ##
 
     - mkdir -p $TF_PLUGIN_CACHE_DIR
-    - terragrunt run --all providers mirror $TF_PLUGIN_CACHE_DIR --working-dir="${WORK_DIR}/infrastructure/dev/network" # APPLY ONLY ONCE TO CREATE CACHE(only successuful job is counted), THEN COMMENT OUT!
+    # - terragrunt run --all providers mirror $TF_PLUGIN_CACHE_DIR --working-dir="${WORK_DIR}/infrastructure/dev/network" # APPLY ONLY ONCE TO CREATE CACHE(only successuful job is counted), THEN COMMENT OUT!
     - ls -la $TF_PLUGIN_CACHE_DIR/registry.terraform.io
 
     ##
