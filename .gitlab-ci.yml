@@ -109,6 +109,8 @@ cache:
     - terragrunt hcl fmt
     - terragrunt hcl fmt --check
     # - terragrunt init --all -upgrade --non-interactive -lock=false --experiment-mode --working-dir="${WORK_DIR}" --filter='/**/infra*/dev/**/home/**'     #--filter='!./infrastructure/prod/**'  --filter='!./infrastructure/dev/vpc/soa/**' --filter='!./infrastructure/dev/vpc/home_serverless/**' --filter='!./infrastructure/dev/vpc/atlas/**' --filter='!./infrastructure/dev/vpc/autoscale/**' --filter='!./infrastructure/dev/vpc/loadbalance/**' --filter='!./infrastructure/dev/vpc/totemlounge/**'   --filter='!./infrastructure/dev/consul_server/**' --working-dir="${WORK_DIR}" # not necessary. it seems for changing version
+    
+    # dont launch before first successful apply
     # - |
     #   terragrunt run  --all validate --experiment-mode --working-dir="${WORK_DIR}" --filter='/**/infra*/sa_/**' --filter='/**/infra*/dev/network' --filter='/**/infra*/dev/sg' --filter='/**/infra*/dev/registry' \
     #                   --filter='/**/infra*/dev/**/home/**'
@@ -202,6 +204,8 @@ create_dev:
 deploy_dev:
   stage: deploy_dev
   image: arkselen/ci:v6
+  services:
+    - name: docker:dind
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"
