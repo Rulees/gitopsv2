@@ -122,6 +122,7 @@ cache:
   script:
 
     - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
+    - export DOCKER_HOST=tcp://docker:2375 && docker ps -a
 
     ##
     # DECRYPT SECRETS
@@ -163,8 +164,6 @@ cache:
 
         
     # 2) AUTH TO REGISTRY
-    - docker info | true
-    - export DOCKER_HOST=tcp://docker:2375 && docker info
     - |
       yc config profile create temp
       yc config set service-account-key "$YC_SERVICE_ACCOUNT_KEY_FILE"
@@ -184,24 +183,24 @@ cache:
 #     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
-create_dev:
-  stage: create_dev
-  image: alpine/terragrunt:tf1.13.4
-  services:
-    - name: docker:dind
-  variables:
-    SOPS_KEYS: "admin dev ops"
-  before_script: 
-    - !reference [.install_default_deps, before_script]
-  script:
-    - !reference [.terragrunt_config, script]
-    - |
-      terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
-                       --filter='/**/infra*/dev/**/home/**'                                                             \
-                    #  --filter="[HEAD^1]" 
-  # needs: [check_secrets]
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+# create_dev:
+#   stage: create_dev
+#   image: alpine/terragrunt:tf1.13.4
+#   services:
+#     - name: docker:dind
+#   variables:
+#     SOPS_KEYS: "admin dev ops"
+#   before_script: 
+#     - !reference [.install_default_deps, before_script]
+#   script:
+#     - !reference [.terragrunt_config, script]
+#     - |
+#       terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
+#                        --filter='/**/infra*/dev/**/home/**'                                                             \
+#                     #  --filter="[HEAD^1]" 
+#   # needs: [check_secrets]
+#   rules:
+#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
 
@@ -217,7 +216,7 @@ deploy_dev:
   script:
     - !reference [.ansible_config, script]
     - make deploy ENV=dev APP=home
-  needs: [create_dev]
+  # needs: [create_dev]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
