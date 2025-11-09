@@ -45,11 +45,11 @@ cache:
       if command -v apt &> /dev/null; then
           apt update && apt install -y python3 py3-pip py3-setuptools py3-wheel aws-cli docker.io
           curl -sSf https://atlasgo.sh | sh -s -- -y
-          export DOCKER_HOST=tcp://docker:2375 && docker run hello-world && docker ps -a
+          export DOCKER_HOST=tcp://docker:2375 && docker info
       elif command -v apk &> /dev/null; then
           apk --no-cache add python3 py3-pip py3-setuptools py3-wheel aws-cli docker-cli
           curl -sSf https://atlasgo.sh | sh -s -- -y
-          export DOCKER_HOST=tcp://docker:2375 && docker run hello-world && docker ps -a
+          export DOCKER_HOST=tcp://docker:2375 && docker info
       else
           echo "➖➖ Поддерживаемый пакетный менеджер не найден."
           exit 1; fi
@@ -163,6 +163,8 @@ cache:
 
         
     # 2) AUTH TO REGISTRY
+    - docker info | true
+    - export DOCKER_HOST=tcp://docker:2375 && docker info
     - |
       yc config profile create temp
       yc config set service-account-key "$YC_SERVICE_ACCOUNT_KEY_FILE"
