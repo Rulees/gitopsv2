@@ -45,11 +45,11 @@ cache:
       if command -v apt &> /dev/null; then
           apt update && apt install -y python3 py3-pip py3-setuptools py3-wheel aws-cli docker.io
           curl -sSf https://atlasgo.sh | sh -s -- -y
-          docker run hello-world && docker ps -a
+          export DOCKER_HOST=tcp://docker:2375 && docker run hello-world && docker ps -a
       elif command -v apk &> /dev/null; then
-          apk --no-cache add python3 py3-pip py3-setuptools py3-wheel aws-cli docker
+          apk --no-cache add python3 py3-pip py3-setuptools py3-wheel aws-cli docker-cli
           curl -sSf https://atlasgo.sh | sh -s -- -y
-          docker run hello-world && docker ps -a
+          export DOCKER_HOST=tcp://docker:2375 && docker run hello-world && docker ps -a
       else
           echo "➖➖ Поддерживаемый пакетный менеджер не найден."
           exit 1; fi
