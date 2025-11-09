@@ -1,4 +1,5 @@
 stages:
+  - docker_check
   - check_secrets
   - create_dev
   - deploy_dev
@@ -180,6 +181,18 @@ cache:
 #   rules:
 #     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
+docker_check:
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - service docker status
+    - service docker start
+    - usermod -aG docker $USER
+    - docker run hello-world
+    - service docker status
+    - docker ps -a
+
 
 create_dev:
   stage: create_dev
@@ -205,7 +218,7 @@ deploy_dev:
   stage: deploy_dev
   image: arkselen/ci:v6
   services:
-    - name: docker:dind
+    - name: docker:dind # to access docker
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"
