@@ -344,7 +344,7 @@ destroy_dev:
     - !reference [.install_default_deps, before_script]
   script:
     - !reference [.terragrunt_config, script]
-    - make destroy ENV=dev
+    - make destroy ENV=dev APP=home
   when: manual
   allow_failure: false
   # rules:
@@ -360,7 +360,7 @@ destroy_prod:
     - !reference [.install_default_deps, before_script]
   script:
     - !reference [.terragrunt_config, script]
-    - make destroy ENV=prod
+    - make destroy ENV=prod APP=home
   when: manual
   allow_failure: false
   rules:
