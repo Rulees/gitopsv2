@@ -189,7 +189,7 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None, star
 
     if not playbook.exists():
         print(f"{indent}⚠️ Пропускаю {full_service_name}: playbook не найден")
-        return 1
+        return 0
 
     print_deploy_info(full_service_name, playbook, limit_group, infra_source_raw, indent)
 
