@@ -14,7 +14,7 @@
 - name: Ensure Postgres CA root.crt exists (download if missing or outdated)
   get_url:
     url: https://storage.yandexcloud.net/cloud-certs/CA.pem
-    dest: "{{ work_dir }}/secrets/not_secrets/root.crt"
+    dest: "{{ docker_build_path }}/root.crt"
     mode: '0655'
   delegate_to: localhost
 
