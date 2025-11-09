@@ -65,7 +65,7 @@
 
 **/*.cache/**/*
 
-**/root.crt
+# **/root.crt
 
 **/node_modules
 
