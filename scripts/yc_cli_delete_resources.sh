@@ -72,77 +72,6 @@ supports_async() {
   esac
 }
 
-###############################################################################
-# NEW SECTION: DNS zones & A records enumeration + interactive deletion
-###############################################################################
-if [[ -z $SKIP_DNS ]]; then
-  ZONES_JSON=$(yc dns zone list --format json 2>/dev/null)
-  if [[ $(jq 'length' <<<"$ZONES_JSON") -eq 0 ]]; then
-    echo "No DNS zones found."
-  else
-        DNS_REC_INDEX=0
-    declare -a DNS_REC_ZONE_ID DNS_REC_SPEC DNS_REC_DESC
-
-    echo
-    echo "## DNS RECORDS TYPE A"
-    # Iterate zones
-    while read -r ZJ; do
-      ZID=$(jq -r '.id' <<<"$ZJ")
-      ZONE_FQDN=$(jq -r '.zone // ""' <<<"$ZJ")
-      RECS_JSON=$(yc dns zone list-records "$ZID" --record-type A --format json 2>/dev/null || echo '{}')
-      while IFS=$'\t' read -r NAME TTL IP; do
-        [[ -z $NAME || -z $IP ]] && continue
-          ((DNS_REC_INDEX++))
-        if [[ -n $TTL && $TTL != "null" ]]; then
-          SPEC="$NAME $TTL A $IP"
-        else
-          SPEC="$NAME A $IP"
-        fi
-        echo "[${DNS_REC_INDEX}] name=${NAME} ttl=${TTL:-"-"} A ${IP} zone_id=${ZID}"
-          DNS_REC_ZONE_ID[$DNS_REC_INDEX]="$ZID"
-          DNS_REC_SPEC[$DNS_REC_INDEX]="$SPEC"
-      done < <(
-        jq -r '
-          def arr(x):
-            if x==null then []
-            elif (x|type)=="array" then x
-            else [x] end;
-          ( if type=="array" then .[]
-            elif .record_sets? then .record_sets[]
-            elif .records? then .records[]
-            elif .rrsets? then .rrsets[]
-            else empty end )
-          | select(.type=="A")
-          | (arr(.rrdatas) + arr(.data))[] as $ip
-          | "\(.name)\t\(.ttl // "")\t\($ip)"
-        ' <<<"$RECS_JSON"
-      )
-    done < <(jq -c '.[]' <<<"$ZONES_JSON")
-    if (( DNS_REC_INDEX > 0 )); then
-      echo
-      read -rp "Enter numbers of A records to delete (space/comma separated, empty to skip): " TO_DEL
-      if [[ -n $TO_DEL ]]; then
-        # Normalize separators
-        TO_DEL=$(sed -E 's/[ ,]+/ /g' <<<"$TO_DEL")
-        for N in $TO_DEL; do
-          if [[ $N =~ ^[0-9]+$ ]] && (( N>=1 && N<=DNS_REC_INDEX )); then
-            ZID="${DNS_REC_ZONE_ID[$N]}"
-            SPEC="${DNS_REC_SPEC[$N]}"
-            yc dns zone delete-records --id "$ZID" --record "$SPEC" 2>/dev/null \
-              && echo "deleted [$N] $SPEC" \
-              || echo "fail [$N] $SPEC"
-          fi
-        done
-      fi
-    fi
-  fi
-  echo "## END DNS SECTION"
-  echo
-fi
-###############################################################################
-# END NEW DNS SECTION
-###############################################################################
-
 # Сбор всех объектов в NDJSON
 for T in "${RES_TYPES[@]}"; do
   S=${T%% *}; E=${T#"$S "}
@@ -230,3 +159,74 @@ for i in "${!RESULTS[@]}"; do
 done
 
 echo "# DONE"
+
+###############################################################################
+# NEW SECTION: DNS zones & A records enumeration + interactive deletion
+###############################################################################
+if [[ -z $SKIP_DNS ]]; then
+  ZONES_JSON=$(yc dns zone list --format json 2>/dev/null)
+  if [[ $(jq 'length' <<<"$ZONES_JSON") -eq 0 ]]; then
+    echo "No DNS zones found."
+  else
+        DNS_REC_INDEX=0
+    declare -a DNS_REC_ZONE_ID DNS_REC_SPEC DNS_REC_DESC
+
+    echo
+    echo "## DNS RECORDS TYPE A"
+    # Iterate zones
+    while read -r ZJ; do
+      ZID=$(jq -r '.id' <<<"$ZJ")
+      ZONE_FQDN=$(jq -r '.zone // ""' <<<"$ZJ")
+      RECS_JSON=$(yc dns zone list-records "$ZID" --record-type A --format json 2>/dev/null || echo '{}')
+      while IFS=$'\t' read -r NAME TTL IP; do
+        [[ -z $NAME || -z $IP ]] && continue
+          ((DNS_REC_INDEX++))
+        if [[ -n $TTL && $TTL != "null" ]]; then
+          SPEC="$NAME $TTL A $IP"
+        else
+          SPEC="$NAME A $IP"
+        fi
+        echo "[${DNS_REC_INDEX}] name=${NAME} ttl=${TTL:-"-"} A ${IP} zone_id=${ZID}"
+          DNS_REC_ZONE_ID[$DNS_REC_INDEX]="$ZID"
+          DNS_REC_SPEC[$DNS_REC_INDEX]="$SPEC"
+      done < <(
+        jq -r '
+          def arr(x):
+            if x==null then []
+            elif (x|type)=="array" then x
+            else [x] end;
+          ( if type=="array" then .[]
+            elif .record_sets? then .record_sets[]
+            elif .records? then .records[]
+            elif .rrsets? then .rrsets[]
+            else empty end )
+          | select(.type=="A")
+          | (arr(.rrdatas) + arr(.data))[] as $ip
+          | "\(.name)\t\(.ttl // "")\t\($ip)"
+        ' <<<"$RECS_JSON"
+      )
+    done < <(jq -c '.[]' <<<"$ZONES_JSON")
+    if (( DNS_REC_INDEX > 0 )); then
+      echo
+      read -rp "Enter numbers of A records to delete (space/comma separated, empty to skip): " TO_DEL
+      if [[ -n $TO_DEL ]]; then
+        # Normalize separators
+        TO_DEL=$(sed -E 's/[ ,]+/ /g' <<<"$TO_DEL")
+        for N in $TO_DEL; do
+          if [[ $N =~ ^[0-9]+$ ]] && (( N>=1 && N<=DNS_REC_INDEX )); then
+            ZID="${DNS_REC_ZONE_ID[$N]}"
+            SPEC="${DNS_REC_SPEC[$N]}"
+            yc dns zone delete-records --id "$ZID" --record "$SPEC" 2>/dev/null \
+              && echo "deleted [$N] $SPEC" \
+              || echo "fail [$N] $SPEC"
+          fi
+        done
+      fi
+    fi
+  fi
+  echo "## END DNS SECTION"
+  echo
+fi
+###############################################################################
+# END NEW DNS SECTION
+###############################################################################
