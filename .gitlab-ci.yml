@@ -157,14 +157,11 @@ cache:
     - echo "📦 ENV_APP_SECRET               >>>     $(cat ${WORK_DIR}/secrets/dev/totemlounge/website/.env | head -c 30)"
 
     ##
-    # SETUP SECRETS
+    # SECRETS (1/2)
     ##
 
     - chmod 600 ${WORK_DIR}/secrets/admin/yc_ssh_key
     - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
-    
-    - make write_terragrunt_output_secrets_to_files
-    - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | head -c 30)"
 
     ##
     # SERVERLESS
@@ -184,6 +181,14 @@ cache:
       yc config set cloud-id "$YC_CLOUD_ID"
       yc config set folder-id "$YC_FOLDER_ID"
       docker login --username iam --password-stdin cr.yandex <<< "$(yc iam create-token)"
+
+    ##
+    # SECRETS (2/2)
+    ##
+
+    - make write_terragrunt_output_secrets_to_files # only after remote-backend.env
+    - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | head -c 30)"
+    - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | tail -c 17)"
     
 
 # check_secrets:
