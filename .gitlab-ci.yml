@@ -122,7 +122,21 @@ cache:
   script:
 
     - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
-    - export DOCKER_HOST=tcp://docker:2375 && docker ps -a
+
+    ##
+    # INSTALL DOCKER
+    ##
+
+    - |
+      if command -v apt &> /dev/null; then
+          apt update && apt install -y docker.io
+          export DOCKER_HOST=tcp://docker:2375 && docker ps -a
+      elif command -v apk &> /dev/null; then
+          apk --no-cache add docker-cli
+          export DOCKER_HOST=tcp://docker:2375 && docker ps -a
+      else
+          echo "➖➖ Поддерживаемый пакетный менеджер не найден."
+          exit 1; fi
 
     ##
     # DECRYPT SECRETS
@@ -150,7 +164,7 @@ cache:
     - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
     
     - make write_terragrunt_output_secrets_to_files
-
+    - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | head -c 30)"
 
     ##
     # SERVERLESS
