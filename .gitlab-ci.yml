@@ -187,11 +187,11 @@ docker_check:
   services:
     - docker:dind
   script:
-    - service docker status
-    - service docker start
-    - usermod -aG docker $USER
+    # - service docker status
+    # - service docker start
+    # - usermod -aG docker $USER
     - docker run hello-world
-    - service docker status
+    # - service docker status
     - docker ps -a
 
 
