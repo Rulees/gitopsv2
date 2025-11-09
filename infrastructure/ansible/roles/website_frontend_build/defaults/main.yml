@@ -1,0 +1,1 @@
+frontend_build_path: "{{ docker_build_path }}/frontend"

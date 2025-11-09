@@ -19,6 +19,22 @@
      terragrunt state rm local_file.key_json                 || true
 
 
+find /root/project_gitlab/infrastructure/sa_*/ -type f -name "terragrunt.hcl" ! -path "*/.terragrunt-cache/*" | while read -r file; do
+  dir=$(dirname "$file")
+  echo "▶ Захожу в $dir"
+  (
+    cd "$dir" || exit 1
+    terragrunt state rm yandex_iam_service_account.this     || true
+    terragrunt state rm yandex_iam_service_account_key.this || true
+    terragrunt state rm local_file.key_json                 || true
+  )
+done
+
+
+
+
+
+
 4) Use existing SA via data
      "create_mode = false"
      git commit -v -m "commit" / terragrunt run-all apply/destroy(не удалит ключ и файл, отлично, потому что они вне состояния)

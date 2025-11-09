@@ -10,12 +10,6 @@ variable "env" {
 }
 
 # GENERAL
-variable "labels" {
-  description = "Key-value map of labels assigned to the api_gateway."
-  type        = map(string)
-  default     = {}
-}
-
 variable "service_account_id" {
   description = "Service account ID used by the api_gateway."
   type        = string
@@ -25,6 +19,7 @@ variable "service_account_id" {
 variable "container_id" {
   description = "ID of the serverless container to invoke"
   type        = string
+  default     = null
 }
 
 variable "network_id" {
@@ -38,6 +33,12 @@ variable "dns_zone_id" {
 }
 
 # RESOURCES
+variable "use_container_mode" {
+  description = "Use serverless container (true). It means to use such vars as sa_id and container_id"
+  type        = bool
+  default     = true
+}
+
 variable "api_gateway_name" {
   description = "The short name of the gatewayapi. Example: apigateway. Typically generated dynamically using project_prefix, env"
   type        = string

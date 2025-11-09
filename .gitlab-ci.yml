@@ -5,18 +5,17 @@ stages:
   - approve
   - create_prod
   - deploy_prod
-  - rollback_prod
-  - destroy
+  - manual
 
 
 variables:
   WORK_DIR: "$CI_PROJECT_DIR"
   TF_PLUGIN_CACHE_DIR: "$CI_PROJECT_DIR/plugin-cache"
-  TG_PARALLELISM: 10
+  TG_PARALLELISM: 20
 
 
 cache:
-  key: plugin-cache
+  key: pluginsv6
   paths:
     - plugin-cache/
 
@@ -37,34 +36,52 @@ cache:
 
 .terragrunt_config:
   script:
-    # INSTALL PACKAGES
+
+    ##
+    # INSTALL DEFAULT PACKAGES
+    ##
+
     - |
       if command -v apt &> /dev/null; then
-          apt update && apt install -y python3 py3-pip py3-setuptools py3-wheel aws-cli
+          apt update && apt install -y python3 py3-pip py3-setuptools py3-wheel aws-cli docker.io
+          curl -sSf https://atlasgo.sh | sh -s -- -y
+          export DOCKER_HOST=tcp://docker:2375 && docker ps -a
       elif command -v apk &> /dev/null; then
-          apk --no-cache add python3 py3-pip py3-setuptools py3-wheel aws-cli
+          apk --no-cache add python3 py3-pip py3-setuptools py3-wheel aws-cli docker-cli
+          curl -sSf https://atlasgo.sh | sh -s -- -y
+          export DOCKER_HOST=tcp://docker:2375 && docker ps -a
       else
           echo "➖➖ Поддерживаемый пакетный менеджер не найден."
           exit 1; fi
 
-
+    ##
     # DECRYPT SECRETS
+    ##
+    
     - make decrypt_secrets
     
+    
+    ##
     # SETUP SECRETS
+    ##
+
     - export YC_SERVICE_ACCOUNT_KEY_FILE=${WORK_DIR}/secrets/admin/yc_admin_sa_key.json
     - set -a && source ${WORK_DIR}/secrets/admin/remote-backend.env && set +a
 
-    # CHECK
+    ##
+    # Logs
+    ##
+
     - echo "📦 PWD                          >>>     $(pwd)"
     - echo "📦 Содержимое директории        >>>     $(ls -la)"
     - echo "📦 YC_SERVICE_ACCOUNT_KEY_FILE  >>>     $(cat ${YC_SERVICE_ACCOUNT_KEY_FILE} | head -c 30)"
     - echo "📦 AWS_ACCESS_KEY_ID            >>>     $(echo ${AWS_ACCESS_KEY_ID} | head -c 300)"
-    
-    # CACHE
-    - mkdir -p $TF_PLUGIN_CACHE_DIR
+    - echo "📦 SA_COMPUTE_VIEWER            >>>     $(cat ${WORK_DIR}/secrets/ops/yc_compute_viewer_sa_key.json | head -c 50)"
 
+    ##
     # CONFIGURE TERRAFORM TO USE YANDEX MIRROR
+    ##
+
     - |
       cat <<EOF > ~/.terraformrc
       provider_installation {
@@ -78,20 +95,59 @@ cache:
       }
       EOF
     
+    ##
+    # CACHE
+    ##
+
+    - mkdir -p $TF_PLUGIN_CACHE_DIR
+    - terragrunt run --all providers mirror $TF_PLUGIN_CACHE_DIR --working-dir="${WORK_DIR}/infrastructure/dev/network" # APPLY ONLY ONCE TO CREATE CACHE(only successuful job is counted), THEN COMMENT OUT!
+    - ls -la $TF_PLUGIN_CACHE_DIR/registry.terraform.io
+
+    ##
     # TERRAGRUNT CHECK
+    ##
+
     - terragrunt hcl fmt
     - terragrunt hcl fmt --check
-    - terragrunt init --all -upgrade
-    - terragrunt run --all validate
-  
+    # - terragrunt init --all -upgrade --non-interactive -lock=false --experiment-mode --working-dir="${WORK_DIR}" --filter='/**/infra*/dev/**/home/**'     #--filter='!./infrastructure/prod/**'  --filter='!./infrastructure/dev/vpc/soa/**' --filter='!./infrastructure/dev/vpc/home_serverless/**' --filter='!./infrastructure/dev/vpc/atlas/**' --filter='!./infrastructure/dev/vpc/autoscale/**' --filter='!./infrastructure/dev/vpc/loadbalance/**' --filter='!./infrastructure/dev/vpc/totemlounge/**'   --filter='!./infrastructure/dev/consul_server/**' --working-dir="${WORK_DIR}" # not necessary. it seems for changing version
+    
+    # dont launch before first successful apply
+    # - |
+    #   terragrunt run  --all validate --experiment-mode --working-dir="${WORK_DIR}" --filter='/**/infra*/sa_/**' --filter='/**/infra*/dev/network' --filter='/**/infra*/dev/sg' --filter='/**/infra*/dev/registry' \
+    #                   --filter='/**/infra*/dev/**/home/**'
+                      
 
 
 .ansible_config:
   script:
+
+    - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
+
+    ##
+    # INSTALL DOCKER
+    ##
+
+    - |
+      if command -v apt &> /dev/null; then
+          apt update && apt install -y docker.io
+          export DOCKER_HOST=tcp://docker:2375 && docker ps -a
+      elif command -v apk &> /dev/null; then
+          apk --no-cache add docker-cli
+          export DOCKER_HOST=tcp://docker:2375 && docker ps -a
+      else
+          echo "➖➖ Поддерживаемый пакетный менеджер не найден."
+          exit 1; fi
+
+    ##
     # DECRYPT SECRETS
+    ##
+
     - make decrypt_secrets
     
-    # CHECK
+    ##
+    # Logs
+    ##
+
     - echo "📦 PWD                          >>>     $(pwd)"
     - echo "📦 Содержимое директории        >>>     $(ls -la)"
     - echo "📦 YC_SSH_KEY                   >>>     $(cat ${WORK_DIR}/secrets/admin/yc_ssh_key | head -c 30)"
@@ -100,16 +156,25 @@ cache:
     - echo "📦 SA_SERVERLESS_DEPLOY         >>>     $(cat ${WORK_DIR}/secrets/ops/yc_serverless_deploy_sa_key.json | head -c 50)"
     - echo "📦 ENV_APP_SECRET               >>>     $(cat ${WORK_DIR}/secrets/dev/totemlounge/website/.env | head -c 30)"
 
-    # SETUP SECRETS
+    ##
+    # SECRETS (1/2)
+    ##
+
     - chmod 600 ${WORK_DIR}/secrets/admin/yc_ssh_key
     - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
 
-    # GET YC CONTAINER REGISTRY ID
+    ##
+    # SERVERLESS
+    ##
+
+    # 1) GET YC CONTAINER REGISTRY ID
     - export YC_SERVICE_ACCOUNT_KEY_FILE=${WORK_DIR}/secrets/ops/yc_serverless_deploy_sa_key.json
     - set -a && source ${WORK_DIR}/secrets/admin/remote-backend.env && set +a
     - export REGISTRY_ID=$(terragrunt output -json --working-dir ${WORK_DIR}/infrastructure/${ENV}/registry | jq -r '.registry_id.value')
-    
-    # AUTH TO REGISTRY
+    - echo "📦 PWD                          >>>     $(echo ${REGISTRY_ID})"
+
+        
+    # 2) AUTH TO REGISTRY
     - |
       yc config profile create temp
       yc config set service-account-key "$YC_SERVICE_ACCOUNT_KEY_FILE"
@@ -117,32 +182,42 @@ cache:
       yc config set folder-id "$YC_FOLDER_ID"
       docker login --username iam --password-stdin cr.yandex <<< "$(yc iam create-token)"
 
-    - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
+    ##
+    # SECRETS (2/2)
+    ##
 
-    - echo "📦 PWD                          >>>     $(echo ${REGISTRY_ID})"
+    - make write_terragrunt_output_secrets_to_files # only after remote-backend.env
+    - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | head -c 30)"
+    - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | tail -c 17)"
+    
 
-check_secrets:
-  stage: check_secrets
-  image: frolvlad/alpine-bash
-  before_script: 
-    - !reference [.install_default_deps, before_script]
-  script:
-    - make check_secrets
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+# check_secrets:
+#   stage: check_secrets
+#   image: frolvlad/alpine-bash
+#   before_script: 
+#     - !reference [.install_default_deps, before_script]
+#   script:
+#     - make check_secrets
+#   rules:
+#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
 create_dev:
   stage: create_dev
-  image: alpine/terragrunt:tf1.11.4
+  image: alpine/terragrunt:tf1.13.4
+  services:
+    - name: docker:dind
   variables:
-    SOPS_KEYS: "admin"  
+    SOPS_KEYS: "admin dev ops"
   before_script: 
     - !reference [.install_default_deps, before_script]
   script:
     - !reference [.terragrunt_config, script]
-    - make create ENV=dev
-  needs: [check_secrets]
+    - |
+      terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
+                       --filter='/**/infra*/dev/**/home/**'                                                             \
+                    #  --filter="[HEAD^1]" 
+  # needs: [check_secrets]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
@@ -151,13 +226,15 @@ create_dev:
 
 deploy_dev:
   stage: deploy_dev
-  image: arkselen/ci:v2
+  image: arkselen/ci:v6
+  services:
+    - name: docker:dind
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"
   script:
     - !reference [.ansible_config, script]
-    - make deploy ENV=dev
+    - make deploy ENV=dev APP=home
   needs: [create_dev]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
@@ -183,14 +260,19 @@ approve:
 
 create_prod:
   stage: create_prod
-  image: alpine/terragrunt:tf1.11.4
+  image: alpine/terragrunt:tf1.13.4
+  services:
+    - name: docker:dind
   variables:
-    SOPS_KEYS: "admin"
+    SOPS_KEYS: "admin ops prod"
   before_script: 
     - !reference [.install_default_deps, before_script]
   script:
     - !reference [.terragrunt_config, script]
-    - make create ENV=prod
+    - |
+      terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
+                       --filter='/**/infra*/prod/**/home/**'                                                            \
+                    #  --filter='[main...HEAD]'
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
@@ -199,26 +281,28 @@ create_prod:
 
 deploy_prod:
   stage: deploy_prod
-  image: arkselen/ci:v2
+  image: arkselen/ci:v6
+  services:
+    - name: docker:dind
   variables:
     ENV: "prod"
     SOPS_KEYS: "admin ops prod"
   script:
     - !reference [.ansible_config, script]
-    - make deploy ENV=prod
+    - make deploy ENV=prod APP=home
   needs: [create_prod]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 
 
-
+# MANUAL_JOBS>>>
 rollback_infra_prod:
-  stage: rollback_prod
-  image: alpine/terragrunt:tf1.11.4
+  stage: manual
+  image: alpine/terragrunt:tf1.13.4
   variables:
-    SOPS_KEYS: "admin"
     ENV: "prod"
+    SOPS_KEYS: "admin"
   before_script:
     - !reference [.install_default_deps, before_script]
   script:
@@ -233,8 +317,8 @@ rollback_infra_prod:
 
 
 rollback_deploy_prod:
-  stage: rollback_prod
-  image: arkselen/ci:v2
+  stage: manual
+  image: arkselen/ci:v6
   variables:
     SOPS_KEYS: "admin ops prod"
     ENV: "prod"
@@ -252,32 +336,110 @@ rollback_deploy_prod:
 
 
 destroy_dev:
-  stage: destroy
-  image: alpine/terragrunt:tf1.11.4
+  stage: manual
+  image: alpine/terragrunt:tf1.13.4
   variables:
     SOPS_KEYS: "admin"
   before_script: 
     - !reference [.install_default_deps, before_script]
   script:
     - !reference [.terragrunt_config, script]
-    - make destroy ENV=dev
+    - make destroy ENV=dev APP=home
   when: manual
   allow_failure: false
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  # rules:
+  #   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 
 destroy_prod:
-  stage: destroy
-  image: alpine/terragrunt:tf1.11.4
+  stage: manual
+  image: alpine/terragrunt:tf1.13.4
   variables:
     SOPS_KEYS: "admin"
   before_script: 
     - !reference [.install_default_deps, before_script]
   script:
     - !reference [.terragrunt_config, script]
-    - make destroy ENV=prod
+    - make destroy ENV=prod APP=home
   when: manual
   allow_failure: false
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+
+
+
+
+
+deploy_cloud_function_trigger:
+  stage: deploy_dev
+  image: arkselen/ci:v8
+  variables:
+    ENV: "dev"
+    SOPS_KEYS: "admin ops dev"
+  script:
+
+    - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
+
+    ##
+    # DECRYPT SECRETS
+    ##
+
+    - make decrypt_secrets
+
+    ##
+    # SETUP SECRETS
+    ##
+
+    - export YC_SERVICE_ACCOUNT_KEY_FILE=${WORK_DIR}/secrets/admin/yc_admin_sa_key.json
+    - set -a && source ${WORK_DIR}/secrets/admin/remote-backend.env && set +a
+    - chmod 600 ${WORK_DIR}/secrets/admin/yc_ssh_key
+    - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
+    
+    - make write_terragrunt_output_secrets_to_files
+
+    ##
+    # DEPLOY
+    ##
+
+    - |
+      args="ENV=$ENV APP=$APP SERVICE=$SERVICE DEPLOY_STATUS=in_process"
+      if [ -n "$SUBSERVICE" ]; then
+        args="$args SUBSERVICE=$SUBSERVICE"
+      fi
+
+    - echo "📦 ARGS                            >>>  $(echo ${args} | head -c 125)"
+    - make deploy $args
+  after_script:
+    - apk add py3-requests
+    - make add_tag_deploy_status
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger"'
+
+
+mark_all_instances_false:
+  stage: deploy_dev
+  image: arkselen/ci:v8
+  variables:
+    ENV: "dev"
+    SOPS_KEYS: "admin ops dev"
+  script:
+    # DECRYPT SECRETS
+    - make decrypt_secrets
+
+    # SETUP SECRETS
+    - chmod 600 ${WORK_DIR}/secrets/admin/yc_ssh_key
+    - eval $(ssh-agent -s) && ssh-add ${WORK_DIR}/secrets/admin/yc_ssh_key 
+    - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
+
+
+    - curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash && \
+    - mv /root/yandex-cloud/bin/yc /usr/local/bin/yc
+    - apk add py3-requests
+
+    # SCRIPT
+    - make mark_all_instances_false
+  allow_failure: false
+  when: manual
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger"'

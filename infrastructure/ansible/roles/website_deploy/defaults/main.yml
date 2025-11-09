@@ -2,4 +2,7 @@
 # remote_env_file: /tmp/.env
 # Path for cert-FILE locally and on vm(same path)
 sa_certificate_key_file: "{{ secret_ops_dir }}/yc_cert_downloader_sa_key.json"
+# consul_template_upstream: "/consul-template/output"
+# nginx_upstream: "/etc/nginx/conf.d"
 # Path for cert-DIR inside container
+nginx_logs_dir: "/var/log/nginx"

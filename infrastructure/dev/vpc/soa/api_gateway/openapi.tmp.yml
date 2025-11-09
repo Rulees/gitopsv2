@@ -1,0 +1,63 @@
+# openapi: 3.0.0
+# info:
+#   title: Serverless API Gateway
+#   version: 1.0.0
+
+# paths:
+#   # FASTAPI
+#   # /all:
+#   #   get:
+#   #     summary: Combined user and orders
+#   #     x-yc-apigateway-integration:
+#   #       type: combine
+#   #       combine:
+#   #         - id: name
+#   #           request:
+#   #             http:
+#   #               url: http://service_name.internal/api/name     # internal dns name not public
+#   #         - id: object
+#   #           request:
+#   #             http:
+#   #               url: http://service_object.internal/api/object
+
+#   #         - id: color
+#   #           request:
+#   #             http:
+#   #               url: http://service_color.internal/api/color
+#   #       response:
+#   #         mapping:
+#   #           name: $responses.name.body
+#   #           object: $responses.object.body
+#   #           color: $responses.color.body
+
+#   /name:
+#     get:
+#       x-yc-apigateway-integration:
+#         type: http
+#         url: https://soa.arkselen.ru/service_name/name
+
+#   /object:
+#     get:
+#       x-yc-apigateway-integration:
+#         type: http
+#         url: https://soa.arkselen.ru/service_object/object
+
+#   /color:
+#     get:
+#       x-yc-apigateway-integration:
+#         type: http
+#         url: https://soa.arkselen.ru/service_color/color
+
+
+#   # NGINX
+#   /{proxy+}:
+#     get:
+#       parameters:
+#         - name: proxy
+#           in: path
+#           required: true
+#           schema:
+#             type: string
+#       x-yc-apigateway-integration:
+#         type: http
+#         url: https://soa.arkselen.ru/{proxy}

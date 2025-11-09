@@ -9,7 +9,7 @@
 
 # set -euo pipefail
 
-PROJECT_DIR="${HOME}/project"
+PROJECT_DIR="${HOME}/project_gitlab"
 SECRETS_DIR="${PROJECT_DIR}/secrets"
 SOPS_CONFIG="${PROJECT_DIR}/.sops.yaml"
 SOPS_KEYS_DIR="${HOME}/.sops"

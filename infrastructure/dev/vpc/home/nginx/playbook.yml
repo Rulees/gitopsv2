@@ -1,0 +1,26 @@
+# dependencies:
+#   - path_to_playbook: dev home nginx consul_server
+#     when_to_launch: intime 
+#   - path_to_playbook: dev home monitoring
+#     path_to_infra: dev home nginx
+#     when_to_launch: intime
+
+---
+- name: Deploy website with loadbalancing
+  hosts: all
+  become: true
+  roles:
+    - docker_install
+    # - website_frontend_build
+    - website_deploy
+    - role: consul_nginx_configure
+      vars:
+        consul_server_group: env_dev__app_home__service_nginx        # where consul_server is located
+        consul_dns_for_upstream: false                               # true=one dns / false=many internal_ip_addresses of service' vms    
+        services:
+        - service_name: service_database
+          upstream_name: service_database
+          upstream_location_name: service_database
+        - service_name: monitoring
+          upstream_name: monitoring
+          upstream_location_name: monitoring

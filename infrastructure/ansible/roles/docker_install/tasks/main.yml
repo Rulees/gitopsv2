@@ -1,7 +1,26 @@
-- name: Удалить блокировки dpkg
-  shell: |
-    rm -f /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock
-  ignore_errors: yes
+- name: Prevent locks
+  block:
+      - name: Wait for apt lock to be released
+        shell: |
+          for i in {1..12}; do
+            fuser /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1 || break
+            echo "Waiting for apt/dpkg lock to be released..."
+            sleep 2
+          done
+        changed_when: false
+
+      - name: Remove apt/dpkg lock files
+        shell: rm -f /var/lib/dpkg/lock* /var/lib/apt/lists/lock* /var/cache/apt/archives/lock*
+        ignore_errors: yes
+        changed_when: false
+
+      - name: Disable unattended upgrades (minimal safe version)
+        shell: |
+          systemctl disable --now unattended-upgrades.service || true
+          systemctl mask unattended-upgrades.service || true
+          rm -f /etc/apt/apt.conf.d/20auto-upgrades /etc/apt/apt.conf.d/50unattended-upgrades
+        become: true
+
 
 - name: Check if Docker is already installed
   command: docker --version
@@ -9,41 +28,55 @@
   ignore_errors: yes
   changed_when: false
 
-- name: Установить Docker (Ubuntu)
-  apt:
-    name: docker.io
-    state: present
-    update_cache: yes
-  when:
-    - ansible_facts['os_family'] == "Debian"
-    - docker_installed.rc != 0
 
-- name: Установить Docker (Fedora)
-  dnf:
-    name: docker
-    state: present
-  when: ansible_facts['os_family'] == "RedHat"
+- name: Install Docker
+  block:
+      - name: Установить Docker (Ubuntu)
+        apt:
+          name: docker.io
+          state: present
+          update_cache: yes
+        retries: 7
+        delay: 5
+        register: result
+        until: result is succeeded
+        when:
+          - ansible_facts['os_family'] == "Debian"
+          - docker_installed.rc != 0
+        
 
-- name: Запуск Docker
-  systemd:
-    name: docker
-    state: started
-    enabled: yes
+      - name: Установить Docker (Fedora)
+        dnf:
+          name: docker
+          state: present
+        retries: 5
+        delay: 5
+        register: result
+        until: result is succeeded
+        when: 
+          - ansible_facts['os_family'] == "RedHat"
+          - docker_installed.rc != 0
+
+
+- name: Launch Docker
+  block:
+      - name: Запустить Docker (Debian)
+        systemd:
+          name: docker
+          state: started
+          enabled: yes
+        when: ansible_os_family == "Debian"
+
+      - name: Запустить Docker (RedHat)
+        service:
+          name: docker
+          state: started
+          enabled: yes
+        when: ansible_os_family == "RedHat"
+
 
 - name: Добавить пользователя в группу Docker
   user:
     name: "{{ ansible_user }}"
     groups: docker
     append: yes
-
-- name: Install docker-compose
-  get_url:
-    url: https://github.com/docker/compose/releases/download/v2.34.0/docker-compose-linux-x86_64
-    dest: /usr/local/bin/docker-compose
-    mode: 'u+x,g+x'
-
-- name: Change docker-compose-file ownership, group
-  file:
-    path: /usr/local/bin/docker-compose
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"

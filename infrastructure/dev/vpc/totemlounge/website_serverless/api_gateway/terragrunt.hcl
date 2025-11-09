@@ -34,15 +34,8 @@ dependency "serverless_container" {
 
 
 locals {
-  env             = include.root.locals.env_vars.locals.env
-  zone            = include.root.locals.env_vars.locals.zone
-  # Labels
-  app             = "${basename(dirname(get_terragrunt_dir()))}"
-  service         = "${basename(get_terragrunt_dir())}"
-  env_labels      = include.root.locals.env_vars.locals.env_labels
-  app_labels      = {app = local.app}
-  service_labels  = {service = local.service}
-  labels          = merge(local.env_labels, local.app_labels, local.service_labels)
+  env                = include.root.locals.env_vars.locals.env
+  zone               = include.root.locals.env_vars.locals.zone
 }
 
 
@@ -50,20 +43,19 @@ inputs = {
   # GENERAL
   env                = local.env
   zone               = local.zone
-  labels             = local.labels
   network_id         = dependency.network.outputs.vpc_id
   service_account_id = dependency.sa_api_gateway_editor.outputs.sa_id
   container_id       = dependency.serverless_container.outputs.container_id
-  dns_zone_id        = "dnsdejjcevumag5r1q11"
+  dns_zone_id        = "dnsdghfje6n679tplso0"
 
   # RESOURCES
   api_gateway_name   = "api-gateway"
   execution_timeout  = "300"
   custom_domains = [{
       fqdn           = "serverlessdev.arkselen.ru"
-      certificate_id = "fpq0nme335e6m2qatta6"},
+      certificate_id = "fpq82j0a9t28aealltc8"},
     # {
     #   fqdn           = "gtgt.arkselen.ru"
-    #   certificate_id = "fpq0nme335e6m2qatta6"
+    #   certificate_id = "fpq82j0a9t28aealltc8"
     # }
 ]}

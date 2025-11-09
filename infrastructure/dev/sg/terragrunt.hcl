@@ -42,6 +42,43 @@ inputs = {
       ports          = [22]
       v4_cidr_blocks = ["0.0.0.0/0"]
     },
+    {
+      direction      = "ingress"
+      description    = "Allow postgres"
+      protocol       = "TCP"
+      ports          = [6432]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    # CONSUL
+    {
+      direction      = "ingress"
+      description    = "Allow Consul RPC and HTTP API (8500, 8300)"
+      protocol       = "TCP"
+      ports          = [8000, 8300, 8301, 8302, 8500]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      direction      = "ingress"
+      description    = "Allow Consul Gossip UDP/TCP"
+      protocol       = "UDP"
+      ports          = [8301, 8302, 8600]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    # MONITORING
+    {
+      direction      = "ingress"
+      description    = "Allow Grafana, Prometheus, Loki, NodeExporter, VictoriaMericsAgent"
+      protocol       = "TCP"
+      ports          = [3000, 9090, 3100, 9100, 8429]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      direction      = "ingress"
+      description    = "Allow Grafana, Prometheus, Loki, NodeExporter"
+      protocol       = "UDP"
+      ports          = [3000, 9090, 3100, 9100, 8429]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
     # Исходящие правила
     {
       direction      = "egress"
@@ -55,6 +92,43 @@ inputs = {
       description    = "Allow all outbound SSH"
       protocol       = "TCP"
       ports          = [22]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    # CONSUL
+    {
+      direction      = "egress"
+      description    = "Allow outbound to Consul Server API"
+      protocol       = "TCP"
+      ports          = [8000, 8300, 8301, 8302, 8500]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      direction      = "egress"
+      description    = "Allow outbound Consul DNS/Gossip UDP"
+      protocol       = "UDP"
+      ports          = [8301, 8302, 8600]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      direction      = "egress"
+      description    = "Allow postgres"
+      protocol       = "TCP"
+      ports          = [6432]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    # MONITORING
+    {
+      direction      = "egress"
+      description    = "Allow Grafana, Prometheus, Loki, NodeExporter, VictoriaMericsAgent"
+      protocol       = "TCP"
+      ports          = [3000, 9090, 3100, 9100, 8429]
+      v4_cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      direction      = "egress"
+      description    = "Allow Grafana, Prometheus, Loki, NodeExporter, VictoriaMericsAgent"
+      protocol       = "UDP"
+      ports          = [3000, 9090, 3100, 9100, 8429]
       v4_cidr_blocks = ["0.0.0.0/0"]
     }
   ]

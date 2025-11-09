@@ -15,38 +15,41 @@ def main():
     env = os.getenv("ENV")
     app = os.getenv("APP")
     service = os.getenv("SERVICE")
+    subservice = os.getenv("SUBSERVICE")
 
-    if not env:
-        print("❌ ENV is required (e.g. ENV=dev or ENV=prod)")
+    if (subservice and not (service and app and env)) or (service and not(app and env)) or (app and not (env)):
+        print("❌ Allow only:  ENV, ENV+APP, ENV+APP+SERVICE, or ENV+APP+SERVICE+SUBSERVICE (no gaps or skips in order).")
         sys.exit(1)
 
-    # Working dir = путь до env
-    working_dir = ROOT / "infrastructure" / env
+    # Build working directory based on given vars
+    working_dir = Path(ROOT / "infrastructure" / env)
+    if app:
+        if app == "infra":
+            # No 'vpc' for infra, just infrastructure/env/service/subservice
+            if service:
+                working_dir /= service
+                if subservice:
+                    working_dir /= subservice
+        else:
+            working_dir /= f"vpc/{app}"
+            if service:
+                working_dir /= service
+                if subservice:
+                    working_dir /= subservice
 
-    # include_dir строим по app и service
-    if app and service:
-        include_dir = f"vpc/{app}/{service}"
-    elif app:
-        include_dir = f"vpc/{app}"
-    else:
-        include_dir = None
+    # Find target services
+    matches = find_matching_services(env, app, service, subservice)
 
-    # Получаем сервисы по заданному фильтру
-    matches = find_matching_services(env, app, service)
-    
     if not matches:
         print("⚠️ No matching services found for destroy.")
         sys.exit(0)
 
     print("📦 Matched groups:")
     for m in matches:
-        print(f" - {build_group_name(m['env'], m['app'], m['service'])}")
+        print(f" - {build_group_name(m['env'], m['app'], m['service'], m.get('subservice'))}")
 
     # Формируем команду
-    cmd = ["terragrunt", "destroy", "--all", "--non-interactive", "-lock=false", "-auto-approve"]
-    if include_dir:
-        cmd += ["--queue-include-dir", include_dir]
-    cmd += ["--working-dir", str(working_dir)]
+    cmd = ["terragrunt", "destroy", "--all", "--non-interactive", "-lock=false", "-auto-approve", "--working-dir", str(working_dir)]
 
     print(f"\n💥 Running: {' '.join(cmd)}")
     try:

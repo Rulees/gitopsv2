@@ -1,0 +1,64 @@
+---
+- name: Create Consul data and config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /opt/consul/data
+    - /opt/consul/config
+
+# - name: Create docker network for consul
+#   docker_network:
+#     name: consul
+#     state: present
+
+- name: Register the default service
+  ansible.builtin.copy:
+    dest: /opt/consul/config/leader.json
+    content: |
+      {
+        "service": {
+          "name": "leader",
+          "tags": {{ ["role=leader"] | to_json }},
+          "port": 8500,
+          "check": {
+            "http": "http://localhost:8500/v1/agent/self",
+            "interval": "10s"
+          }
+        }
+      }
+
+- name: Run Consul server in Docker
+  ignore_errors: yes
+  docker_container:
+    name: consul_server
+    image: "hashicorp/consul:{{ consul_version }}"
+    state: started
+    restart_policy: always
+    recreate: yes
+    command: >
+      agent -server -bootstrap-expect=1
+      -ui
+      -client=0.0.0.0
+      -bind=0.0.0.0
+      -advertise={{ ansible_host }}
+      -data-dir=/consul/data
+      -config-dir=/consul/config
+    ports:
+      - "8500:8500"
+      - "8300:8300"
+      - "8301:8301"
+      - "8301:8301/udp"
+      - "8302:8302"
+      - "8302:8302/udp"
+      - "8600:8600"
+      - "8600:8600/udp"
+    volumes:
+      - /opt/consul/data:/consul/data
+      - /opt/consul/config:/consul/config
+    # networks:
+    #   - name: consul
+    network_mode: host

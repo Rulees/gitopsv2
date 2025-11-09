@@ -1,0 +1,1 @@
+consul_service_name_of_monitoring_leader: "leader" # or monitoring if monitoring is not on consul_server

@@ -1,0 +1,73 @@
+---
+- name: Create dirs/files on remote_vm
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ docker_build_path }}"
+    - "{{ secret_admin_dir }}"
+    - "{{ secret_ops_dir }}"
+    - "{{ secret_dev_dir }}"
+    - "{{ secret_prod_dir }}"
+
+- name: Ensure Postgres CA root.crt exists (download if missing or outdated)
+  get_url:
+    url: https://storage.yandexcloud.net/cloud-certs/CA.pem
+    dest: "{{ docker_build_path }}/root.crt"
+    mode: '0655'
+  delegate_to: localhost
+
+- name: Send Docker build context to remote host # {work_dir}/projects/{app}/{service}
+  synchronize:
+    src: "{{ docker_build_path }}/"
+    dest: "{{ docker_build_path }}"
+    mode: push
+    recursive: yes
+    rsync_opts:
+      - "--delete"
+      - "--exclude .terragrunt-cache"
+  delegate_to: localhost  
+
+- name: SEND SECRETS
+  block:
+      - name: DEFAULT
+        block:
+                  - name: Create env secret file
+                    copy:
+                      src: "{{ secret_env_file }}"
+                      dest: "{{ remote_env_file }}"
+                      mode: '0644'
+                      force: true
+
+
+- name: Build + Run Docker container
+  block:
+      - name: Build Docker image
+        docker_image:
+          name: "{{ image_name }}"
+          build:
+            path: "{{ docker_build_path }}"
+          source: build
+          force_source: true
+          force_tag: true  
+
+
+      - name: Launch/Relaunch Docker container
+        docker_container:
+          name: "{{ container_name }}"
+          image: "{{ image_name }}"
+          state: started
+          restart_policy: always
+          env_file: "{{ remote_env_file }}"
+          ports:
+            - 8000:8000
+          volumes:
+            - /var/log:/var/log                                                # for loki to get logs
+          recreate: yes
+          network_mode: host
+          dns_servers:
+            - 127.0.0.1
+            - 8.8.8.8
+          dns_search_domains:
+            - service.consul

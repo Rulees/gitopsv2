@@ -1,0 +1,67 @@
+# /etc/nginx/conf.d/*.conf
+server {
+    listen 80 default_server;
+    server_name ${DOMAIN};
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl default_server;
+    http2 on;
+    server_name ${DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+    root /sites/starter;
+    index src/pages/home.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+        add_header Cache-Control "public, max-age=86400"; # New way to say - allow cache
+        add_header Pragma public;                         # Old way to say - allow cache
+        add_header Vary Accept-Encoding;                  # It helps to understand(send cached version or simple version of site to client, cause of gzip or absense of gzip encrypting)
+    }
+
+    # FASTAPI_LOCATOR
+    include /opt/consul-template/output/*-upstream-location.conf;
+
+    # ADMIN-PANEL
+    location /admin {
+        root /sites/starter/src/pages;
+        try_files $uri $uri/ /admin-panel.html =404;
+    }
+
+    location /grafana/ {
+       proxy_pass http://monitoring_upstream/;
+       proxy_set_header Host $host;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # Caching static files
+    location ~* \.(js|css|gif|ico)$ {
+        expires 30d; # 1M, max, off, echoe
+        access_log off;
+        add_header Pragma public; # Old way to say - allow cache
+        add_header Cache-Control public; # New way to say - allow cache
+        add_header Vary Accept-Encoding; # It helps to understand(send cached version or simple version of site to client, cause of gzip or absense of gzip encrypting)
+    }
+}
+   
+
+
