@@ -1,5 +1,4 @@
 stages:
-  - docker_check
   - check_secrets
   - create_dev
   - deploy_dev
@@ -46,10 +45,11 @@ cache:
       if command -v apt &> /dev/null; then
           apt update && apt install -y python3 py3-pip py3-setuptools py3-wheel aws-cli docker.io
           curl -sSf https://atlasgo.sh | sh -s -- -y
-          # service docker status && service docker start && usermod -aG docker $USER && docker run hello-world && service docker status
+          docker run hello-world && docker ps -a
       elif command -v apk &> /dev/null; then
           apk --no-cache add python3 py3-pip py3-setuptools py3-wheel aws-cli docker
           curl -sSf https://atlasgo.sh | sh -s -- -y
+          docker run hello-world && docker ps -a
       else
           echo "➖➖ Поддерживаемый пакетный менеджер не найден."
           exit 1; fi
@@ -181,23 +181,12 @@ cache:
 #   rules:
 #     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
-docker_check:
-  stage: docker_check
-  image: docker:latest
-  services:
-    - docker:dind
-  script:
-    # - service docker status
-    # - service docker start
-    # - usermod -aG docker $USER
-    - docker run hello-world
-    # - service docker status
-    - docker ps -a
-
 
 create_dev:
   stage: create_dev
   image: alpine/terragrunt:tf1.13.4
+  services:
+    - name: docker:dind
   variables:
     SOPS_KEYS: "admin dev ops"
   before_script: 
@@ -219,7 +208,7 @@ deploy_dev:
   stage: deploy_dev
   image: arkselen/ci:v6
   services:
-    - name: docker:dind # to access docker
+    - name: docker:dind
   variables:
     ENV: "dev"
     SOPS_KEYS: "admin ops dev"
@@ -252,6 +241,8 @@ approve:
 create_prod:
   stage: create_prod
   image: alpine/terragrunt:tf1.13.4
+  services:
+    - name: docker:dind
   variables:
     SOPS_KEYS: "admin ops prod"
   before_script: 
@@ -271,6 +262,8 @@ create_prod:
 deploy_prod:
   stage: deploy_prod
   image: arkselen/ci:v6
+  services:
+    - name: docker:dind
   variables:
     ENV: "prod"
     SOPS_KEYS: "admin ops prod"
