@@ -1,56 +1,50 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "🔐 Проверка зашифрованных файлов: Начало проверки"
+echo "🔐 Проверка зашифрованных файлов"
 
-WORK_DIR="${WORK_DIR:-/builds/arkselen/project_gitlab_arkselen}"
-cd "$WORK_DIR"
+# Determine the target branch to compare against.
+# Use the MR target branch if available, otherwise fall back to the default branch from CI variables.
+TARGET_BRANCH="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_DEFAULT_BRANCH}"
 
-echo "ℹ️  Текущая рабочая директория: $(pwd)"
-echo "ℹ️  Список файлов в директории:"
-ls -la
+# Ensure we have the latest information for the target branch.
+git fetch origin "$TARGET_BRANCH"
 
-TARGET_BRANCH="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-main}"
-
-# Check if the target branch exists remotely
-if git ls-remote --heads origin "$TARGET_BRANCH" &>/dev/null; then
-  echo "ℹ️  Скачиваем исходную ветку: $TARGET_BRANCH"
-  git fetch origin "$TARGET_BRANCH"
-  
-  # Attempt a merge, allowing unrelated histories in case of conflicts
-  echo "ℹ️  Выполняем merge без коммита"
-  git merge --no-commit --no-ff --allow-unrelated-histories "origin/$TARGET_BRANCH" || true
-else
-  echo "⚠️  Целевая ветка $TARGET_BRANCH не найдена в удаленном репозитории. Пропускаем merge."
+# If in a merge request context, simulate the merge to get the most accurate diff.
+if [[ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ]]; then
+  git merge --no-commit --no-ff "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" || true
 fi
 
-# Find changed files
-echo "ℹ️  Вычисляем изменённые файлы"
-FILES=$(git diff --name-only "${TARGET_BRANCH:-$CI_COMMIT_BEFORE_SHA}" HEAD | grep -E '^secrets/|scripts/send_vars_to_gitlab.sh' || true)
+# Find all changed files by comparing the current commit against the merge base of the target branch.
+# This correctly identifies all changes in the feature branch.
+MERGE_BASE=$(git merge-base "origin/$TARGET_BRANCH" "$CI_COMMIT_SHA")
+FILES=$(git diff --name-only "$MERGE_BASE" "$CI_COMMIT_SHA" | grep -E '^secrets/|scripts/send_vars_to_gitlab.sh' || true)
 
-echo "ℹ️  Найденные файлы: $FILES"
+echo "🎯 Comparing against branch: $TARGET_BRANCH"
+echo "🔍 Found merge base: $MERGE_BASE"
+echo "📄 Checking the following files for encryption:"
+echo "$FILES"
+
+if [ -z "$FILES" ]; then
+    echo "✅ No secrets modified in this push. Skipping check."
+    exit 0
+fi
+
 has_errors=0
 
 for file in $FILES; do
-  echo "ℹ️  Проверяем файл: $file"
-  [[ ! -f "$file" || "$file" == *.gitkeep || "$(basename "$file")" == "README.md" ]] && {
-    echo "ℹ️  Пропускаем файл: $file"
-    continue
-  }
+  [[ ! -f "$file" || "$file" == *.gitkeep || "$(basename "$file")" == "README.md" ]] && continue
 
-  echo "ℹ️  Получаем статус SOPS для файла: $file"
   status=$(sops filestatus "$file" 2>/dev/null || echo '{"encrypted":false}')
-  echo "ℹ️  Статус файла: $status"
-  
   [[ "$(echo "$status" | jq -r '.encrypted')" != "true" ]] && {
-    echo "❌ $file НЕ зашифрован"
+    echo "❌ ERROR: $file is NOT encrypted!"
     has_errors=1
   }
 done
 
 if (( has_errors == 0 )); then
-  echo "✅ Все секреты зашифрованы корректно."
+    echo "✅ All modified secrets are correctly encrypted."
 else
-  echo "🛑 Найдены НЕзашифрованные секреты!"
+    echo "🛑 CRITICAL: Unencrypted secrets found! The pipeline will fail."
   exit 1
 fi
