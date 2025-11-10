@@ -1,6 +1,6 @@
-# workflow:
-#   auto_cancel:
-#     on_new_commit: interruptible
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
 
 stages:
   - check_secrets
