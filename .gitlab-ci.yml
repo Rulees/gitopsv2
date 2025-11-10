@@ -17,7 +17,7 @@ variables:
   TF_PLUGIN_CACHE_DIR: "$CI_PROJECT_DIR/plugin-cache"
   TG_PARALLELISM: 10
 
-
+##
 cache:
   key: pluginsv6
   paths:
