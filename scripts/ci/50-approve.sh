@@ -18,15 +18,33 @@ API_URL="${CI_API_V4_URL}"
 PROJECT_ID="${CI_PROJECT_ID}"
 COMMIT_SHA="${CI_COMMIT_SHA}"
 TARGET_BRANCH="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
+MR_IID="${CI_MERGE_REQUEST_IID}"
 
-# === Получаем MR ===
+if [ -z "$MR_IID" ]; then
+  echo "❌ CI_MERGE_REQUEST_IID не установлен (не MR-пайплайн)."
+  exit 1
+fi
+
+# === Получаем MR напрямую по IID (устранение проблемы с несколькими коммитами) ===
 MR_INFO=$(curl --silent --request GET \
   --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-  "${API_URL}/projects/${PROJECT_ID}/merge_requests" \
-  | jq -c ".[] | select(.sha == \"${COMMIT_SHA}\" and .state == \"opened\" and .target_branch == \"${TARGET_BRANCH}\")")
+  "${API_URL}/projects/${PROJECT_ID}/merge_requests/${MR_IID}")
 
-if [ -z "$MR_INFO" ]; then
-  echo "❌ Merge Request не найден."
+if [ -z "$MR_INFO" ] || [ "$(echo "$MR_INFO" | jq -r '.iid')" = "null" ]; then
+  echo "❌ Merge Request не найден по IID=${MR_IID}."
+  exit 1
+fi
+
+MR_STATE=$(echo "$MR_INFO" | jq -r '.state')
+MR_TARGET_BRANCH=$(echo "$MR_INFO" | jq -r '.target_branch')
+
+if [ "$MR_STATE" != "opened" ]; then
+  echo "❌ MR не в состоянии 'opened' (state=$MR_STATE)."
+  exit 1
+fi
+
+if [ -n "$TARGET_BRANCH" ] && [ "$MR_TARGET_BRANCH" != "$TARGET_BRANCH" ]; then
+  echo "❌ Целевая ветка MR (${MR_TARGET_BRANCH}) != ожидалась (${TARGET_BRANCH})."
   exit 1
 fi
 
