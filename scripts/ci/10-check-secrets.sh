@@ -1,62 +1,46 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "🔐 Проверка зашифрованных файлов"
+echo "🔐 Проверка зашифрованных файлов: Начало проверки"
 
-# Detect mode (MR vs push)
-IS_MR=false
-if [[ -n "${CI_MERGE_REQUEST_IID:-}" ]]; then
-  IS_MR=true
+WORK_DIR="${WORK_DIR:-/path/to/your/workdir}"
+cd "$WORK_DIR"
+
+echo "ℹ️  Текущая рабочая директория: $(pwd)"
+echo "ℹ️  Список файлов в директории:"
+ls -la
+
+# Если в MR — симулируем merge
+if [[ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ]]; then
+  echo "ℹ️  Скачиваем исходную ветку: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+  git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+  echo "ℹ️  Выполняем merge без коммита"
+  git merge --no-commit --no-ff "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" || true
 fi
 
-FILES=""
+# Находим изменённые файлы
+echo "ℹ️  Вычисляем изменённые файлы"
+FILES=$(git diff --name-only "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_COMMIT_BEFORE_SHA}" "$CI_COMMIT_SHA" | grep -E '^secrets/|scripts/send_vars_to_gitlab.sh' || true)
 
-if $IS_MR; then
-  # Prefer GitLab-provided diff base if available
-  if [[ -n "${CI_MERGE_REQUEST_DIFF_BASE_SHA:-}" ]]; then
-    BASE="${CI_MERGE_REQUEST_DIFF_BASE_SHA}"
-    echo "ℹ️ MR mode. Using CI_MERGE_REQUEST_DIFF_BASE_SHA=${BASE}"
-    FILES=$(git diff --name-only "$BASE" "$CI_COMMIT_SHA" | grep -E '^(secrets/|scripts/send_vars_to_gitlab\.sh)$' || true)
-  else
-    # Fallback: fetch full target branch history and use three-dot
-    TARGET="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
-    echo "ℹ️ MR mode. Fetching full target branch origin/$TARGET"
-    git fetch origin "$TARGET" --depth=0
-    FILES=$(git diff --name-only "origin/$TARGET...$CI_COMMIT_SHA" | grep -E '^(secrets/|scripts/send_vars_to_gitlab\.sh)$' || true)
-  fi
-else
-  # Push pipeline
-  BEFORE="${CI_COMMIT_BEFORE_SHA:-}"
-  if [[ "$BEFORE" == "0000000000000000000000000000000000000000" || -z "$BEFORE" ]]; then
-    echo "ℹ️ First commit or unknown previous commit. Using single commit file list."
-    FILES=$(git show --name-only --pretty=format: "$CI_COMMIT_SHA" | grep -E '^(secrets/|scripts/send_vars_to_gitlab\.sh)$' || true)
-  else
-    echo "ℹ️ Push mode. Diffing $BEFORE..$CI_COMMIT_SHA"
-    FILES=$(git diff --name-only "$BEFORE" "$CI_COMMIT_SHA" | grep -E '^(secrets/|scripts/send_vars_to_gitlab\.sh)$' || true)
-  fi
-fi
-
-if [[ -z "$FILES" ]]; then
-  echo "ℹ️ Нет изменённых секретных файлов."
-  echo "✅ Все секреты зашифрованы корректно."
-  exit 0
-fi
-
+echo "ℹ️  Найденные файлы: $FILES"
 has_errors=0
 
-while IFS= read -r file; do
-  [[ -z "$file" ]] && continue
-  [[ ! -f "$file" ]] && continue
-  [[ "$file" == *.gitkeep ]] && continue
-  [[ "$(basename "$file")" == "README.md" ]] && continue
+for file in $FILES; do
+  echo "ℹ️  Проверяем файл: $file"
+  [[ ! -f "$file" || "$file" == *.gitkeep || "$(basename "$file")" == "README.md" ]] && {
+    echo "ℹ️  Пропускаем файл: $file"
+    continue
+  }
 
+  echo "ℹ️  Получаем статус SOPS для файла: $file"
   status=$(sops filestatus "$file" 2>/dev/null || echo '{"encrypted":false}')
-  enc=$(echo "$status" | jq -r '.encrypted')
-  if [[ "$enc" != "true" ]]; then
+  echo "ℹ️  Статус файла: $status"
+  
+  [[ "$(echo "$status" | jq -r '.encrypted')" != "true" ]] && {
     echo "❌ $file НЕ зашифрован"
     has_errors=1
-  fi
-done <<< "$FILES"
+  }
+done
 
 if (( has_errors == 0 )); then
   echo "✅ Все секреты зашифрованы корректно."
