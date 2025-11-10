@@ -190,56 +190,56 @@ cache:
     - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | tail -c 17)"
     
 
-# check_secrets:
-#   stage: check_secrets
-#   image: frolvlad/alpine-bash
-#   interruptible: true
-#   before_script: 
-#     - !reference [.install_default_deps, before_script]
-#   script:
-#     - make check_secrets
-#   rules:
-#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+check_secrets:
+  stage: check_secrets
+  image: frolvlad/alpine-bash
+  interruptible: true
+  before_script: 
+    - !reference [.install_default_deps, before_script]
+  script:
+    - make check_secrets
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
-# create_dev:
-#   stage: create_dev
-#   image: alpine/terragrunt:tf1.13.4
-#   interruptible: true
-#   services:
-#     - name: docker:dind
-#   variables:
-#     SOPS_KEYS: "admin dev ops"
-#   before_script: 
-#     - !reference [.install_default_deps, before_script]
-#   script:
-#     - !reference [.terragrunt_config, script]
-#     - |
-#       terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
-#                        --filter='/**/infra*/dev/**/home/**'                                                             \
-#                     #  --filter="[HEAD^1]" 
-#   needs: [check_secrets]
-#   rules:
-#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+create_dev:
+  stage: create_dev
+  image: alpine/terragrunt:tf1.13.4
+  interruptible: true
+  services:
+    - name: docker:dind
+  variables:
+    SOPS_KEYS: "admin dev ops"
+  before_script: 
+    - !reference [.install_default_deps, before_script]
+  script:
+    - !reference [.terragrunt_config, script]
+    - |
+      terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
+                       --filter='/**/infra*/dev/**/home/**'                                                             \
+                    #  --filter="[HEAD^1]" 
+  needs: [check_secrets]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
 
 
-# deploy_dev:
-#   stage: deploy_dev
-#   image: arkselen/ci:v6
-#   interruptible: true
-#   services:
-#     - name: docker:dind
-#   variables:
-#     ENV: "dev"
-#     SOPS_KEYS: "admin ops dev"
-#   script:
-#     - !reference [.ansible_config, script]
-#     - make deploy ENV=dev APP=home
-#   needs: [create_dev]
-#   rules:
-#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+deploy_dev:
+  stage: deploy_dev
+  image: arkselen/ci:v6
+  interruptible: true
+  services:
+    - name: docker:dind
+  variables:
+    ENV: "dev"
+    SOPS_KEYS: "admin ops dev"
+  script:
+    - !reference [.ansible_config, script]
+    - make deploy ENV=dev APP=home
+  needs: [create_dev]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
 
@@ -251,9 +251,8 @@ approve:
   before_script: 
     - !reference [.install_default_deps, before_script]
   script:
-    - echo $CI_MERGE_REQUEST_IID
     - make approve
-  # needs: [deploy_dev]
+  needs: [deploy_dev]
   # when: manual
   allow_failure: false
   rules:
