@@ -4,29 +4,28 @@ set -euo pipefail
 echo "🔐 Проверка зашифрованных файлов"
 
 # Determine the target branch to compare against.
-# Use the MR target branch if available, otherwise fall back to the default branch from CI variables.
+# Use the MR target branch if available, otherwise fall back to the default branch.
 TARGET_BRANCH="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_DEFAULT_BRANCH}"
 
-# Ensure we have the latest information for the target branch.
-git fetch origin "$TARGET_BRANCH"
+echo "🎯 Comparing against target branch: $TARGET_BRANCH"
 
-# If in a merge request context, simulate the merge to get the most accurate diff.
-if [[ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ]]; then
-  git merge --no-commit --no-ff "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" || true
-fi
+# Ensure we have the latest data for the remote branches.
+git fetch origin
 
-# Find all changed files by comparing the current commit against the merge base of the target branch.
-# This correctly identifies all changes in the feature branch.
+# Find the common ancestor between the current commit and the target branch.
+# This is the most reliable way to find the "fork point" of a feature branch.
 MERGE_BASE=$(git merge-base "origin/$TARGET_BRANCH" "$CI_COMMIT_SHA")
-FILES=$(git diff --name-only "$MERGE_BASE" "$CI_COMMIT_SHA" | grep -E '^secrets/|scripts/send_vars_to_gitlab.sh' || true)
 
-echo "🎯 Comparing against branch: $TARGET_BRANCH"
-echo "🔍 Found merge base: $MERGE_BASE"
-echo "📄 Checking the following files for encryption:"
+echo "🔍 Found merge base commit: $MERGE_BASE"
+
+# Get the list of modified files between the merge base and the current commit.
+FILES=$(git diff --name-only "$MERGE_BASE" "$CI_COMMIT_SHA" -- | grep -E '^secrets/|scripts/send_vars_to_gitlab.sh' || true)
+
+echo "📄 Checking the following modified secret files:"
 echo "$FILES"
 
 if [ -z "$FILES" ]; then
-    echo "✅ No secrets modified in this push. Skipping check."
+    echo "✅ No secrets modified. Skipping check."
     exit 0
 fi
 
