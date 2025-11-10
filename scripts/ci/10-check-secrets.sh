@@ -5,6 +5,7 @@ echo "🔐 Проверка зашифрованных файлов с искл�
 
 # Determine the target branch to compare against.
 # Use the MR target branch if available, otherwise fall back to the default branch.
+SOURCE_BRANCH="$CI_COMMIT_BRANCH"
 TARGET_BRANCH="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_DEFAULT_BRANCH}"
 
 echo "↔️  Comparing source branch: '$CI_COMMIT_BRANCH' against target branch: '$TARGET_BRANCH'"
