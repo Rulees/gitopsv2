@@ -5,7 +5,13 @@ echo "🔐 Проверка зашифрованных файлов с искл�
 
 # Determine the target branch to compare against.
 # Use the MR target branch if available, otherwise fall back to the default branch.
-SOURCE_BRANCH="$CI_COMMIT_BRANCH"
+if [ -n "${CI_COMMIT_REF_NAME-}" ]; then
+  SOURCE_BRANCH="$CI_COMMIT_REF_NAME"
+  echo "ℹ️ Running in CI. Source determined as: $SOURCE_BRANCH"
+else
+  SOURCE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  echo "ℹ️ Running locally. Source determined as: $SOURCE_BRANCH"
+fi
 TARGET_BRANCH="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_DEFAULT_BRANCH}"
 
 echo "↔️  Comparing source branch: '$SOURCE_BRANCH' against target branch: '$TARGET_BRANCH'"
