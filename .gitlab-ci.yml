@@ -194,6 +194,8 @@ check_secrets:
   stage: check_secrets
   image: frolvlad/alpine-bash
   interruptible: true
+  variables:
+    GIT_DEPTH: 0
   before_script: 
     - !reference [.install_default_deps, before_script]
   script:
