@@ -8,7 +8,7 @@ echo "🔐 Проверка зашифрованных файлов с искл�
 SOURCE_BRANCH="$CI_COMMIT_BRANCH"
 TARGET_BRANCH="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_DEFAULT_BRANCH}"
 
-echo "↔️  Comparing source branch: '$CI_COMMIT_BRANCH' against target branch: '$TARGET_BRANCH'"
+echo "↔️  Comparing source branch: '$SOURCE_BRANCH' against target branch: '$TARGET_BRANCH'"
 
 # Ensure we have the latest data for the remote branches.
 git fetch origin
