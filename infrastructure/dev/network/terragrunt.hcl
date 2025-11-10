@@ -11,6 +11,6 @@ include "root" {
 
 
 inputs = {
-  env  = include.root.locals.env_vars.locals.env
-  zone = include.root.locals.env_vars.locals.zone
+  env          = include.root.locals.env_vars.locals.env
+  zone         = include.root.locals.env_vars.locals.zone
 }

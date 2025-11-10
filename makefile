@@ -1,6 +1,7 @@
 ENV ?=
 APP ?=
 SERVICE ?=
+SUBSERVICE ?=
 
 .PHONY: check_secrets decrypt_secrets create deploy approve destroy
 
@@ -22,3 +23,13 @@ approve:
 destroy:
 	python3 scripts/ci/60-destroy.py $(ENV) $(APP) $(SERVICE)
 
+
+
+add_tag_deploy_status:
+	python3 scripts/ci/add_tag_deploy_status.py "$(WORK_DIR)/successful_hosts.txt"
+
+mark_all_instances_false:
+	python3 scripts/ci/mark_all_instances_false.py
+
+write_terragrunt_output_secrets_to_files:
+	python3 scripts/ci/write_terragrunt_output_secrets_to_files.py

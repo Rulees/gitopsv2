@@ -59,3 +59,15 @@
 **/*__pycache__
 
 **/changed_services.json
+
+**/frontend/build/**/*
+**/nginx/build/**/*
+
+**/*.cache/**/*
+
+# **/root.crt
+
+**/node_modules
+
+.editorconfig
+.prettierignore

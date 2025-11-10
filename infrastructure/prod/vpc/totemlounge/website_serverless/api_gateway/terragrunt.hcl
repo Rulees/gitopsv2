@@ -54,7 +54,7 @@ inputs = {
   network_id         = dependency.network.outputs.vpc_id
   service_account_id = dependency.sa_api_gateway_editor.outputs.sa_id
   container_id       = dependency.serverless_container.outputs.container_id
-  dns_zone_id        = "dnsdejjcevumag5r1q11"
+  dns_zone_id        = "dnsdghfje6n679tplso0"
 
   # RESOURCES
   api_gateway_name   = "api-gateway"
@@ -62,10 +62,10 @@ inputs = {
   custom_domains = [
     {
       fqdn           = "serverless.arkselen.ru"
-      certificate_id = "fpq0nme335e6m2qatta6"
+      certificate_id = "fpq82j0a9t28aealltc8"
     },
     # {
     #   fqdn           = "gtgt.arkselen.ru"
-    #   certificate_id = "fpq0nme335e6m2qatta6"
+    #   certificate_id = "fpq82j0a9t28aealltc8"
     # }
 ]}

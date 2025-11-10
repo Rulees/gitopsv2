@@ -36,14 +36,9 @@ locals {
   env             = include.root.locals.env_vars.locals.env
   zone            = include.root.locals.env_vars.locals.zone
   work_dir        = include.root.locals.work_dir
-  app             = "${basename(dirname(get_terragrunt_dir()))}"
-  service         = "${basename(get_terragrunt_dir())}"
-
-  # Labels
-  env_labels      = include.root.locals.env_vars.locals.env_labels
-  app_labels      = {app = local.app}
-  service_labels  = {service = local.service}
-  labels          = merge(local.env_labels, local.app_labels, local.service_labels)
+  app             = include.root.locals.app
+  service         = include.root.locals.service
+  labels          = merge({env = local.env}, {app = include.root.locals.app}, {service = include.root.locals.service}, length(include.root.locals.subservice) > 0 ? { subservice = include.root.locals.subservice } : {})
 }
 
 

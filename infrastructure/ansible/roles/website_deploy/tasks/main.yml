@@ -1,6 +1,4 @@
 ---
-
-
   # - debug:
   #     var: work_dir
   
@@ -15,6 +13,8 @@
     - "{{ secret_ops_dir }}"
     - "{{ secret_dev_dir }}"
     - "{{ secret_prod_dir }}"
+    - "{{ nginx_logs_dir }}"
+
 
 - name: Send Docker build context to remote host # {work_dir}/projects/{app}/{service}
   synchronize:
@@ -24,6 +24,10 @@
     recursive: yes
     rsync_opts:
       - "--delete"
+      - "--exclude .terragrunt-cache"
+      # - "-vvv"
+      # - "--progress"
+      # - "--stats"
   delegate_to: localhost  
 
 - name: SEND SECRETS
@@ -86,4 +90,6 @@
             - 443:443
           volumes:
             - "{{ sa_certificate_key_file }}:{{ sa_certificate_key_file }}:ro" # remote vm > remote container
+            - /opt/consul-template/output:/opt/consul-template/output
+            - /var/log:/var/log                                                # for loki to get logs
           recreate: yes

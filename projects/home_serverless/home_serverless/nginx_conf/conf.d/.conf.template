@@ -1,0 +1,25 @@
+# /etc/nginx/conf.d/*.conf
+server {
+    listen ${PORT};
+    server_name _;
+
+
+    root /sites/starter;
+    index src/pages/home.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+        #add_header Cache-Control "public, max-age=86400"; # New way to say - allow cache
+        #add_header Pragma public;                         # Old way to say - allow cache
+        #add_header Vary Accept-Encoding;                  # It helps to understand(send cached version or simple version of site to client, cause of gzip or absense of gzip encrypting)
+    }
+
+    location ~* \.(js|css|html|json|svg|woff2?|ttf|eot|otf)$ {
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
+    }
+}
+   
+
+

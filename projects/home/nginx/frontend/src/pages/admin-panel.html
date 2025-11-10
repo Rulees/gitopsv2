@@ -1,0 +1,103 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <style>
+      body {
+        visibility: hidden;
+      }
+    </style>
+    <meta charset="UTF-8" />
+    <title>Captain Application</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="/projects/home/nginx/frontend/src/styles/admin-panel.css" />
+    <link rel="icon" type="image/x-icon" href="/projects/home/nginx/frontend/public/favicon.ico" />
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="box head">ADMIN PANEL</header>
+      <nav class="box nav">
+        <ul>
+          <li><a href="">Attach CSV File</a></li>
+          <li><a href="">Attach Images</a></li>
+          <li><a href="">Add One Object</a></li>
+          <li><a href="">Look at Tables</a></li>
+        </ul>
+      </nav>
+    </div>
+    <script src="/projects/home/nginx/frontend/src/features/fouc.js"></script>
+  </body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ship Logo with GSAP Effects</title>
+    <style>
+      body {
+        background: #0d1b2a;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      svg {
+        width: 300px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <svg id="shipLogo" viewBox="0 0 200 200">
+      <!-- Корабль -->
+      <g class="ship">
+        <polygon points="100,60 120,110 80,110" fill="#eeeeee" />
+        <rect x="95" y="40" width="10" height="20" fill="#dddddd" />
+      </g>
+
+      <!-- Волны -->
+      <path id="wave" d="M50 140 Q75 135 100 140 T150 140" stroke="#00bcd4" fill="none" stroke-width="3" />
+
+      <!-- Брызги -->
+      <circle class="splash" cx="90" cy="125" r="2" fill="#00bcd4" />
+      <circle class="splash" cx="110" cy="122" r="2" fill="#00bcd4" />
+      <circle class="splash" cx="100" cy="120" r="3" fill="#00bcd4" />
+    </svg>
+
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+      const ship = document.getElementById("shipLogo");
+      const splashes = document.querySelectorAll(".splash");
+      const wave = document.getElementById("wave");
+
+      // Timeline для анимации
+      const tl = gsap.timeline({ paused: true });
+
+      tl.to(wave, {
+        duration: 0.4,
+        y: -5,
+        ease: "sine.inOut",
+      });
+
+      tl.to(
+        splashes,
+        {
+          duration: 0.6,
+          scale: 2,
+          opacity: 0,
+          ease: "power2.out",
+          stagger: 0.05,
+        },
+        0
+      ); // start at same time as wave
+
+      // Ховер
+      ship.addEventListener("mouseenter", () => {
+        tl.restart();
+      });
+    </script>
+  </body>
+</html>

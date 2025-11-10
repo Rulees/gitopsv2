@@ -6,9 +6,10 @@
 if command -v sops >/dev/null 2>&1; then
   echo "✅ SOPS уже установлен: $(sops -v)"
 else
-  SOPS_LATEST_VERSION=$(curl -s "https://api.github.com/repos/getsops/sops/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
-  curl -s -LO "https://github.com/getsops/sops/releases/download/v${SOPS_LATEST_VERSION}/sops-v${SOPS_LATEST_VERSION}.linux.amd64"
-  mv "sops-v${SOPS_LATEST_VERSION}.linux.amd64" /usr/local/bin/sops
+  SOPS_VERSION="3.10.2"
+  # SOPS_LATEST_VERSION=$(curl -s "https://api.github.com/repos/getsops/sops/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')   # breaking changes
+  curl -s -LO "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops-v${SOPS_VERSION}.linux.amd64"
+  mv "sops-v${SOPS_VERSION}.linux.amd64" /usr/local/bin/sops
   chmod +x /usr/local/bin/sops
   echo "✅ Установили SOPS $(sops -v)"
 fi

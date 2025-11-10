@@ -19,9 +19,14 @@ resource "yandex_compute_instance" "this" {
     disk_id = yandex_compute_disk.boot-disk-1.id
   }
 
-  
+  labels = {
+    env     = "dev"
+    app     = "loadbalance"
+    service = "fastapi"
+  }
+
   network_interface {
-    subnet_id = "e9bfgc27v0b7pgnac64f"
+    subnet_id = "e9bjj94ga8hfaoovej4d"
     ip_address = "10.10.1.10"
     nat = true
   }
@@ -31,7 +36,8 @@ resource "yandex_compute_instance" "this" {
   metadata = {
     user-data = templatefile("cloud-init.yml", {
       username = "melnikov"
-      ssh_key = file("/root/.ssh/YC.pub")
+      # ssh_key = file("/root/.ssh/YC.pub")
+      ssh_key = file("/root/project_gitlab/secrets/admin/yc_ssh_key.pub")
     })
   }
 }

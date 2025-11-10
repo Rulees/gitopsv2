@@ -1,0 +1,96 @@
+---
+- name: Create Consul data and config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /opt/consul/config
+    - /opt/consul/data
+
+- name: Write service registration config
+  copy:
+    dest: /opt/consul/config/{{ consul_service_name }}.json
+    content: |
+      {
+        "service": {
+          "name": "{{ consul_service_name }}",
+          "tags": {{ consul_service_tags | to_json }},
+          "port": {{ consul_service_port }},
+          "check": {
+            "http": "{{ consul_check_http }}",
+            "interval": "{{ consul_check_interval }}"
+          }
+        }
+      }
+
+
+- name: Set Consul server IP
+  set_fact:
+    consul_server_ip: "{{ hostvars[groups[consul_server_group][0]].ansible_host }}"
+  when:
+    - consul_server_group is defined
+    - groups[consul_server_group] is defined
+    - groups[consul_server_group] | length > 0
+
+
+- name: Wait for Consul server leader election
+  uri:
+    url: "http://{{ consul_server_ip }}:8500/v1/status/leader"
+    method: GET
+  register: consul_leader
+  until: consul_leader.status == 200 and consul_leader.json != ""
+  retries: 130 
+  delay: 5
+
+- name: Check if host is consul_server
+  block:
+      - name: 1. Check for consul_server marker file (leader.json)
+        stat:
+          path: /opt/consul/config/leader.json
+        register: leader_file_status
+
+      - name: 2. Set fact if host is a Consul Server
+        set_fact:
+          is_consul_server: "{{ leader_file_status.stat.exists }}"
+  
+- name: Force Consul Server to reload config via Local API      # we already now that consul_server is local!
+  when: is_consul_server
+  uri:
+    url: "http://127.0.0.1:8500/v1/agent/reload"
+    method: PUT
+    status_code: 200
+    validate_certs: false
+  ignore_errors: yes
+
+
+- name: Run consul_client, if server isn't already consul_server. # Condition is necessary to register server where monitroing is applied as monitoring.service.consul and to avoid installing both consul_server/client(conflicts)
+  when: not is_consul_server
+  block:
+
+      - name: Run Consul agent (client) in Docker
+        docker_container:
+          name: consul_client
+          image: hashicorp/consul:{{ consul_version }}
+          state: started
+          restart_policy: always
+          recreate: yes
+          command: >
+            agent -client=0.0.0.0
+            -bind=0.0.0.0
+            -advertise={{ hostvars[inventory_hostname].ansible_default_ipv4.address }}
+            -retry-join={{ consul_server_ip }}
+            -data-dir=/consul/data
+            -config-dir=/consul/config
+          volumes:
+            - /opt/consul/config:/consul/config
+            - /opt/consul/data:/consul/data
+          ports:
+            - "8500:8500"
+            - "8600:8600"
+            - "8600:8600/udp"
+            - "8301:8301"
+            - "8301:8301/udp"
+          network_mode: host
