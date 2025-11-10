@@ -1,3 +1,6 @@
+# cd ~/project_gitlab && find scripts/ -type f -exec sops --decrypt --in-place {} \;
+# cd ~/project_gitlab && find secrets/ -type f -exec sops --decrypt --in-place {} \;
+
 # 1) Order of rules goes from top to bottom.
 # 2) Also rules has to be specific, not general, cause only first rule matching
 # 3) .sops.yaml has to be inside root folder of your project
