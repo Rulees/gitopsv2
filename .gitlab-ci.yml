@@ -1,3 +1,7 @@
+# workflow:
+#   auto_cancel:
+#     on_new_commit: interruptible
+
 stages:
   - check_secrets
   - create_dev
@@ -11,7 +15,7 @@ stages:
 variables:
   WORK_DIR: "$CI_PROJECT_DIR"
   TF_PLUGIN_CACHE_DIR: "$CI_PROJECT_DIR/plugin-cache"
-  TG_PARALLELISM: 20
+  TG_PARALLELISM: 10
 
 
 cache:
@@ -100,7 +104,7 @@ cache:
     ##
 
     - mkdir -p $TF_PLUGIN_CACHE_DIR
-    - terragrunt run --all providers mirror $TF_PLUGIN_CACHE_DIR --working-dir="${WORK_DIR}/infrastructure/dev/network" # APPLY ONLY ONCE TO CREATE CACHE(only successuful job is counted), THEN COMMENT OUT!
+    # - terragrunt run --all providers mirror $TF_PLUGIN_CACHE_DIR --working-dir="${WORK_DIR}/infrastructure/dev/network" # APPLY ONLY ONCE TO CREATE CACHE(only successuful job is counted), THEN COMMENT OUT!
     - ls -la $TF_PLUGIN_CACHE_DIR/registry.terraform.io
 
     ##
@@ -191,20 +195,22 @@ cache:
     - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | tail -c 17)"
     
 
-# check_secrets:
-#   stage: check_secrets
-#   image: frolvlad/alpine-bash
-#   before_script: 
-#     - !reference [.install_default_deps, before_script]
-#   script:
-#     - make check_secrets
-#   rules:
-#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+check_secrets:
+  stage: check_secrets
+  image: frolvlad/alpine-bash
+  interruptible: true
+  before_script: 
+    - !reference [.install_default_deps, before_script]
+  script:
+    - make check_secrets
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
 create_dev:
   stage: create_dev
   image: alpine/terragrunt:tf1.13.4
+  interruptible: true
   services:
     - name: docker:dind
   variables:
@@ -227,6 +233,7 @@ create_dev:
 deploy_dev:
   stage: deploy_dev
   image: arkselen/ci:v6
+  interruptible: true
   services:
     - name: docker:dind
   variables:
@@ -245,6 +252,7 @@ deploy_dev:
 approve:
   stage: approve
   image: frolvlad/alpine-bash
+  interruptible: true
   before_script: 
     - !reference [.install_default_deps, before_script]
   script:
