@@ -61,10 +61,6 @@
 2. If you need to change .env with secrets for your app you need to get sops-private-key from admin. You can decrypt secrets with command: cd ~/project_gitlab && find secrets/ -type f -exec sops --decrypt --in-place {} \; . Then do not forget to encrypt it with command cd ~/project_gitlab && find secrets/ -type f -exec sops --encrypt --in-place {} \;
    . Without encrypting pipiline fails. Example for installation "sops" stored inside /scripts/ci/20-decrypt-secrets.sh
 
-# Errors
-
-For now if several commits happens at once, then approve stage will fail
-
 # NEXT STAGE
 
 1. We have autoscale with IG for every service. and service can talk with each other by nginx /location to upstreams with these services or talk by consul dns without nginx.
