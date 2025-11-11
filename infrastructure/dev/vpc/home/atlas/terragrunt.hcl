@@ -3,9 +3,8 @@ terraform {
 
   before_hook "copy_root_crt" {
     commands = ["init", "plan", "apply"]
-    execute  = ["bash", "-c", "cp ${get_repo_root()}/secrets/not_secrets/root.crt ${get_terragrunt_dir()}/root.crt"]
+    execute  = ["bash", "-c", "cp ${get_repo_root()}/secrets/not_secrets/root.crt /tmp/root.crt"]
   }
-
 }
 
 include "root" {
@@ -27,16 +26,10 @@ dependency "postgresql" {
   }
 }
 
-generate "root_crt" {
-  path      = "root.crt"
-  if_exists = "overwrite"
-  contents  = file("${dirname(find_in_parent_folders("root.hcl"))}/secrets/not_secrets/root.crt")
-}
-
 inputs = {
   # MAIN
   dev_url               = "docker://postgres/17/test"                                                                                                       # docker://db_engine/db_version/db_name
-  url                   = "${dependency.postgresql.outputs.db_engine}://${dependency.postgresql.outputs.db_login}:${dependency.postgresql.outputs.db_password}@${dependency.postgresql.outputs.cluster_master_fqdn}:${dependency.postgresql.outputs.db_port}/${dependency.postgresql.outputs.db_name}?sslmode=verify-full&sslrootcert=${get_terragrunt_dir()}/root.crt"
+  url                   = "${dependency.postgresql.outputs.db_engine}://${dependency.postgresql.outputs.db_login}:${dependency.postgresql.outputs.db_password}@${dependency.postgresql.outputs.cluster_master_fqdn}:${dependency.postgresql.outputs.db_port}/${dependency.postgresql.outputs.db_name}?sslmode=verify-full&sslrootcert=/tmp/root.crt"
   src                   = file("${get_terragrunt_dir()}/schema.pg.hcl")
   concurrent_index = {
     create              = true
