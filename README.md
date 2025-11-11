@@ -68,3 +68,5 @@
 3. DATABASE postgresql + atlas for creating schema + service to work with this db +
 
 monitoring + logs with grafana prometheus loki vmagent nodexporter
+
+#
