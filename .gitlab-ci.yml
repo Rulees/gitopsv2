@@ -238,7 +238,7 @@ deploy_dev:
     SOPS_KEYS: "admin ops dev"
   script:
     - !reference [.ansible_config, script]
-    - make deploy ENV=dev APP=home SERVICE=xxx
+    - make deploy FILTER="ENV=dev APP=home"
     # - make deploy FILTER="ENV=dev APP=home  &&  ENV=dev APP=home SERVICE=service_database SUBSERVICE=trigger_ansible_playbook"
 
   needs: [create_dev]
