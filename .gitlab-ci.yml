@@ -218,7 +218,7 @@ create_dev:
     - !reference [.terragrunt_config, script]
     - |
       terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
-                       --filter='/**/infra*/dev/**/home/**'                                                             \
+                       --filter='/**/infra*/dev/**/home/atlas'                                                          \
                     #  --filter="[HEAD^1]" 
   needs: [check_secrets]
   rules:
