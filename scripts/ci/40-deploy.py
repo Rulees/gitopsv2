@@ -147,6 +147,7 @@ async def run_ansible_playbook(m, limit_group, playbook, deploy_status=None, sta
     
     return proc.returncode, ""
 
+
 async def run_playbook(m, processed_playbooks, level=0, deploy_status=None, start_at_task=None):
     indent = "  " * level
     
@@ -181,7 +182,6 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None, star
         else:
             limit_group = full_service_name
     
-    
     playbook_key = str(playbook.resolve())
     if playbook_key in processed_playbooks:
         return 0
@@ -192,7 +192,7 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None, star
         return 0
 
     print_deploy_info(full_service_name, playbook, limit_group, infra_source_raw, indent)
-
+    
     # Извлекаем зависимости
     dependencies = extract_dependencies(playbook)
     background_tasks = []
@@ -236,7 +236,7 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None, star
             await run_playbook(dep, processed_playbooks, level + 1, deploy_status=deploy_status, start_at_task=start_at_task)
 
     returncode, output = await run_ansible_playbook(m, limit_group, playbook, deploy_status=deploy_status, start_at_task=start_at_task)
-
+    
     status = "SUCCESS" if returncode == 0 else "FAILED"
     status_display = {
         "SUCCESS": "\033[92m✔️✔️✔️✔️✔️✔️✔️✔️✔️✔️ SUCCESS\033[0m",
@@ -257,6 +257,39 @@ async def run_playbook(m, processed_playbooks, level=0, deploy_status=None, star
 
     return returncode
 
+# === FILTER parsing ===
+def parse_filter_specs(filter_str):
+    """
+    FILTER format:
+      "ENV=dev APP=home SERVICE=fastapi  &&  ENV=dev APP=otherapp  &&  ENV=prod  &&  ENV=dev APP=trgr SERVICE=gtege"
+    Delimiter: '&&'
+    Returns list of spec dicts: {'env':..., 'app':..., 'service':..., 'subservice':...?, 'specific': bool}
+    'specific' True если указан service или subservice.
+    """
+    specs_raw = [p.strip() for p in filter_str.split("&&") if p.strip()]
+    specs = []
+    for raw in specs_raw:
+        tokens = raw.split()
+        spec = {}
+        for t in tokens:
+            if "=" not in t:
+                continue
+            k, v = t.split("=", 1)
+            k = k.strip().upper()
+            v = v.strip()
+            if k == "ENV":
+                spec["env"] = v
+            elif k == "APP":
+                spec["app"] = v
+            elif k == "SERVICE":
+                spec["service"] = v
+            elif k == "SUBSERVICE":
+                spec["subservice"] = v
+        if "env" in spec:
+            spec["specific"] = ("service" in spec) or ("subservice" in spec)
+            specs.append(spec)
+    return specs
+
 # === Главная точка входа ===
 async def main():
     os.chdir(find_project_root())
@@ -266,28 +299,73 @@ async def main():
     subservice = os.getenv("SUBSERVICE")
     deploy_status = os.getenv("DEPLOY_STATUS")
     start_at_task = os.getenv("START_AT_TASK")
+    filter_expr = os.getenv("FILTER")
 
-    all_matches = find_matching_services(env, app, service, subservice=subservice)
+    if filter_expr:
+        specs = parse_filter_specs(filter_expr)
+        if not specs:
+            print("⚠️ FILTER provided but no valid specs parsed. Falling back to single ENV/APP/SERVICE logic.")
+            all_matches = find_matching_services(env, app, service, subservice=subservice)
+            multi_mode = False
+        else:
+            multi_mode = True
+            combined = []
+            seen_paths = set()
+            for spec in specs:
+                ms = find_matching_services(spec.get("env"), spec.get("app"), spec.get("service"), subservice=spec.get("subservice"))
+                for m in ms:
+                    key = str(m["path"].resolve())
+                    if key not in seen_paths:
+                        new_m = dict(m)
+                        new_m["source_specific"] = spec["specific"]
+                        combined.append(new_m)
+                        seen_paths.add(key)
+            # --- Minimal addition: warn about unmatched SPECs (service/subservice explicitly requested but not found) ---
+            for spec in specs:
+                if spec.get("specific"):
+                    found = any(
+                        m["env"] == spec.get("env")
+                        and m["app"] == spec.get("app")
+                        and m["service"] == spec.get("service")
+                        and ( (spec.get("subservice") is None and m.get("subservice") is None)
+                              or (spec.get("subservice") == m.get("subservice")) )
+                        for m in combined
+                    )
+                    if not found:
+                        print(f"⚠️ FILTER spec has no match: ENV={spec.get('env')} APP={spec.get('app')} SERVICE={spec.get('service')} SUBSERVICE={spec.get('subservice')}")
+            all_matches = combined
+    else:
+        multi_mode = False
+        all_matches = find_matching_services(env, app, service, subservice=subservice)
+
     if not all_matches:
         print("⚠️ No matching services for deploy.")
         return
 
     initial_matches = []
     is_specific_request = service is not None or subservice is not None
-    
-    print("\n==========================================================================================================================\n")
-    for m in all_matches:
-        playbook_path = m["path"] / "playbook.yml"
-        metadata = extract_metadata(playbook_path)
-        m["metadata"] = metadata
-        
-        # Фильтрация:
-        if not is_specific_request and metadata["skip"]:
-            print(f" - {build_group_name(m['env'], m['app'], m['service'], m.get('subservice'))} (skip: True)")
-            continue
-            
-        initial_matches.append(m)
 
+    print("\n==========================================================================================================================\n")
+    if not multi_mode:
+        for m in all_matches:
+            playbook_path = m["path"] / "playbook.yml"
+            metadata = extract_metadata(playbook_path)
+            m["metadata"] = metadata
+            
+            if not is_specific_request and metadata["skip"]:
+                print(f" - {build_group_name(m['env'], m['app'], m['service'], m.get('subservice'))} (skip: True)")
+                continue
+                
+            initial_matches.append(m)
+    else:
+        for m in all_matches:
+            playbook_path = m["path"] / "playbook.yml"
+            metadata = extract_metadata(playbook_path)
+            m["metadata"] = metadata
+            if (not m.get("source_specific")) and metadata["skip"]:
+                print(f" - {build_group_name(m['env'], m['app'], m['service'], m.get('subservice'))} (skip: True via FILTER segment)")
+                continue
+            initial_matches.append(m)
 
     if not initial_matches:
         print("⚠️ No matching services found for initial deploy after filtering.")
