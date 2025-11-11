@@ -190,18 +190,18 @@ cache:
     - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | tail -c 17)"
     
 
-# check_secrets:
-#   stage: check_secrets
-#   image: frolvlad/alpine-bash
-#   interruptible: true
-#   variables:
-#     GIT_DEPTH: 0
-#   before_script: 
-#     - !reference [.install_default_deps, before_script]
-#   script:
-#     - make check_secrets
-#   rules:
-#     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
+check_secrets:
+  stage: check_secrets
+  image: frolvlad/alpine-bash
+  interruptible: true
+  variables:
+    GIT_DEPTH: 0
+  before_script: 
+    - !reference [.install_default_deps, before_script]
+  script:
+    - make check_secrets
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
 create_dev:
@@ -218,9 +218,9 @@ create_dev:
     - !reference [.terragrunt_config, script]
     - |
       terragrunt apply --all --non-interactive -lock=false -auto-approve --experiment-mode --working-dir="${WORK_DIR}" \
-                       --filter='/**/infra*/dev/**/home/atlas'                                                          \
+                       --filter='/**/infra*/dev/**/home/**'                                                             \
                     #  --filter="[HEAD^1]" 
-  # needs: [check_secrets]
+  needs: [check_secrets]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
