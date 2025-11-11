@@ -28,7 +28,7 @@ locals {
 inputs = {
   # MAIN
   dev_url               = "docker://postgres/17/test"                                                                                                       # docker://db_engine/db_version/db_name
-  url                   = "${dependency.postgresql.outputs.db_engine}://${dependency.postgresql.outputs.db_login}:${dependency.postgresql.outputs.db_password}@${dependency.postgresql.outputs.cluster_master_fqdn}:${dependency.postgresql.outputs.db_port}/${dependency.postgresql.outputs.db_name}?sslmode=verify-full&sslrootcert=${local.work_dir}/secrets/not_secrets/root.crt"
+  url                   = "${dependency.postgresql.outputs.db_engine}://${dependency.postgresql.outputs.db_login}:${dependency.postgresql.outputs.db_password}@${dependency.postgresql.outputs.cluster_master_fqdn}:${dependency.postgresql.outputs.db_port}/${dependency.postgresql.outputs.db_name}?sslmode=verify-full&sslrootcert=./secrets/not_secrets/root.crt"
   src                   = file("${get_terragrunt_dir()}/schema.pg.hcl")
   concurrent_index = {
     create              = true
