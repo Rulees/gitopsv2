@@ -35,8 +35,6 @@ RES_TYPES=(
   "dns zone"
   "certificate-manager certificate"
   "compute disk"
-  "transfer endpoint"
-  "transfer config"
 )
 
 JQ_FILTER=$'.[]? | select(.created_at >= $T) | {type:$TYPE,id:.id}'
@@ -64,9 +62,7 @@ supports_async() {
     | "serverless container" \
     | "dns zone" \
     | "certificate-manager certificate" \
-    | "compute disk" \
-    | "transfer endpoint" \
-    | "transfer config")
+    | "compute disk")
       return 0 ;;
     *) return 1 ;;
   esac
@@ -115,8 +111,6 @@ for O in "${ITEMS[@]}"; do
     "serverless container")            CMD="yc serverless container delete --id $ID" ;;
     "iot-core registry")               CMD="yc iot-core registry delete --id $ID" ;;
     "compute disk")                    CMD="yc compute disk delete --id $ID" ;;
-    "transfer endpoint")               CMD="yc transfer endpoint delete --id $ID" ;;
-    "transfer config")                 CMD="yc transfer config delete --id $ID" ;;
   esac
 
   if [[ -z $CMD ]]; then
