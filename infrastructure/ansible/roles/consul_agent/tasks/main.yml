@@ -26,6 +26,14 @@
         }
       }
 
+- name: "[Canary releases] Write release hash file"
+  copy:
+    dest: /opt/release_hash
+    content: "{{ release_version }}"
+    owner: root
+    group: root
+    mode: '0644'
+    
 
 - name: Set Consul server IP
   set_fact:
