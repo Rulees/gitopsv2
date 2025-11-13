@@ -37,6 +37,37 @@
       }
   loop: "{{ services }}"
 
+- name: "[CANARY] Override IP upstream with weighted version"
+  when: item.canary_enabled | default(false)
+  copy:
+    dest: "/opt/consul-template/templates/{{ item.upstream_name }}-nginx-ip-upstream.ctmpl"
+    content: |
+      {{ '{{' }} $svc := service "{{ item.service_name }}" {{ '}}' }}
+      {{ '{{' }} $current    := or (key (print "deploy/{{ item.service_name }}/current_version")) "" {{ '}}' }}
+      {{ '{{' }} $candidate  := or (key (print "deploy/{{ item.service_name }}/candidate_version")) "" {{ '}}' }}
+      {{ '{{' }} $stable_w   := or (key (print "deploy/{{ item.service_name }}/stable_weight")) "100" {{ '}}' }}
+      {{ '{{' }} $canary_w   := or (key (print "deploy/{{ item.service_name }}/canary_weight")) "0" {{ '}}' }}
+      upstream {{ item.upstream_name }}_upstream {
+        {{ '{{' }} if gt (len $svc) 0 {{ '}}' }}
+          {{ '{{' }} range $svc {{ '}}' }}
+            {{ '{{' }} $isStable := false {{ '}}' }}
+            {{ '{{' }} $isCanary := false {{ '}}' }}
+            {{ '{{' }} range .ServiceTags {{ '}}' }}
+              {{ '{{' }} if eq . (print "version=" $current) {{ '}}' }}{{ '{{' }} $isStable = true {{ '}}' }}{{ '{{' }} end {{ '}}' }}
+              {{ '{{' }} if and (ne $candidate "") (eq . (print "version=" $candidate)) {{ '}}' }}{{ '{{' }} $isCanary = true {{ '}}' }}{{ '{{' }} end {{ '}}' }}
+            {{ '{{' }} end {{ '}}' }}
+            {{ '{{' }} if $isStable {{ '}}' }}
+              server {{ '{{' }} .Address {{ '}}' }}:{{ '{{' }} .Port {{ '}}' }} weight={{ '{{' }} $stable_w {{ '}}' }};
+            {{ '{{' }} else if $isCanary {{ '}}' }}
+              server {{ '{{' }} .Address {{ '}}' }}:{{ '{{' }} .Port {{ '}}' }} weight={{ '{{' }} $canary_w {{ '}}' }};
+            {{ '{{' }} end {{ '}}' }}
+          {{ '{{' }} end {{ '}}' }}
+        {{ '{{' }} else {{ '}}' }}
+          server 127.0.0.1:65535;
+        {{ '{{' }} end {{ '}}' }}
+      }
+  loop: "{{ services }}"
+
 - name: Add consul-template location file
   copy:
     dest: "/opt/consul-template/templates/{{ item.upstream_name }}-nginx-upstream-location.ctmpl"
@@ -75,7 +106,7 @@
       
       {%- for svc in services %}
       template {
-        source      = "/consul-template/templates/{{ consul_dns_for_upstream | ternary(svc.upstream_name + '-nginx-dns-upstream.ctmpl', svc.upstream_name + '-nginx-ip-upstream.ctmpl') }}"
+        source      = "/consul-template/templates/{% if svc.canary_enabled | default(false) %}{{ svc.upstream_name }}-nginx-ip-upstream.ctmpl{% else %}{{ consul_dns_for_upstream | ternary(svc.upstream_name + '-nginx-dns-upstream.ctmpl', svc.upstream_name + '-nginx-ip-upstream.ctmpl') }}"
       
         destination = "/consul-template/output/{{ svc.upstream_name }}-upstream.conf"
         command     = "{{ consul_template_reload_command }}"

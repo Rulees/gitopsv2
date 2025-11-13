@@ -21,6 +21,7 @@
         - service_name: service_database
           upstream_name: service_database
           upstream_location_name: service_database
+          canary_enabled: true
         - service_name: monitoring
           upstream_name: monitoring
           upstream_location_name: monitoring

@@ -1,9 +1,12 @@
 consul_version: "1.21.1"
 consul_service_name: "{{ service }}"
 consul_service_port: 8500
-consul_service_tags: ["env={{ env }}", "app={{ app }}", "service={{ service }}"]
+consul_service_tags: ["env={{ env }}", "app={{ app }}", "service={{ service }}", "version={{ release_version }}"]
 consul_check_http: "http://localhost:{{ consul_service_port }}/v1/agent/self"
 consul_check_interval: "10s"
+
+# canary
+release_version: "{{ release_version | default('unknown') }}"
 
 
 

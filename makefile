@@ -2,6 +2,7 @@ ENV ?=
 APP ?=
 SERVICE ?=
 SUBSERVICE ?=
+FILTER ?=
 
 .PHONY: check_secrets decrypt_secrets create deploy approve destroy
 
@@ -16,6 +17,9 @@ create:
 
 deploy:
 	scripts/ci/40-deploy.py $(ENV) $(APP) $(SERVICE)
+
+deploy-canary:
+	scripts/ci/canary/00-main.py $(ENV) $(APP) $(SERVICE)
 
 approve:
 	bash scripts/ci/50-approve.sh

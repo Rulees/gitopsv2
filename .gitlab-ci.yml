@@ -121,6 +121,7 @@ cache:
   script:
 
     - export ANSIBLE_CONFIG=${WORK_DIR}/infrastructure/ansible/ansible.cfg
+    - export RELEASE_HASH=${CI_COMMIT_SHA:0:12} && echo $RELEASE_HASH # for canary
 
     ##
     # INSTALL DOCKER
@@ -188,7 +189,8 @@ cache:
     - make write_terragrunt_output_secrets_to_files # only after remote-backend.env
     - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | head -c 30)"
     - echo "📦 DATABASE_SECRETS             >>>     $(cat ${WORK_DIR}/secrets/dev/home/service_database/.env | tail -c 17)"
-    
+
+
 
 check_secrets:
   stage: check_secrets
@@ -243,6 +245,20 @@ deploy_dev:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
+deploy_dev_canary:
+  stage: deploy_dev
+  image: arkselen/ci:v6
+  services:
+    - name: docker:dind
+  variables:
+    ENV: "dev"
+    SOPS_KEYS: "admin ops dev"
+  script:
+    - !reference [.ansible_config, script]
+    - make deploy-canary FILTER="ENV=dev APP=home SERVICE=service_database"
+  needs: [create_dev]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH'
 
 
 
@@ -298,6 +314,21 @@ deploy_prod:
   needs: [create_prod]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# deploy_prod_canary:
+#   stage: deploy_prod
+#   image: arkselen/ci:v6
+#   services:
+#     - name: docker:dind
+#   variables:
+#     ENV: "prod"
+#     SOPS_KEYS: "admin ops prod"
+#   script:
+#     - !reference [.ansible_config, script]
+#     - make deploy-canary FILTER="ENV=prod APP=home SERVICE=service_database && ENV=prod APP=home SERVICE=service_denispopov"
+#   needs: [create_prod]
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
 
 

@@ -119,10 +119,10 @@ inputs = {
   # AUTO_SCALE_CONFIG
   # ------------- LOW_COST (#1) -----------------
   scheduling_policy_preemptible = true
-  # zones                         = ["a"]         #1
-  zones                         = ["a", "b"]    #2
+  zones                         = ["a"]         #1
+  # zones                         = ["a", "b"]    #2
   # zones                         = ["a", "b", "d"] #3
-  initial_size                  = 2
+  initial_size                  = 1
   cpu_utilization_target        = 70.0
 
 
